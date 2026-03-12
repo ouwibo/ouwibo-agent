@@ -5,8 +5,10 @@ import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Send, Settings, Plus, Terminal as TerminalIcon, Menu, X, Cpu } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 export default function SimpleAgentChat() {
+  const { data: session } = useSession();
   const [messages, setMessages] = useState([
     { 
       role: 'agent', 
@@ -144,12 +146,20 @@ export default function SimpleAgentChat() {
                 <div className="px-4 py-3 text-sm text-zinc-500 hover:bg-white/5 hover:text-zinc-300 rounded-xl cursor-pointer transition-colors truncate">Generate Python Script</div>
               </div>
 
-              <div className="p-4 border-t border-border">
+              <div className="p-4 border-t border-[#1f2937]">
                 <div className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl cursor-pointer transition-all border border-transparent hover:border-white/5">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold border border-primary/20">O</div>
+                  {session?.user?.image ? (
+                    <img src={session.user.image} alt="User" className="w-8 h-8 rounded-full border border-white/20" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-[#ff4d4d]/20 flex items-center justify-center text-[#ff4d4d] text-xs font-bold border border-[#ff4d4d]/20">O</div>
+                  )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold truncate text-zinc-200">@ouwibo</p>
-                    <p className="text-[10px] text-zinc-500 truncate uppercase tracking-widest">Operator</p>
+                    <p className="text-sm font-bold truncate text-zinc-200">
+                      {session?.user?.name || "Guest Operator"}
+                    </p>
+                    <p className="text-[10px] text-zinc-500 truncate uppercase tracking-widest">
+                      {session?.user?.email ? "Authenticated" : "Operator"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -187,7 +197,7 @@ export default function SimpleAgentChat() {
             )}
             
             {messages.map((m, i) => (
-              <MessageBubble key={i} {...m} />
+              <MessageBubble key={i} {...m} session={session} />
             ))}
             
             {isLoading && (
@@ -254,7 +264,7 @@ export default function SimpleAgentChat() {
   );
 }
 
-function MessageBubble({ role, content, provider, time }: any) {
+function MessageBubble({ role, content, provider, time, session }: any) {
   const isAgent = role === 'agent';
   return (
     <motion.div 
@@ -262,16 +272,20 @@ function MessageBubble({ role, content, provider, time }: any) {
       animate={{ opacity: 1, y: 0 }}
       className={`flex gap-4 lg:gap-6 ${!isAgent ? 'justify-end' : 'justify-start'}`}
     >
-      {isAgent && (
+      {isAgent ? (
         <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-base md:text-xl border bg-primary/10 border-primary/20 shadow-neon">
           🦍
+        </div>
+      ) : (
+        <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-base md:text-xl border bg-zinc-900 border-zinc-700 text-zinc-400 overflow-hidden">
+          {session?.user?.image ? <img src={session.user.image} alt="User" /> : '👤'}
         </div>
       )}
       
       <div className={`flex flex-col space-y-1 max-w-[90%] lg:max-w-[80%] ${!isAgent ? 'items-end' : 'items-start'}`}>
         <div className={`flex items-center gap-2 px-1 mb-1 ${!isAgent ? 'flex-row-reverse' : ''}`}>
           <span className="text-xs font-bold text-zinc-300">
-            {isAgent ? 'Ouwibo Agent' : 'You'}
+            {isAgent ? 'Ouwibo Agent' : (session?.user?.name || 'Operator')}
           </span>
           {isAgent && provider && provider !== 'System' && (
             <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-zinc-500 font-mono flex items-center gap-1">
