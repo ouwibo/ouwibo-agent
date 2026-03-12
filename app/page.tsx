@@ -16,7 +16,8 @@ import {
   ChevronRight,
   Info,
   ShieldCheck,
-  Zap
+  Zap,
+  User
 } from 'lucide-react';
 import IntegrationGrid from '@/components/IntegrationGrid';
 import Terminal from '@/components/Terminal';
@@ -25,7 +26,7 @@ import Overview from '@/components/Overview';
 export default function OpenClawClone() {
   const [activeTab, setActiveTab] = useState('chat');
   const [messages, setMessages] = useState([
-    { role: 'agent', content: "Gateway established. Ouwibo Agent is ready to assist.", time: '12:00 PM' }
+    { role: 'agent', content: "Gateway established. Ouwibo Agent is ready to assist.", time: '12:00 PM', provider: 'System' }
   ]);
   const [input, setInput] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -42,7 +43,7 @@ export default function OpenClawClone() {
     if (!input.trim()) return;
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const userMsg = input;
-    setMessages(prev => [...prev, { role: 'user', content: userMsg, time }]);
+    setMessages(prev => [...prev, { role: 'user', content: userMsg, time, provider: 'User' }]);
     setInput("");
     
     try {
@@ -54,14 +55,16 @@ export default function OpenClawClone() {
       const data = await res.json();
       setMessages(prev => [...prev, { 
         role: 'agent', 
-        content: `[NODE: ${data.provider || 'UNKNOWN'}]\n\n${data.reply}`, 
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+        content: data.reply, 
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        provider: data.provider || 'UNKNOWN'
       }]);
     } catch (e) {
       setMessages(prev => [...prev, { 
         role: 'agent', 
         content: "⚠️ Neural link failed. Gateway unreachable.", 
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        provider: 'System Error'
       }]);
     }
   };
@@ -122,7 +125,7 @@ export default function OpenClawClone() {
             <span className="opacity-20">/</span>
             <span className="flex items-center gap-2">
               <Cpu size={12} />
-              MODEL: GEMINI_1.5_PRO
+              MODEL: MULTI_BRAIN_SYNC
             </span>
           </div>
           <div className="flex items-center gap-4">
@@ -174,7 +177,7 @@ export default function OpenClawClone() {
                     placeholder="Transmit neural command..."
                     className="flex-1 bg-transparent border-none outline-none text-sm py-3 text-zinc-100 placeholder:text-zinc-800"
                   />
-                  <button onClick={handleSend} className="bg-primary hover:bg-primary/90 text-white p-3 rounded-xl transition-all active:scale-95 shadow-neon">
+                  <button onClick={handleSend} className="bg-primary hover:bg-primary/90 text-white p-3 rounded-xl transition-all active:scale-95 shadow-neon flex items-center justify-center">
                     <Send size={18} />
                   </button>
                 </div>
@@ -266,7 +269,7 @@ function InfoCard({ label, value, color = "text-zinc-300" }: any) {
   );
 }
 
-function MessageBubble({ role, content, time }: any) {
+function MessageBubble({ role, content, time, provider }: any) {
   const isAgent = role === 'agent';
   return (
     <motion.div 
@@ -293,7 +296,8 @@ function MessageBubble({ role, content, time }: any) {
             ? 'bg-white/[0.02] border-border text-zinc-200' 
             : 'bg-primary/5 border-primary/20 text-zinc-100 shadow-[0_0_30px_rgba(226,61,40,0.02)]'
         }`}>
-          {content}
+          {isAgent && provider && <div className="text-[8px] mono uppercase text-primary mb-2 tracking-[0.2em] font-black">Node: {provider}</div>}
+          <div className="whitespace-pre-wrap">{content}</div>
         </div>
       </div>
     </motion.div>
