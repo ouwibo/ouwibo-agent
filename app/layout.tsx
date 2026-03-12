@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from 'sonner';
+import { Providers } from './providers';
 import "./globals.css";
 
 const geistSans = Geist({
@@ -31,10 +32,12 @@ export default function RootLayout({
           <div className="nebula" />
           <div className="stars" />
         </div>
-        <div className="relative z-10 h-screen">
-          {children}
-        </div>
-        <Toaster theme="dark" position="bottom-right" />
+        <Providers>
+          <div className="relative z-10 h-screen">
+            {children}
+          </div>
+          <Toaster theme="dark" position="bottom-right" />
+        </Providers>
       </body>
     </html>
   );
