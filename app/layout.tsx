@@ -23,12 +23,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+    <html lang="id" className="scrollbar-hide">
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased relative overflow-hidden`}>
+        {/* OpenClaw Atmospheric Effects */}
+        <div className="fixed inset-0 pointer-events-none z-0">
+          <div className="absolute inset-0 openclaw-gradient" />
+          <div className="scanline" />
+        </div>
+        <div className="relative z-10 h-screen">
+          {children}
+        </div>
       </body>
     </html>
+  );
+}
   );
 }

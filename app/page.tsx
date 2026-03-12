@@ -11,7 +11,6 @@ import {
   MoreVertical,
   Hash,
   Activity,
-  User,
   LayoutDashboard,
   Puzzle,
   ChevronRight,
@@ -55,14 +54,14 @@ export default function OpenClawClone() {
   };
 
   return (
-    <div className="flex h-screen bg-background text-foreground font-mono overflow-hidden selection:bg-primary/30">
+    <div className="flex h-screen bg-transparent text-foreground font-mono overflow-hidden selection:bg-primary/30">
       
       {/* COLUMN 1: NAVIGATION & SESSIONS */}
-      <aside className="w-64 border-r border-border bg-[#080808] flex flex-col hidden xl:flex">
+      <aside className="w-72 border-r border-border bg-[#050505]/60 backdrop-blur-xl flex flex-col hidden xl:flex z-20">
         <div className="p-6 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-black shadow-neon text-xs">O</div>
-            <span className="font-black tracking-tighter uppercase text-sm italic">Ouwibo</span>
+            <span className="font-black tracking-tighter uppercase text-sm italic text-glow">Ouwibo</span>
           </div>
           <button className="p-2 hover:bg-white/5 rounded-lg text-zinc-500 transition-colors">
             <Settings size={16} />
@@ -78,7 +77,7 @@ export default function OpenClawClone() {
 
         <div className="flex-1 overflow-y-auto p-4 border-t border-border mt-4">
           <div className="text-[10px] text-zinc-600 font-black uppercase tracking-[0.2em] mb-4 px-2">Active_Sessions</div>
-          <button className="w-full flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary border border-primary/20 rounded-xl mb-4 group transition-all">
+          <button className="w-full flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary border border-primary/20 rounded-xl mb-4 group transition-all glass-card">
             <Plus size={14} className="group-hover:rotate-90 transition-transform" />
             <span className="text-[10px] font-bold uppercase tracking-tighter italic">New_Session</span>
           </button>
@@ -87,23 +86,23 @@ export default function OpenClawClone() {
         </div>
 
         <div className="p-4 border-t border-border">
-          <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-border group hover:border-primary/20 cursor-pointer transition-all">
+          <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-border group hover:border-primary/20 cursor-pointer transition-all glass-card">
             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">O</div>
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-black truncate text-zinc-300">@ouwibo</p>
-              <p className="text-[8px] text-zinc-600 truncate uppercase">Level: PRIME_ROOT</p>
+              <p className="text-[8px] text-zinc-600 truncate uppercase tracking-widest">PRIME_ROOT</p>
             </div>
           </div>
         </div>
       </aside>
 
       {/* COLUMN 2: MAIN WORKSPACE */}
-      <main className="flex-1 flex flex-col relative bg-background border-r border-border">
+      <main className="flex-1 flex flex-col relative bg-transparent z-10 border-r border-border">
         
         {/* Header Bar */}
-        <header className="h-16 border-b border-border flex items-center justify-between px-8 bg-background/50 backdrop-blur-md z-10">
+        <header className="h-16 border-b border-border flex items-center justify-between px-8 bg-background/20 backdrop-blur-md z-10">
           <div className="flex items-center gap-4 text-[10px] text-zinc-500 font-bold uppercase tracking-[0.1em]">
-            <span className="flex items-center gap-2 text-primary">
+            <span className="flex items-center gap-2 text-primary text-glow">
               <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse shadow-[0_0_8px_#E23D28]" />
               {activeTab.toUpperCase()}_NODE
             </span>
@@ -114,7 +113,7 @@ export default function OpenClawClone() {
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-border text-[9px] mono text-zinc-500">
+            <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-border text-[9px] mono text-zinc-500 glass-card">
               <Activity size={10} className="text-primary" />
               HB: 12MS
             </div>
@@ -126,7 +125,7 @@ export default function OpenClawClone() {
         <div className="flex-1 overflow-y-auto p-6 lg:p-10 scrollbar-hide">
           <AnimatePresence mode="wait">
             {activeTab === 'chat' ? (
-              <motion.div key="chat" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="max-w-4xl mx-auto space-y-8">
+              <motion.div key="chat" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="max-w-4xl mx-auto space-y-8 pb-32">
                 {messages.map((m, i) => (
                   <MessageBubble key={i} {...m} />
                 ))}
@@ -150,16 +149,16 @@ export default function OpenClawClone() {
 
         {/* Chat Input (Only visible in chat tab) */}
         {activeTab === 'chat' && (
-          <div className="p-6 lg:p-10 pt-0 bg-gradient-to-t from-background via-background to-transparent">
+          <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-10 bg-gradient-to-t from-background via-background/90 to-transparent z-20">
             <div className="max-w-4xl mx-auto">
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-transparent rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
-                <div className="relative flex items-center bg-[#0a0a0a] border border-border rounded-2xl p-2 pl-6 focus-within:border-primary/50 transition-all shadow-2xl">
+                <div className="relative flex items-center bg-[#0a0a0a]/80 backdrop-blur-xl border border-border rounded-2xl p-2 pl-6 focus-within:border-primary/50 transition-all shadow-2xl">
                   <input 
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                    placeholder="Command Ouwibo Agent..."
+                    placeholder="Transmit neural command..."
                     className="flex-1 bg-transparent border-none outline-none text-sm py-3 text-zinc-100 placeholder:text-zinc-800"
                   />
                   <button onClick={handleSend} className="bg-primary hover:bg-primary/90 text-white p-3 rounded-xl transition-all active:scale-95 shadow-neon">
@@ -172,8 +171,8 @@ export default function OpenClawClone() {
         )}
       </main>
 
-      {/* COLUMN 3: SYSTEM INTELLIGENCE (OpenClaw Detail Panel) */}
-      <aside className="w-80 bg-[#080808] p-6 hidden 2xl:flex flex-col gap-8">
+      {/* COLUMN 3: SYSTEM INTELLIGENCE */}
+      <aside className="w-80 bg-[#050505]/60 backdrop-blur-xl p-6 hidden 2xl:flex flex-col gap-8 z-20">
         <div>
           <h3 className="text-[10px] font-black uppercase text-zinc-600 tracking-[0.2em] mb-6 flex items-center gap-2">
             <Info size={14} /> System_Intelligence
@@ -190,23 +189,22 @@ export default function OpenClawClone() {
             <ShieldCheck size={14} /> Active_Safeguards
           </h3>
           <div className="space-y-2">
-            <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-border border-l-2 border-l-primary">
+            <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-border border-l-2 border-l-primary glass-card">
               <Zap size={14} className="text-primary" />
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-bold text-zinc-200 uppercase">Rate_Limit_Shield</p>
-                <p className="text-[8px] text-zinc-600 uppercase">Status: Monitoring</p>
+                <p className="text-[10px] font-bold text-zinc-200 uppercase tracking-tighter">Rate_Limit_Shield</p>
+                <p className="text-[8px] text-zinc-600 uppercase">Monitoring_Live</p>
               </div>
             </div>
           </div>
         </div>
 
         <div className="mt-auto">
-          <div className="p-4 bg-primary/5 border border-primary/20 rounded-2xl">
-            <p className="text-[9px] font-black text-primary uppercase mb-2">Build_Manifest</p>
-            <p className="text-[8px] text-zinc-500 leading-relaxed uppercase">
-              OUWIBO_MASTER_V1.0.0<br/>
-              DISTRIBUTED_NEURAL_GATEWAY<br/>
-              STABLE_RELEASE_2026
+          <div className="p-4 bg-primary/5 border border-primary/20 rounded-2xl glass-card">
+            <p className="text-[9px] font-black text-primary uppercase mb-2 tracking-widest">Build_Manifest</p>
+            <p className="text-[8px] text-zinc-500 leading-relaxed uppercase mono">
+              OUWIBO_PRO_V1.0.0<br/>
+              NEURAL_GATEWAY_STABLE
             </p>
           </div>
         </div>
@@ -221,10 +219,10 @@ function NavItem({ icon, label, active = false, onClick }: any) {
     <div 
       onClick={onClick}
       className={`flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer transition-all group ${
-        active ? 'bg-white/5 text-zinc-100 border border-border' : 'text-zinc-600 hover:bg-white/[0.02] hover:text-zinc-400'
+        active ? 'bg-white/5 text-zinc-100 border border-white/10 glass-card' : 'text-zinc-600 hover:bg-white/[0.02] hover:text-zinc-400'
       }`}
     >
-      <div className={`${active ? 'text-primary' : 'text-zinc-800'}`}>
+      <div className={`${active ? 'text-primary' : 'text-zinc-800'} transition-colors`}>
         {icon}
       </div>
       <span className="text-[11px] font-bold tracking-tight uppercase italic">{label}</span>
@@ -235,7 +233,7 @@ function NavItem({ icon, label, active = false, onClick }: any) {
 function SessionItem({ label, active = false, time }: any) {
   return (
     <div className={`flex items-center justify-between px-4 py-2.5 rounded-xl cursor-pointer transition-all group ${
-      active ? 'bg-white/5 text-zinc-100 border border-border' : 'text-zinc-600 hover:bg-white/[0.02] hover:text-zinc-400'
+      active ? 'bg-white/5 text-zinc-100 border border-white/10 glass-card' : 'text-zinc-600 hover:bg-white/[0.02] hover:text-zinc-400'
     }`}>
       <div className="flex items-center gap-3 min-w-0">
         <Hash size={12} className={active ? 'text-primary' : 'text-zinc-800'} />
@@ -248,7 +246,7 @@ function SessionItem({ label, active = false, time }: any) {
 
 function InfoCard({ label, value, color = "text-zinc-300" }: any) {
   return (
-    <div className="bg-white/5 p-4 rounded-xl border border-border group hover:border-white/10 transition-colors">
+    <div className="bg-white/5 p-4 rounded-xl border border-border group hover:border-white/10 transition-all glass-card">
       <p className="text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-1">{label}</p>
       <p className={`text-xs font-bold uppercase italic tracking-tighter ${color}`}>{value}</p>
     </div>
