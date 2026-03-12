@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 import { 
   Settings, 
   Cpu, 
@@ -73,7 +74,7 @@ export default function OuwiboApp() {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-black shadow-neon text-xs">O</div>
             <span className="font-bold tracking-tight uppercase text-sm">Ouwibo</span>
           </div>
-          <button className="p-2 hover:bg-white/5 rounded-lg text-zinc-500 transition-colors">
+          <button onClick={() => toast("Settings module accessed.")} className="p-2 hover:bg-white/5 rounded-lg text-zinc-500 transition-colors">
             <Settings size={16} />
           </button>
         </div>
@@ -85,7 +86,7 @@ export default function OuwiboApp() {
         </nav>
 
         <div className="p-4 border-t border-border">
-          <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-border group hover:border-primary/20 cursor-pointer transition-all glass-card">
+          <div onClick={() => toast.success("Root Administrator verified.")} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-border group hover:border-primary/20 cursor-pointer transition-all glass-card">
             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">O</div>
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-bold truncate text-zinc-300">@ouwibo</p>

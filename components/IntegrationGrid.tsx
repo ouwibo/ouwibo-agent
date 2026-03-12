@@ -2,6 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Zap, Database, Cpu } from 'lucide-react';
+import { toast } from 'sonner';
 
 const integrations = [
   { 
@@ -59,7 +60,12 @@ export default function IntegrationGrid() {
             </div>
             
             <div className="mt-6 pt-4 border-t border-white/5 flex justify-end">
-              <button className="text-[11px] font-bold text-zinc-400 hover:text-white transition-colors">Configure</button>
+              <button 
+                onClick={() => toast.success(`${item.name} configuration opened.`)}
+                className="text-[11px] font-bold text-zinc-400 hover:text-white transition-colors"
+              >
+                Configure
+              </button>
             </div>
           </motion.div>
         ))}

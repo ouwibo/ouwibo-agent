@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from 'sonner';
 import "./globals.css";
 
 const geistSans = Geist({
@@ -24,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className="scrollbar-hide">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased relative overflow-hidden`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased relative overflow-hidden bg-background text-foreground`}>
         {/* OpenClaw Atmospheric Effects */}
         <div className="fixed inset-0 pointer-events-none z-0">
           <div className="absolute inset-0 openclaw-gradient" />
@@ -33,6 +34,7 @@ export default function RootLayout({
         <div className="relative z-10 h-screen">
           {children}
         </div>
+        <Toaster theme="dark" position="bottom-right" />
       </body>
     </html>
   );
