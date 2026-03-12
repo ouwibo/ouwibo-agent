@@ -13,18 +13,14 @@ const config: Config = {
         card: "rgba(255, 255, 255, 0.03)",
         border: "rgba(255, 255, 255, 0.08)",
         primary: {
-          DEFAULT: "#00f0ff", // Electric Cyan
-          lobster: "#e23d28",  // Lobster Red
+          DEFAULT: "#E23D28", // OpenClaw Lobster Red
+          cyan: "#00F0FF",
         },
         muted: "#888888",
       },
       fontFamily: {
         sans: ["Geist", "Inter", "sans-serif"],
         mono: ["Geist Mono", "Fira Code", "monospace"],
-      },
-      backgroundImage: {
-        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "glow": "radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.1), transparent 50%)",
       },
     },
   },
