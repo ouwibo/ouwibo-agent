@@ -1,180 +1,121 @@
 "use client";
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LayoutDashboard, Puzzle, Terminal as TerminalIcon, Settings, Activity, User, ChevronRight } from 'lucide-react';
+import IntegrationGrid from '@/components/IntegrationGrid';
+import Terminal from '@/components/Terminal';
 
-import React, { useState } from "react";
-import { 
-  Terminal, 
-  Settings, 
-  Shield, 
-  Activity, 
-  Zap, 
-  Puzzle,
-  CheckCircle2,
-  AlertCircle,
-  BrainCircuit
-} from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-
-export default function OuwiboApp() {
-  const [activeTab, setActiveTab] = useState("terminal");
+export default function OpenClawClone() {
+  const [activeTab, setActiveTab] = useState('integrations');
 
   return (
-    <div className="flex h-screen bg-[#050505] text-[#ededed] overflow-hidden font-sans">
+    <div className="flex h-screen bg-background text-foreground font-sans overflow-hidden">
       
       {/* Sidebar */}
-      <aside className="w-20 lg:w-64 border-r border-white/5 bg-[#0a0a0a] flex flex-col p-6">
+      <aside className="w-64 border-r border-border bg-[#080808] flex flex-col p-6 hidden lg:flex">
         <div className="flex items-center gap-3 mb-12">
-          <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center text-black font-black shadow-[0_0_20px_rgba(0,242,255,0.3)]">
-            O
-          </div>
-          <div className="hidden lg:block">
-            <h1 className="font-bold text-lg tracking-tighter">OUWIBO</h1>
-            <p className="text-[10px] text-accent mono tracking-widest uppercase">Integrated_AI</p>
-          </div>
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-black font-black shadow-[0_0_15px_rgba(0,240,255,0.2)]">O</div>
+          <h1 className="font-bold text-lg tracking-tight uppercase">Ouwibo Agent</h1>
         </div>
 
-        <nav className="flex-1 w-full space-y-2">
-          <SideItem icon={<Terminal size={20}/>} label="Terminal" active={activeTab === "terminal"} onClick={() => setActiveTab("terminal")} />
-          <SideItem icon={<Puzzle size={20}/>} label="Integrations" active={activeTab === "integrations"} onClick={() => setActiveTab("integrations")} />
-          <SideItem icon={<Shield size={20}/>} label="System Vault" active={activeTab === "vault"} onClick={() => setActiveTab("vault")} />
+        <nav className="flex-1 space-y-1">
+          <NavItem icon={<LayoutDashboard size={18}/>} label="Overview" active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
+          <NavItem icon={<Puzzle size={18}/>} label="Integrations" active={activeTab === 'integrations'} onClick={() => setActiveTab('integrations')} />
+          <NavItem icon={<TerminalIcon size={18}/>} label="Terminal" active={activeTab === 'terminal'} onClick={() => setActiveTab('terminal')} />
+          <NavItem icon={<Settings size={18}/>} label="Configuration" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
         </nav>
 
-        <div className="hidden lg:block pt-6 border-t border-white/5">
-          <div className="flex items-center gap-3 px-4 py-2 bg-accent/5 rounded-xl border border-accent/10">
-            <Activity size={14} className="text-accent animate-pulse" />
-            <span className="text-[10px] mono text-accent tracking-tighter uppercase">Nexus_Stable</span>
+        <div className="pt-6 border-t border-border mt-auto">
+          <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
+            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary"><User size={16}/></div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold truncate">@ouwibo</p>
+              <p className="text-[10px] text-muted truncate">PRIME_ROOT</p>
+            </div>
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 bg-[#050505]">
-        <header className="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-black/20 backdrop-blur-xl">
-          <div className="flex items-center gap-4 text-[10px] mono text-zinc-500 uppercase tracking-widest">
-            <span className="flex items-center gap-2 text-green-500">
-              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_#22c55e]"></div>
-              Link_Established
+      <main className="flex-1 flex flex-col min-w-0">
+        
+        {/* Header Bar */}
+        <header className="h-16 border-b border-border flex items-center justify-between px-8 bg-background/50 backdrop-blur-md sticky top-0 z-10">
+          <div className="flex items-center gap-4 text-[10px] mono text-muted uppercase tracking-widest font-bold">
+            <span className="flex items-center gap-2 text-primary">
+              <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse shadow-[0_0_8px_#00f0ff]" />
+              NETWORK_STABLE
             </span>
-            <span className="opacity-30">/</span>
-            <span>Auth: Operator_Root</span>
+            <span className="opacity-20">/</span>
+            <span>GATEWAY_ACTIVE</span>
           </div>
-          
-          <div className="flex items-center gap-2 bg-zinc-900/50 px-4 py-1.5 rounded-full border border-white/5">
-            <BrainCircuit size={14} className="text-accent" />
-            <span className="text-xs font-bold mono">MULTI_MODEL_SYNC</span>
+          <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-border text-[10px] mono">
+            <Activity size={12} className="text-primary" />
+            HEARTBEAT: 14MS
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-8 lg:p-12">
-          <AnimatePresence mode="wait">
-            {activeTab === "terminal" && <TerminalTab key="term" />}
-            {activeTab === "integrations" && <IntegrationsTab key="int" />}
-          </AnimatePresence>
+        {/* Dynamic Content */}
+        <div className="flex-1 overflow-y-auto p-8 lg:p-12 scrollbar-hide">
+          <div className="max-w-6xl mx-auto space-y-12">
+            
+            {/* Page Title Section */}
+            <div>
+              <div className="flex items-center gap-2 text-[10px] mono text-primary mb-2 font-black uppercase tracking-[0.3em]">
+                System_Node <ChevronRight size={10} /> {activeTab}
+              </div>
+              <h2 className="text-3xl font-black text-zinc-100 uppercase italic tracking-tighter">
+                {activeTab === 'integrations' ? 'Core_Integrations' : 
+                 activeTab === 'terminal' ? 'Neural_Terminal' : 'System_Overview'}
+              </h2>
+              <p className="text-muted text-sm mt-2 max-w-2xl leading-relaxed">
+                Seamlessly connect your autonomous agents to the digital world. Toggle integrations to expand neural capabilities.
+              </p>
+            </div>
+
+            {/* Content Area */}
+            <AnimatePresence mode="wait">
+              {activeTab === 'integrations' && (
+                <motion.div key="int" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <IntegrationGrid />
+                </motion.div>
+              )}
+              {activeTab === 'terminal' && (
+                <motion.div key="term" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-[600px]">
+                  <Terminal />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+          </div>
         </div>
+
+        {/* Footer */}
+        <footer className="h-10 border-t border-border bg-black/20 flex items-center px-8 justify-between text-[9px] mono text-zinc-700 uppercase tracking-widest">
+          <div>Ouwibo Agent // Distributed Systems // Node_01</div>
+          <div className="flex gap-6">
+            <span className="hover:text-zinc-400 cursor-pointer">Documentation</span>
+            <span className="hover:text-zinc-400 cursor-pointer">Security_Audit</span>
+          </div>
+        </footer>
+
       </main>
     </div>
   );
 }
 
-function SideItem({ icon, label, active, onClick }: any) {
+function NavItem({ icon, label, active = false, onClick }: any) {
   return (
     <div 
       onClick={onClick}
-      className={`flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-all ${
-        active ? 'bg-accent/10 text-accent border border-accent/20' : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-300'
+      className={`flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer transition-all duration-200 group ${
+        active ? 'bg-primary/10 text-primary border border-primary/20' : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-300'
       }`}
     >
-      {icon}
-      <span className="text-sm font-semibold hidden lg:block tracking-tight">{label}</span>
+      <div className={`${active ? 'scale-110' : 'group-hover:scale-110'} transition-transform`}>
+        {icon}
+      </div>
+      <span className="text-sm font-bold tracking-tight">{label}</span>
     </div>
-  );
-}
-
-function TerminalTab() {
-  const [input, setInput] = useState("");
-  const [messages, setMessages] = useState([
-    { role: 'agent', content: "Ouwibo Integrated Systems Online. Ready for cross-model commands.", provider: "System" }
-  ]);
-
-  const handleSend = async () => {
-    if(!input) return;
-    const userMsg = input;
-    setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
-    setInput("");
-
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg }),
-      });
-      const data = await res.json();
-      setMessages(prev => [...prev, { role: 'agent', content: data.reply, provider: data.provider }]);
-    } catch (e) {
-      setMessages(prev => [...prev, { role: 'agent', content: "⚠️ Neural link failed. Check configurations.", provider: "Error" }]);
-    }
-  };
-
-  return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="max-w-4xl mx-auto h-full flex flex-col">
-      <div className="flex-1 space-y-6 mb-8 overflow-y-auto scrollbar-hide">
-        {messages.map((m, i) => (
-          <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] p-6 rounded-2xl border ${
-              m.role === 'user' 
-                ? 'bg-zinc-900 border-white/5 rounded-tr-none text-zinc-300' 
-                : 'bg-accent/5 border-accent/20 rounded-tl-none text-zinc-100 shadow-[0_0_30px_rgba(0,242,255,0.03)]'
-            }`}>
-              {m.role === 'agent' && <div className="text-[8px] mono uppercase text-accent mb-2 tracking-[0.2em] font-black">Brain_Node: {m.provider}</div>}
-              <p className="text-sm leading-relaxed whitespace-pre-wrap">{m.content}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="relative group">
-        <input 
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-          placeholder="Command your integrated intelligence..."
-          className="w-full bg-[#0a0a0a] border border-white/10 rounded-2xl py-5 px-8 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all text-sm group-hover:border-white/20 shadow-2xl"
-        />
-        <button onClick={handleSend} className="absolute right-4 top-4 bottom-4 bg-accent text-black font-bold px-8 rounded-xl hover:brightness-110 active:scale-95 transition-all">
-          TRANSMIT
-        </button>
-      </div>
-    </motion.div>
-  );
-}
-
-function IntegrationsTab() {
-  const skills = [
-    { name: "Google Gemini", desc: "Primary brain for logic & structured data", status: "Active", icon: "🌐" },
-    { name: "Mistral AI", desc: "Elite fallback brain for complex reasoning", status: "Active", icon: "💎" },
-    { name: "Hugging Face", desc: "Llama 3.1 & Open Source model gateway", status: "Active", icon: "🤖" },
-    { name: "CoinGecko API", desc: "Real-time market data ingestion", status: "Ready", icon: "📊" },
-    { name: "Telegram Bot", desc: "Instant alert & notification system", status: "Ready", icon: "📱" },
-  ];
-
-  return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="col-span-full mb-6">
-        <h2 className="text-2xl font-bold tracking-tight mb-2 uppercase italic text-zinc-100">Core_Integrations</h2>
-        <p className="text-zinc-500 text-sm">Ouwibo Agent is currently synchronized with the following neural nodes.</p>
-      </div>
-      
-      {skills.map((s, i) => (
-        <div key={i} className="bg-[#0a0a0a] border border-white/5 p-6 rounded-2xl flex items-start gap-6 hover:border-accent/30 transition-all cursor-default">
-          <div className="text-3xl bg-zinc-900 w-14 h-14 rounded-2xl flex items-center justify-center border border-white/5">{s.icon}</div>
-          <div className="flex-1">
-            <div className="flex justify-between items-center mb-1">
-              <h3 className="font-bold text-zinc-100">{s.name}</h3>
-              <span className="text-[10px] mono bg-green-500/10 text-green-400 px-2 py-0.5 rounded-full border border-green-500/20 uppercase font-black tracking-widest">{s.status}</span>
-            </div>
-            <p className="text-xs text-zinc-500 leading-relaxed">{s.desc}</p>
-          </div>
-        </div>
-      ))}
-    </motion.div>
   );
 }
