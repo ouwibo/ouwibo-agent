@@ -38,19 +38,32 @@ export default function OpenClawClone() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setMessages([...messages, { role: 'user', content: input, time }]);
+    const userMsg = input;
+    setMessages(prev => [...prev, { role: 'user', content: userMsg, time }]);
     setInput("");
     
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMsg }),
+      });
+      const data = await res.json();
       setMessages(prev => [...prev, { 
         role: 'agent', 
-        content: "Processing request through neural gateway...", 
+        content: `[NODE: ${data.provider || 'UNKNOWN'}]\n\n${data.reply}`, 
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
       }]);
-    }, 1000);
+    } catch (e) {
+      setMessages(prev => [...prev, { 
+        role: 'agent', 
+        content: "⚠️ Neural link failed. Gateway unreachable.", 
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+      }]);
+    }
   };
 
   return (
