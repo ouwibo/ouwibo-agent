@@ -279,7 +279,7 @@ function MessageBubble({ role, content, time }: any) {
           ? 'bg-primary/10 border-primary/20 text-primary shadow-[0_0_20px_rgba(226,61,40,0.05)]' 
           : 'bg-zinc-900 border-border text-zinc-500'
       }`}>
-        {isAgent ? '🦞' : '👤'}
+        {isAgent ? '🦍' : '👤'}
       </div>
       <div className={`flex flex-col space-y-2 max-w-2xl ${!isAgent ? 'items-end' : ''}`}>
         <div className="flex items-center gap-3 px-1">
