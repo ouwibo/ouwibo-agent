@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OUWIBO AGENT | THE FUTURE OF AI",
-  description: "Autonomous Neural Gateway Infrastructure",
+  title: "OUWIBO AGENT | ELITE AI",
+  description: "Professional Autonomous Neural Gateway",
 };
 
 export default function RootLayout({
@@ -24,12 +24,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className="scrollbar-hide">
+    <html lang="en" className="scrollbar-hide">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased relative overflow-hidden bg-background text-foreground`}>
         {/* OpenClaw Atmospheric Effects */}
         <div className="fixed inset-0 pointer-events-none z-0">
-          <div className="absolute inset-0 openclaw-gradient" />
-          <div className="scanline" />
+          <div className="nebula" />
+          <div className="stars" />
         </div>
         <div className="relative z-10 h-screen">
           {children}

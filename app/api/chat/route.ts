@@ -85,10 +85,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ reply: "No message provided." }, { status: 400 });
     }
 
-    const history = messages.slice(0, -1).map((msg: any) => ({
-      role: msg.role === "agent" ? "model" : "user",
-      parts: [{ text: msg.content || " " }],
-    }));
+    const history = messages
+      .slice(0, -1)
+      .filter((msg: any) => msg.content && msg.content.trim() !== "")
+      .map((msg: any) => ({
+        role: msg.role === "agent" ? "model" : "user",
+        parts: [{ text: msg.content }],
+      }));
 
     const lastMessage = messages[messages.length - 1].content;
     const systemPrompt = "You are Ouwibo Agent (OUWIBO_MASTER_01), an elite autonomous AI. You have access to real-time web search and live cryptocurrency prices via your tools. Always use tools when asked for real-time data or prices. Respond professionally and technically using Markdown.";
