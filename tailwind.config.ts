@@ -10,18 +10,22 @@ const config: Config = {
       colors: {
         background: "#050505",
         foreground: "#ededed",
-        card: "rgba(255, 255, 255, 0.03)",
-        border: "rgba(255, 255, 255, 0.08)",
+        card: "rgba(255, 255, 255, 0.02)",
+        border: "rgba(255, 255, 255, 0.06)",
         primary: {
           DEFAULT: "#E23D28", // OpenClaw Lobster Red
-          cyan: "#00F0FF",
+          hover: "#ff4d3d",
         },
-        muted: "#888888",
+        secondary: "#0a0a0a",
+        muted: "#666666",
       },
       fontFamily: {
         sans: ["Geist", "Inter", "sans-serif"],
         mono: ["Geist Mono", "Fira Code", "monospace"],
       },
+      boxShadow: {
+        'neon': '0 0 20px rgba(226, 61, 40, 0.15)',
+      }
     },
   },
   plugins: [],
