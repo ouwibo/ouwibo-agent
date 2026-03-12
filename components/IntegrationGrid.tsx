@@ -21,27 +21,27 @@ import {
 const integrations = [
   // --- CHANNELS ---
   { group: 'Channels', items: [
-    { id: 'whatsapp', name: 'WhatsApp', desc: 'Secure mobile gateway', icon: <MessageSquare />, status: 'ready' },
-    { id: 'discord', name: 'Discord', desc: 'Community & bot link', icon: <Terminal />, status: 'ready' },
-    { id: 'slack', name: 'Slack', desc: 'Enterprise workplace', icon: <Slack />, status: 'ready' },
+    { id: 'whatsapp', name: 'WhatsApp', desc: 'Secure mobile gateway', icon: <MessageSquare size={20} />, status: 'ready' },
+    { id: 'discord', name: 'Discord', desc: 'Community & bot link', icon: <Terminal size={20} />, status: 'ready' },
+    { id: 'slack', name: 'Slack', desc: 'Enterprise workplace', icon: <Slack size={20} />, status: 'ready' },
   ]},
   // --- BRAIN NODES ---
   { group: 'Brains', items: [
-    { id: 'gemini', name: 'Gemini Pro', desc: 'Primary reasoning engine', icon: <Zap className="text-primary" />, status: 'active' },
-    { id: 'mistral', name: 'Mistral Large', desc: 'Complex problem solver', icon: <Database />, status: 'active' },
-    { id: 'hf', name: 'Hugging Face', desc: 'OSS model repository', icon: <Cpu />, status: 'active' },
+    { id: 'gemini', name: 'Gemini Pro', desc: 'Primary reasoning engine', icon: <Zap size={20} className="text-primary" />, status: 'active' },
+    { id: 'mistral', name: 'Mistral Large', desc: 'Complex problem solver', icon: <Database size={20} />, status: 'active' },
+    { id: 'hf', name: 'Hugging Face', desc: 'OSS model repository', icon: <Cpu size={20} />, status: 'active' },
   ]},
   // --- UTILITIES ---
   { group: 'Toolkits', items: [
-    { id: 'web', name: 'Web Explorer', desc: 'Real-time browsing', icon: <Globe />, status: 'active' },
-    { id: 'github', name: 'GitHub Agent', desc: 'Code repository access', icon: <Github />, status: 'ready' },
-    { id: 'shell', name: 'Safe Shell', desc: 'Command execution', icon: <Code2 />, status: 'locked' },
+    { id: 'web', name: 'Web Explorer', desc: 'Real-time browsing', icon: <Globe size={20} />, status: 'active' },
+    { id: 'github', name: 'GitHub Agent', desc: 'Code repository access', icon: <Github size={20} />, status: 'ready' },
+    { id: 'shell', name: 'Safe Shell', desc: 'Command execution', icon: <Code2 size={20} />, status: 'locked' },
   ]},
   // --- SECURITY ---
   { group: 'Security', items: [
-    { id: 'vault', name: 'System Vault', desc: 'Key management', icon: <Lock />, status: 'active' },
-    { id: 'auth', name: 'Auth Node', desc: 'Identity verification', icon: <Fingerprint />, status: 'ready' },
-    { id: 'config', name: 'Global Config', desc: 'Environment setup', icon: <Settings2 />, status: 'active' },
+    { id: 'vault', name: 'System Vault', desc: 'Key management', icon: <Lock size={20} />, status: 'active' },
+    { id: 'auth', name: 'Auth Node', desc: 'Identity verification', icon: <Fingerprint size={20} />, status: 'ready' },
+    { id: 'config', name: 'Global Config', desc: 'Environment setup', icon: <Settings2 size={20} />, status: 'active' },
   ]},
 ];
 
@@ -67,8 +67,8 @@ export default function IntegrationGrid() {
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 
                 <div className="flex justify-between items-start mb-6 relative z-10">
-                  <div className="p-3 bg-white/5 rounded-xl border border-white/5 group-hover:border-primary/20 group-hover:scale-110 transition-all">
-                    {React.cloneElement(item.icon as React.ReactElement, { size: 20 })}
+                  <div className="p-3 bg-white/5 rounded-xl border border-white/5 group-hover:border-primary/20 group-hover:scale-110 transition-all text-zinc-300">
+                    {item.icon}
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <span className={`text-[8px] font-black mono px-2 py-0.5 rounded uppercase tracking-widest border ${
