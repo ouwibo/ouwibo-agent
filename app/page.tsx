@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { 
   Settings, 
   Cpu, 
@@ -38,14 +40,20 @@ export default function OuwiboApp() {
     if (!input.trim()) return;
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const userMsg = input;
-    setMessages(prev => [...prev, { role: 'user', content: userMsg, time, provider: 'User' }]);
+    
+    // Create new array with user message
+    const updatedMessages = [...messages, { role: 'user', content: userMsg, time, provider: 'User' }];
+    setMessages(updatedMessages);
     setInput("");
     
     try {
+      // Map history for API
+      const apiMessages = updatedMessages.map(m => ({ role: m.role, content: m.content }));
+
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg }),
+        body: JSON.stringify({ messages: apiMessages }),
       });
       const data = await res.json();
       setMessages(prev => [...prev, { 
@@ -245,13 +253,15 @@ function MessageBubble({ role, content, time, provider }: any) {
           </span>
           <span className="text-[10px] text-zinc-600">{time}</span>
         </div>
-        <div className={`p-4 rounded-2xl border text-[14px] leading-relaxed ${
+        <div className={`p-4 rounded-2xl border text-[14px] leading-relaxed w-full overflow-x-auto ${
           isAgent 
             ? 'bg-white/[0.02] border-border text-zinc-200' 
             : 'bg-zinc-900 border-zinc-800 text-zinc-100'
         }`}>
           {isAgent && provider && <div className="text-[10px] font-mono text-primary mb-2 opacity-80">Provider: {provider}</div>}
-          <div className="whitespace-pre-wrap">{content}</div>
+          <div className="prose prose-invert max-w-none prose-sm prose-p:leading-relaxed prose-pre:bg-[#0a0e17] prose-pre:border prose-pre:border-border">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+          </div>
         </div>
       </div>
     </motion.div>
