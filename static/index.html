@@ -18,9 +18,7 @@
                 extend: {
                     colors: {
                         background: '#09090b',
-                        sidebar:    '#09090b',
                         card:       '#18181b',
-                        border:     '#27272a',
                         accent:     '#f43f5e',
                     },
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
@@ -37,206 +35,238 @@
         }
         @layer components {
             .sidebar-link {
-                @apply flex items-center gap-3 px-3 py-1.5 rounded-md text-[13px]
-                       transition-colors duration-200 text-zinc-400
-                       hover:bg-zinc-900 hover:text-zinc-100;
+                @apply flex items-center gap-3 px-3 py-2 rounded-lg text-[13px]
+                       font-medium transition-all duration-150 text-zinc-400
+                       hover:bg-zinc-800/60 hover:text-zinc-100 cursor-pointer select-none;
             }
-            .sidebar-link.active { @apply bg-zinc-900 text-zinc-100 border border-zinc-800/50; }
-            .sidebar-label       { @apply px-3 mt-6 mb-2 text-[10px] font-bold text-zinc-500 uppercase tracking-widest; }
-            .dropdown-mock {
-                @apply flex items-center justify-between bg-zinc-900 border border-zinc-800
-                       px-3 py-1.5 rounded-md text-xs text-zinc-300 min-w-[120px]
-                       cursor-pointer hover:bg-zinc-800 transition-colors;
+            .sidebar-link.active {
+                @apply bg-zinc-800/80 text-zinc-100;
+            }
+            .sidebar-label {
+                @apply px-3 pt-5 pb-1.5 text-[10px] font-bold text-zinc-600
+                       uppercase tracking-widest select-none;
+            }
+            .sidebar-link-disabled {
+                @apply flex items-center gap-3 px-3 py-2 rounded-lg text-[13px]
+                       font-medium text-zinc-600 cursor-default select-none;
             }
             .action-btn {
-                @apply w-8 h-8 flex items-center justify-center rounded-md border border-zinc-800
-                       text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100 transition-all;
+                @apply w-8 h-8 flex items-center justify-center rounded-lg
+                       text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200
+                       transition-all duration-150 cursor-pointer;
             }
             /* Chat bubble prose */
-            .chat-prose h1,.chat-prose h2,.chat-prose h3 { @apply font-semibold text-zinc-100 mt-3 mb-1; }
-            .chat-prose h1  { @apply text-base; }
-            .chat-prose h2,.chat-prose h3 { @apply text-sm; }
             .chat-prose p   { @apply text-zinc-300 leading-relaxed mb-2 last:mb-0; }
-            .chat-prose ul,.chat-prose ol { @apply pl-5 mb-2 text-zinc-300 space-y-1; }
+            .chat-prose ul, .chat-prose ol { @apply pl-5 mb-2 text-zinc-300 space-y-1; }
             .chat-prose ul  { @apply list-disc; }
             .chat-prose ol  { @apply list-decimal; }
             .chat-prose a   { @apply text-accent underline hover:opacity-80; }
+            .chat-prose strong { @apply text-zinc-100 font-semibold; }
+            .chat-prose em  { @apply text-zinc-300 italic; }
+            .chat-prose h1,.chat-prose h2,.chat-prose h3 {
+                @apply font-semibold text-zinc-100 mt-3 mb-1;
+            }
+            .chat-prose h1  { @apply text-base; }
+            .chat-prose h2,.chat-prose h3 { @apply text-sm; }
             .chat-prose code {
-                @apply bg-zinc-800 text-emerald-400 px-1 py-0.5 rounded text-[12px] font-mono;
+                @apply bg-zinc-800 text-emerald-400 px-1.5 py-0.5 rounded-md
+                       text-[12px] font-mono;
             }
             .chat-prose pre {
-                @apply bg-zinc-900 border border-zinc-800 rounded-lg p-3 overflow-x-auto my-2;
+                @apply bg-zinc-900 border border-zinc-800 rounded-xl p-4
+                       overflow-x-auto my-3;
             }
-            .chat-prose pre code { @apply bg-transparent text-zinc-300 p-0 text-[12px]; }
-            .chat-prose blockquote { @apply border-l-2 border-zinc-700 pl-3 text-zinc-400 italic my-2; }
-            .chat-prose hr   { @apply border-zinc-800 my-3; }
-            .chat-prose strong { @apply text-zinc-100 font-semibold; }
-            .chat-prose em   { @apply text-zinc-300; }
-            .chat-prose table { @apply w-full text-sm text-left text-zinc-300 my-2; }
-            .chat-prose th   { @apply border border-zinc-700 bg-zinc-900 px-3 py-1.5 font-semibold; }
-            .chat-prose td   { @apply border border-zinc-800 px-3 py-1.5; }
+            .chat-prose pre code { @apply bg-transparent text-zinc-300 p-0; }
+            .chat-prose blockquote {
+                @apply border-l-2 border-zinc-700 pl-3 text-zinc-400 italic my-2;
+            }
+            .chat-prose hr     { @apply border-zinc-800 my-3; }
+            .chat-prose table  { @apply w-full text-sm text-left text-zinc-300 my-2; }
+            .chat-prose th     { @apply border border-zinc-700 bg-zinc-900 px-3 py-1.5 font-semibold; }
+            .chat-prose td     { @apply border border-zinc-800 px-3 py-1.5; }
         }
     </style>
 </head>
 <body class="flex h-screen w-screen">
 
-    <!-- =======================================================================
+    <!-- =====================================================================
          SIDEBAR
-    ======================================================================= -->
+    ===================================================================== -->
     <aside
+        id="sidebar"
         role="navigation"
-        aria-label="Sidebar navigasi"
-        class="w-64 border-r border-zinc-800 flex flex-col shrink-0"
+        aria-label="Navigasi utama"
+        class="w-60 border-r border-zinc-800/70 flex flex-col shrink-0 transition-all duration-300 overflow-hidden"
     >
-        <!-- Logo -->
-        <div class="p-4 flex items-center justify-between">
-            <a href="/" class="flex items-center gap-2">
-                <div class="w-8 h-8 flex items-center justify-center">
-                    <i class="fa-solid fa-robot text-accent text-lg" aria-hidden="true"></i>
+        <!-- Brand -->
+        <div class="px-4 py-4 flex items-center justify-between border-b border-zinc-800/50">
+            <a href="/" class="flex items-center gap-2.5 min-w-0">
+                <div class="w-7 h-7 rounded-lg bg-accent/10 border border-accent/20
+                            flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-robot text-accent text-xs" aria-hidden="true"></i>
                 </div>
-                <div class="leading-tight">
-                    <div class="text-[9px] font-bold text-zinc-500 tracking-tighter uppercase">CONTROL</div>
-                    <div class="text-sm font-bold tracking-tight">Ouwibo Agent</div>
+                <div class="leading-tight min-w-0">
+                    <div class="text-[11px] font-semibold text-zinc-100 truncate">Ouwibo Agent</div>
+                    <div class="text-[9px] text-zinc-500 uppercase tracking-wider">AI Assistant</div>
                 </div>
             </a>
             <button
                 id="sidebar-toggle"
-                aria-label="Toggle sidebar"
-                class="text-zinc-500 hover:text-zinc-100 transition-colors"
+                aria-label="Tutup sidebar"
+                class="action-btn shrink-0"
             >
-                <i class="fa-solid fa-bars-staggered" aria-hidden="true"></i>
+                <i class="fa-solid fa-sidebar-flip text-[11px]" aria-hidden="true"></i>
             </button>
         </div>
 
         <!-- Nav -->
-        <div class="flex-1 overflow-y-auto px-2">
-            <div class="sidebar-label" data-i18n="nav.section.chat">Chat</div>
+        <div class="flex-1 overflow-y-auto px-2 py-2">
 
-            <a href="/" class="sidebar-link active" aria-current="page">
-                <i class="fa-regular fa-message w-4" aria-hidden="true"></i>
-                <span data-i18n="nav.chat">Chat</span>
-            </a>
+            <!-- New chat button -->
             <button
                 id="new-chat-btn"
-                aria-label="Mulai percakapan baru"
-                class="sidebar-link w-full text-left mt-0.5"
+                class="flex items-center gap-2.5 w-full px-3 py-2 mb-1 rounded-lg
+                       border border-zinc-700/50 text-[13px] font-medium text-zinc-300
+                       hover:bg-zinc-800/60 hover:text-zinc-100 hover:border-zinc-600/50
+                       transition-all duration-150 cursor-pointer"
             >
-                <i class="fa-solid fa-plus w-4 text-zinc-500" aria-hidden="true"></i>
-                <span data-i18n="nav.new_chat">Chat Baru</span>
+                <i class="fa-solid fa-plus text-xs text-zinc-400" aria-hidden="true"></i>
+                <span>New Chat</span>
             </button>
-            <a href="/search.html" class="sidebar-link mt-0.5">
-                <i class="fa-solid fa-magnifying-glass w-4 text-zinc-500" aria-hidden="true"></i>
-                <span data-i18n="nav.search">Pencarian</span>
+
+            <div class="sidebar-label">Menu</div>
+
+            <a href="/" class="sidebar-link active" aria-current="page">
+                <i class="fa-regular fa-message text-xs w-4 text-center" aria-hidden="true"></i>
+                <span>Chat</span>
             </a>
 
-            <div class="sidebar-label" data-i18n="nav.section.control">Kontrol</div>
-            <a href="#" class="sidebar-link"><i class="fa-solid fa-chart-line w-4 text-zinc-500"></i> <span data-i18n="nav.overview">Ikhtisar</span></a>
-            <a href="#" class="sidebar-link"><i class="fa-solid fa-plug w-4 text-zinc-500"></i> <span data-i18n="nav.channels">Saluran</span></a>
-            <a href="#" class="sidebar-link"><i class="fa-solid fa-server w-4 text-zinc-500"></i> <span data-i18n="nav.instances">Instansi</span></a>
-            <a href="#" class="sidebar-link"><i class="fa-solid fa-history w-4 text-zinc-500"></i> <span data-i18n="nav.sessions">Sesi</span></a>
-            <a href="#" class="sidebar-link"><i class="fa-solid fa-chart-pie w-4 text-zinc-500"></i> <span data-i18n="nav.usage">Penggunaan</span></a>
-            <a href="#" class="sidebar-link"><i class="fa-solid fa-clock w-4 text-zinc-500"></i> <span data-i18n="nav.cron_jobs">Cron Jobs</span></a>
+            <a href="/search.html" class="sidebar-link">
+                <i class="fa-solid fa-magnifying-glass text-xs w-4 text-center" aria-hidden="true"></i>
+                <span>Search</span>
+            </a>
 
-            <div class="sidebar-label" data-i18n="nav.section.agent">Agent</div>
-            <a href="#" class="sidebar-link"><i class="fa-solid fa-robot w-4 text-zinc-500"></i> <span data-i18n="nav.agents">Agents</span></a>
-            <a href="#" class="sidebar-link"><i class="fa-solid fa-bolt w-4 text-zinc-500"></i> <span data-i18n="nav.skills">Kemampuan</span></a>
-            <a href="#" class="sidebar-link"><i class="fa-solid fa-circle-nodes w-4 text-zinc-500"></i> <span data-i18n="nav.nodes">Node</span></a>
 
-            <div class="sidebar-label" data-i18n="nav.section.settings">Pengaturan</div>
-            <a href="#" class="sidebar-link"><i class="fa-solid fa-sliders w-4 text-zinc-500"></i> <span data-i18n="nav.config">Konfigurasi</span></a>
-            <a href="#" class="sidebar-link"><i class="fa-solid fa-at w-4 text-zinc-500"></i> <span data-i18n="nav.communications">Komunikasi</span></a>
-            <a href="#" class="sidebar-link"><i class="fa-solid fa-wand-magic-sparkles w-4 text-zinc-500"></i> <span data-i18n="nav.appearance">Tampilan</span></a>
-            <a href="#" class="sidebar-link"><i class="fa-solid fa-gear w-4 text-zinc-500"></i> <span data-i18n="nav.automation">Otomasi</span></a>
-            <a href="#" class="sidebar-link"><i class="fa-solid fa-terminal w-4 text-zinc-500"></i> <span data-i18n="nav.debug">Debug</span></a>
         </div>
 
         <!-- Footer -->
-        <div class="p-3 border-t border-zinc-800 space-y-2">
-            <!-- Language Switcher (populated by i18n.js) -->
+        <div class="px-2 pb-3 pt-2 border-t border-zinc-800/50 space-y-2">
+            <!-- Language Switcher -->
             <div id="lang-switcher"></div>
 
-            <div class="flex items-center gap-2">
-                <i class="fa-solid fa-file-lines text-zinc-500 text-xs" aria-hidden="true"></i>
-                <span class="text-xs text-zinc-400" data-i18n="nav.docs">Dokumentasi</span>
-            </div>
-            <div class="flex items-center justify-between bg-zinc-900/50 px-2 py-1.5 rounded-lg border border-zinc-800/50">
-                <div class="flex items-center gap-2">
-                    <div
-                        id="status-dot"
-                        class="w-1.5 h-1.5 rounded-full bg-emerald-500"
-                        role="status"
-                        aria-label="System aktif"
-                    ></div>
-                    <span class="text-[9px] font-bold text-zinc-500 uppercase" data-i18n="nav.system_active">Sistem Aktif</span>
-                </div>
+            <!-- Status -->
+            <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-900/40 border border-zinc-800/40">
+                <div
+                    id="status-dot"
+                    class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"
+                    role="status"
+                ></div>
+                <span class="text-[11px] text-zinc-500 font-medium">System Active</span>
             </div>
         </div>
     </aside>
 
-    <!-- =======================================================================
-         MAIN
-    ======================================================================= -->
-    <main class="flex-1 flex flex-col relative bg-[#0a0a0a] overflow-hidden" role="main">
+    <!-- =====================================================================
+         SIDEBAR COLLAPSED (icon only)
+    ===================================================================== -->
+    <aside
+        id="sidebar-mini"
+        class="hidden w-14 border-r border-zinc-800/70 flex-col shrink-0 items-center py-3 gap-1"
+        aria-hidden="true"
+    >
+        <button
+            id="sidebar-expand"
+            class="w-8 h-8 flex items-center justify-center rounded-lg
+                   text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200 transition-all mb-2"
+            aria-label="Buka sidebar"
+        >
+            <i class="fa-solid fa-bars text-sm"></i>
+        </button>
+        <a href="/" class="action-btn text-zinc-300" title="Chat">
+            <i class="fa-regular fa-message text-sm"></i>
+        </a>
+        <a href="/search.html" class="action-btn" title="Pencarian">
+            <i class="fa-solid fa-magnifying-glass text-sm"></i>
+        </a>
+        <button id="new-chat-mini" class="action-btn mt-1" title="Chat Baru">
+            <i class="fa-solid fa-plus text-sm"></i>
+        </button>
+    </aside>
 
+    <!-- =====================================================================
+         MAIN
+    ===================================================================== -->
+    <main
+        id="main-area"
+        class="flex-1 flex flex-col overflow-hidden bg-[#0a0a0a]"
+        role="main"
+    >
         <!-- HEADER -->
-        <header class="h-12 flex items-center justify-between px-6 border-b border-zinc-800/50 shrink-0">
-            <div class="flex items-center gap-3 text-xs" aria-label="Breadcrumb">
-                <span class="text-zinc-500">Ouwibo Agent</span>
-                <span class="text-zinc-700" aria-hidden="true">/</span>
-                <span class="text-zinc-100 font-medium" data-i18n="breadcrumb.chat">Chat</span>
+        <header class="h-12 flex items-center justify-between px-4 border-b border-zinc-800/50 shrink-0">
+            <div class="flex items-center gap-2 text-xs">
+                <span class="text-zinc-500 font-medium">Ouwibo Agent</span>
+                <span class="text-zinc-700">/</span>
+                <span class="text-zinc-200 font-semibold">Chat</span>
             </div>
-            <div class="flex items-center gap-4">
-                <div class="relative hidden sm:block">
-                    <label for="header-search" class="sr-only" data-i18n="header.search_ph">Cari</label>
-                    <input
-                        id="header-search"
-                        type="search"
-                        data-i18n-ph="header.search_ph"
-                        placeholder="Cari"
-                        aria-label="Buka pencarian"
-                        class="bg-zinc-900 border border-zinc-800 rounded-md px-3 py-1 text-[11px] w-44
-                               focus:outline-none focus:border-zinc-600 transition-colors cursor-pointer"
-                        readonly
-                        onclick="window.location.href='/search.html'"
-                    >
-                    <span class="absolute right-2 top-1 text-[9px] text-zinc-600 pointer-events-none" aria-hidden="true">⌘K</span>
-                </div>
-                <div class="flex items-center gap-1.5">
-                    <button
-                        id="search-icon-btn"
-                        class="action-btn sm:hidden"
-                        aria-label="Buka pencarian"
-                        onclick="window.location.href='/search.html'"
-                    >
-                        <i class="fa-solid fa-magnifying-glass text-[10px]" aria-hidden="true"></i>
-                    </button>
-                    <button id="refresh-btn" class="action-btn" aria-label="Refresh halaman">
-                        <i class="fa-solid fa-rotate-right text-[10px]" aria-hidden="true"></i>
-                    </button>
-                </div>
+
+            <div class="flex items-center gap-2">
+                <!-- Search shortcut -->
+                <button
+                    onclick="window.location.href='/search.html'"
+                    class="hidden sm:flex items-center gap-2 bg-zinc-900 border border-zinc-800
+                           rounded-lg px-3 py-1.5 text-[11px] text-zinc-500
+                           hover:border-zinc-700 hover:text-zinc-300 transition-all cursor-pointer"
+                    aria-label="Open search"
+                >
+                    <i class="fa-solid fa-magnifying-glass text-[10px]" aria-hidden="true"></i>
+                    <span>Search</span>
+                    <span class="text-[9px] text-zinc-600 border border-zinc-700 rounded px-1">⌘K</span>
+                </button>
+
+                <!-- Mobile search -->
+                <button
+                    onclick="window.location.href='/search.html'"
+                    class="action-btn sm:hidden"
+                    aria-label="Pencarian"
+                >
+                    <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
+                </button>
+
+                <!-- Refresh -->
+                <button id="refresh-btn" class="action-btn" aria-label="Refresh">
+                    <i class="fa-solid fa-rotate-right text-[11px]" aria-hidden="true"></i>
+                </button>
             </div>
         </header>
 
-        <!-- MODEL SELECTION BAR -->
-        <div class="h-14 flex items-center gap-3 px-6 border-b border-zinc-800/30 shrink-0">
-            <div class="dropdown-mock" role="button" aria-haspopup="listbox" aria-label="Pilih branch">
-                <span>main</span>
-                <i class="fa-solid fa-chevron-down text-[10px]" aria-hidden="true"></i>
+        <!-- TOOLBAR -->
+        <div class="h-11 flex items-center justify-between px-4 border-b border-zinc-800/30 shrink-0">
+            <!-- Model badge -->
+            <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5 bg-zinc-900/60 border border-zinc-800/60
+                            rounded-lg px-2.5 py-1 text-[11px] text-zinc-400">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                    <span class="font-medium text-zinc-300">AUTO</span>
+                </div>
             </div>
-            <div class="dropdown-mock min-w-[200px]" role="button" aria-haspopup="listbox" aria-label="Pilih model">
-                <span>AUTO (LLaMA 3.3 / 3.1)</span>
-                <i class="fa-solid fa-chevron-down text-[10px]" aria-hidden="true"></i>
-            </div>
-            <div class="ml-auto flex items-center gap-2">
-                <button id="clear-chat-btn" class="action-btn border-none" aria-label="Reset percakapan">
-                    <i class="fa-solid fa-rotate text-xs" aria-hidden="true"></i>
+
+            <!-- Toolbar actions -->
+            <div class="flex items-center gap-1">
+                <button
+                    id="clear-chat-btn"
+                    class="action-btn"
+                    aria-label="Reset percakapan"
+                    title="Reset percakapan"
+                >
+                    <i class="fa-solid fa-rotate text-[11px]" aria-hidden="true"></i>
                 </button>
-                <div class="h-4 w-px bg-zinc-800 mx-1" aria-hidden="true"></div>
-                <button class="action-btn border-none" aria-label="Perluas tampilan">
-                    <i class="fa-solid fa-expand text-xs" aria-hidden="true"></i>
-                </button>
-                <button class="action-btn border-none" aria-label="Lihat riwayat">
-                    <i class="fa-solid fa-clock-rotate-left text-xs" aria-hidden="true"></i>
+                <button
+                    id="expand-btn"
+                    class="action-btn"
+                    aria-label="Mode layar penuh"
+                    title="Mode layar penuh"
+                >
+                    <i class="fa-solid fa-expand text-[11px]" aria-hidden="true"></i>
                 </button>
             </div>
         </div>
@@ -247,82 +277,74 @@
             role="log"
             aria-live="polite"
             aria-label="Percakapan"
-            class="flex-1 overflow-y-auto p-6 md:p-10 space-y-8 scroll-smooth"
+            class="flex-1 overflow-y-auto px-4 py-6 space-y-6 scroll-smooth"
         >
             <!-- Welcome message -->
-            <div class="max-w-3xl mx-auto w-full flex gap-6" role="article" aria-label="Pesan dari Ouwibo Agent">
-                <div
-                    class="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800
-                           flex items-center justify-center text-zinc-500 shrink-0 mt-0.5"
-                    aria-hidden="true"
-                >
-                    <i class="fa-solid fa-star text-[10px]"></i>
+            <div
+                class="max-w-2xl mx-auto w-full flex gap-4"
+                role="article"
+                aria-label="Pesan dari Ouwibo Agent"
+            >
+                <div class="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800
+                            flex items-center justify-center shrink-0 mt-0.5"
+                     aria-hidden="true">
+                    <i class="fa-solid fa-robot text-accent text-[11px]"></i>
                 </div>
-                <div class="flex-1 space-y-2">
-                    <div class="bg-zinc-900/50 p-4 rounded-xl text-[14px] text-zinc-300 chat-prose">
+                <div class="flex-1 min-w-0 space-y-1.5">
+                    <div class="bg-zinc-900/60 border border-zinc-800/40 px-4 py-3.5
+                                rounded-2xl rounded-tl-sm text-[14px] text-zinc-300 chat-prose">
                         <p>
-                            <strong id="welcome-title" data-i18n="chat.welcome_title">
-                                Ouwibo Agent siap menerima instruksi.
-                            </strong>
+                            <strong>Ouwibo Agent is ready.</strong>
                         </p>
-                        <p id="welcome-body" data-i18n="chat.welcome_body">
-                            Saya dapat membantu pencarian web dan kalkulasi matematika. Bagaimana saya bisa membantu?
+                        <p>
+                            I can help with web search and math calculations. How can I help you today?
                         </p>
                     </div>
-                    <div class="flex items-center gap-3 text-[10px] text-zinc-600 font-medium" aria-hidden="true">
-                        <span data-i18n="chat.assistant">Asisten</span>
-                        <span class="text-zinc-700">·</span>
-                        <span class="bg-zinc-900 px-1.5 py-0.5 rounded border border-zinc-800">AUTO</span>
+                    <div class="flex items-center gap-2 px-1 text-[11px] text-zinc-600"
+                         aria-hidden="true">
+                        <span>Assistant</span>
+                        <span>·</span>
+                        <span class="bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded-md text-[10px]">AUTO</span>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- INPUT BAR -->
-        <footer class="p-4 md:p-6 pt-0 shrink-0" role="contentinfo">
-            <div class="max-w-4xl mx-auto">
+        <!-- INPUT AREA -->
+        <footer class="px-4 pb-4 pt-2 shrink-0">
+            <div class="max-w-2xl mx-auto">
                 <div
-                    class="bg-[#111113] border border-zinc-800 rounded-2xl p-2
-                           focus-within:border-zinc-600 transition-all shadow-2xl"
+                    class="bg-zinc-900/80 border border-zinc-800 rounded-2xl
+                           focus-within:border-zinc-600 transition-all duration-200 shadow-lg"
                 >
                     <form id="chat-form" novalidate>
-                        <div class="flex items-end gap-2">
-                            <div class="flex items-center gap-1 p-2">
-                                <button
-                                    type="button"
-                                    class="w-8 h-8 text-zinc-500 hover:text-zinc-300 transition-colors"
-                                    aria-label="Lampirkan file"
-                                    disabled
-                                >
-                                    <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
-                                </button>
-                            </div>
-
+                        <div class="flex items-end gap-2 p-2">
+                            <!-- Textarea -->
                             <label for="user-input" class="sr-only" data-i18n="chat.placeholder">Ketik pesan</label>
                             <textarea
                                 id="user-input"
                                 name="message"
-                                data-i18n-ph="chat.placeholder"
-                                placeholder="Ketik pesan… (Enter kirim, Shift+Enter baris baru)"
-                                aria-label="Kotak pesan"
+                                placeholder="Message Ouwibo… (Enter to send, Shift+Enter for new line)"
+                                aria-label="Message box"
                                 autocomplete="off"
                                 rows="1"
-                                class="flex-1 bg-transparent border-none py-3 px-2 focus:outline-none
-                                       text-[14px] resize-none min-h-[44px] max-h-60 placeholder-zinc-600"
+                                class="flex-1 bg-transparent border-none py-2 px-2
+                                       focus:outline-none text-[14px] resize-none
+                                       min-h-[40px] max-h-52 placeholder-zinc-600 leading-relaxed"
                             ></textarea>
 
-                            <div class="flex items-center gap-2 p-2">
-                                <button
-                                    type="submit"
-                                    id="send-btn"
-                                    aria-label="Kirim pesan"
-                                    class="w-8 h-8 bg-accent text-white rounded-lg flex items-center
-                                           justify-center hover:opacity-90 active:scale-95 transition-all
-                                           disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100"
-                                >
-                                    <i id="send-icon" class="fa-solid fa-arrow-up text-xs" aria-hidden="true"></i>
-                                </button>
-                            </div>
+                            <!-- Send button -->
+                            <button
+                                type="submit"
+                                id="send-btn"
+                                aria-label="Kirim pesan"
+                                class="w-8 h-8 bg-accent text-white rounded-xl flex items-center
+                                       justify-center hover:opacity-90 active:scale-95 transition-all
+                                       disabled:opacity-30 disabled:cursor-not-allowed disabled:scale-100
+                                       shrink-0 mb-0.5"
+                            >
+                                <i id="send-icon" class="fa-solid fa-arrow-up text-xs" aria-hidden="true"></i>
+                            </button>
                         </div>
 
                         <!-- Error bar -->
@@ -330,27 +352,22 @@
                             id="error-bar"
                             role="alert"
                             aria-live="assertive"
-                            class="hidden mx-2 mb-2 px-3 py-2 rounded-lg bg-red-950/60 border
-                                   border-red-800/50 text-red-400 text-[12px] items-center gap-2"
+                            class="hidden items-center gap-2 mx-2 mb-2 px-3 py-2 rounded-xl
+                                   bg-red-950/50 border border-red-900/40 text-red-400 text-[12px]"
                         >
-                            <i class="fa-solid fa-circle-exclamation shrink-0" aria-hidden="true"></i>
+                            <i class="fa-solid fa-circle-exclamation shrink-0 text-[11px]" aria-hidden="true"></i>
                             <span id="error-text"></span>
                         </div>
                     </form>
                 </div>
 
-                <p
-                    id="footer-disclaimer"
-                    class="text-center text-[10px] text-zinc-700 mt-2"
-                    data-i18n="chat.footer"
-                >
-                    Ouwibo Agent dapat membuat kesalahan. Verifikasi informasi penting secara mandiri.
+                <p class="text-center text-[10px] text-zinc-700 mt-2 select-none">
+                    Ouwibo Agent can make mistakes. Verify important information independently.
                 </p>
             </div>
         </footer>
     </main>
 
-    <!-- i18n must load before script.js -->
     <script src="i18n.js"></script>
     <script src="script.js"></script>
 </body>

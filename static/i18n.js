@@ -472,7 +472,7 @@
   };
 
   // ── Engine ────────────────────────────────────────────────────────────────
-  let _lang = localStorage.getItem('ouwibo_lang') || 'id';
+  let _lang = localStorage.getItem('ouwibo_lang') || 'en';
 
   function t(key, vars) {
     const src = T[_lang] || T.en;
