@@ -89,11 +89,9 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 # Groq Client
 # ---------------------------------------------------------------------------
-_api_key = os.getenv("GROQ_API_KEY")
+_api_key = os.getenv("API_KEY") or os.getenv("GROQ_API_KEY")
 if not _api_key:
-    raise RuntimeError(
-        "GROQ_API_KEY belum di-set. Tambahkan ke file .env atau environment variable."
-    )
+    raise RuntimeError("API_KEY belum di-set. Tambahkan ke file .env.")
 
 groq_client = Groq(api_key=_api_key)
 logger.info("Groq client berhasil diinisialisasi.")

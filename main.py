@@ -5,7 +5,7 @@ import os
 import sys
 
 from dotenv import load_dotenv
-from groq import Groq
+from groq import Groq  # type: ignore[import-untyped]
 
 from ouwibo_agent.agent import Agent
 
@@ -20,10 +20,10 @@ def setup_logging(verbose: bool = False) -> None:
 
 
 def build_client() -> Groq:
-    api_key = os.getenv("GROQ_API_KEY")
+    api_key = os.getenv("API_KEY") or os.getenv("GROQ_API_KEY")
     if not api_key:
         logging.error(
-            "GROQ_API_KEY belum di-set. "
+            "API_KEY belum di-set. "
             "Tambahkan ke file .env atau set sebagai environment variable."
         )
         sys.exit(1)
