@@ -69,3 +69,4 @@ worker-configuration.d.ts
 # --- Misc ---
 *.bak
 *.tmp
+.vercel

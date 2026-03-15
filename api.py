@@ -3,6 +3,7 @@ import logging
 import os
 import time
 
+import httpx
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Request, Security
 from fastapi import Query as QueryParam
@@ -94,7 +95,13 @@ _api_key = os.getenv("API_KEY") or os.getenv("GROQ_API_KEY")
 if not _api_key:
     raise RuntimeError("API_KEY belum di-set. Tambahkan ke file .env.")
 
-groq_client = Groq(api_key=_api_key)
+groq_client = Groq(
+    api_key=_api_key,
+    http_client=httpx.Client(
+        timeout=httpx.Timeout(55.0, connect=10.0),
+        follow_redirects=True,
+    ),
+)
 logger.info("Groq client berhasil diinisialisasi.")
 
 
