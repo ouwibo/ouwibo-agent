@@ -1,31 +1,33 @@
 # ============================================================
-# Ouwibo Agent — Cloudflare Pages (wrangler.toml)
-# Static frontend on Cloudflare CDN
-# API requests proxied → Vercel backend
+# Ouwibo Agent — Cloudflare Worker
+# Deployed at: agent.ouwibo.workers.dev
 # ============================================================
 
-name        = "ouwibo-agent"
-compatibility_date = "2024-09-23"
-
-# ── Pages config ─────────────────────────────────────────────
-pages_build_output_dir = "../static"
+name                = "agent"
+main                = "worker.js"
+compatibility_date  = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
 
 # ── Environment variables ─────────────────────────────────────
-# Set VERCEL_URL in Cloudflare Pages dashboard → Settings → Environment variables
-# Example: https://ouwibo-agent.vercel.app
+# Set VERCEL_URL in Cloudflare dashboard:
+#   Workers & Pages → agent → Settings → Variables and Secrets
 [vars]
-VERCEL_URL = ""
+VERCEL_URL = "https://ouwibo-agent.vercel.app"
 
-# ── Production environment ────────────────────────────────────
+# ── Production ────────────────────────────────────────────────
 [env.production]
-name = "ouwibo-agent"
+name = "agent"
 
 [env.production.vars]
-VERCEL_URL = ""   # fill in after first Vercel deploy
+VERCEL_URL = "https://ouwibo-agent.vercel.app"
 
-# ── Preview environment ───────────────────────────────────────
+# ── Preview / staging ─────────────────────────────────────────
 [env.preview]
-name = "ouwibo-agent-preview"
+name = "agent-preview"
 
 [env.preview.vars]
-VERCEL_URL = ""   # fill in after first Vercel deploy
+VERCEL_URL = "https://ouwibo-agent.vercel.app"
+
+# ── Observability ─────────────────────────────────────────────
+[observability]
+enabled = true
