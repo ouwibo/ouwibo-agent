@@ -2,6 +2,204 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  // ── Auth ───────────────────────────────────────────────────────────────────
+  const AUTH_TOKEN_KEY = 'ouwibo_access_token';
+
+  function getStoredToken() {
+    return localStorage.getItem(AUTH_TOKEN_KEY) || '';
+  }
+
+  function setStoredToken(token) {
+    if (token) localStorage.setItem(AUTH_TOKEN_KEY, token);
+    else localStorage.removeItem(AUTH_TOKEN_KEY);
+  }
+
+  function clearStoredToken() {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+  }
+
+  /** Build headers object — includes Authorization if token present */
+  function authHeaders(extra = {}) {
+    const token = getStoredToken();
+    const headers = { 'Content-Type': 'application/json', ...extra };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return headers;
+  }
+
+  // ── Auth modal DOM refs ────────────────────────────────────────────────────
+  const authOverlay    = document.getElementById('auth-overlay');
+  const authTokenInput = document.getElementById('auth-token-input');
+  const authSubmitBtn  = document.getElementById('auth-submit-btn');
+  const authError      = document.getElementById('auth-error');
+  const authErrorText  = document.getElementById('auth-error-text');
+  const authToggleBtn  = document.getElementById('auth-token-toggle');
+  const authEyeShow    = document.getElementById('auth-eye-show');
+  const authEyeHide    = document.getElementById('auth-eye-hide');
+  const topbarAuthBadge = document.getElementById('topbar-auth-badge');
+  const topbarAuthLabel = document.getElementById('topbar-auth-label');
+  const topbarAuthIconLock   = document.getElementById('topbar-auth-icon-lock');
+  const topbarAuthIconUnlock = document.getElementById('topbar-auth-icon-unlock');
+
+  let _authEnabled = false; // will be set after /health check
+
+  function showAuthModal(errorMsg) {
+    if (!authOverlay) return;
+    authOverlay.classList.remove('auth-overlay--hidden');
+    if (authError) authError.classList.add('auth-error--hidden');
+    if (errorMsg && authError && authErrorText) {
+      authErrorText.textContent = errorMsg;
+      authError.classList.remove('auth-error--hidden');
+    }
+    if (authTokenInput) {
+      authTokenInput.value = '';
+      setTimeout(() => authTokenInput.focus(), 120);
+    }
+  }
+
+  function hideAuthModal() {
+    if (authOverlay) authOverlay.classList.add('auth-overlay--hidden');
+  }
+
+  function setAuthBadge(authed) {
+    if (!topbarAuthBadge) return;
+    topbarAuthBadge.style.display = 'inline-flex';
+    if (authed) {
+      topbarAuthBadge.classList.add('topbar-auth-badge--authed');
+      if (topbarAuthLabel) topbarAuthLabel.textContent = 'Authenticated';
+      if (topbarAuthIconLock)   topbarAuthIconLock.style.display   = 'none';
+      if (topbarAuthIconUnlock) topbarAuthIconUnlock.style.display = '';
+    } else {
+      topbarAuthBadge.classList.remove('topbar-auth-badge--authed');
+      if (topbarAuthLabel) topbarAuthLabel.textContent = 'Locked';
+      if (topbarAuthIconLock)   topbarAuthIconLock.style.display   = '';
+      if (topbarAuthIconUnlock) topbarAuthIconUnlock.style.display = 'none';
+    }
+  }
+
+  function setAuthSubmitLoading(loading) {
+    if (!authSubmitBtn) return;
+    authSubmitBtn.disabled = loading;
+    authSubmitBtn.classList.toggle('auth-submit--loading', loading);
+  }
+
+  async function verifyAndSaveToken(token) {
+    setAuthSubmitLoading(true);
+    try {
+      const res = await fetch('/auth/verify', {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (res.ok) {
+        setStoredToken(token);
+        hideAuthModal();
+        setAuthBadge(true);
+        return true;
+      } else {
+        const data = await res.json().catch(() => ({}));
+        const msg = data.detail || 'Invalid token. Please try again.';
+        if (authErrorText) authErrorText.textContent = msg;
+        if (authError) authError.classList.remove('auth-error--hidden');
+        clearStoredToken();
+        setAuthBadge(false);
+        return false;
+      }
+    } catch (e) {
+      if (authErrorText) authErrorText.textContent = 'Network error. Please try again.';
+      if (authError) authError.classList.remove('auth-error--hidden');
+      return false;
+    } finally {
+      setAuthSubmitLoading(false);
+    }
+  }
+
+  /** Check /health to know if auth is required, then conditionally show modal */
+  async function initAuth() {
+    try {
+      const res = await fetch('/health');
+      const data = await res.json();
+      _authEnabled = data.auth === true;
+    } catch (_) {
+      _authEnabled = false;
+    }
+
+    if (!_authEnabled) {
+      // Auth is disabled server-side — hide badge, continue normally
+      if (topbarAuthBadge) topbarAuthBadge.style.display = 'none';
+      return;
+    }
+
+    // Auth is enabled — check if we already have a token
+    const existing = getStoredToken();
+    if (existing) {
+      // Silently validate existing token
+      try {
+        const res = await fetch('/auth/verify', {
+          headers: { 'Authorization': `Bearer ${existing}` },
+        });
+        if (res.ok) {
+          setAuthBadge(true);
+          return; // All good
+        }
+      } catch (_) {}
+      // Token invalid — clear and ask again
+      clearStoredToken();
+    }
+
+    setAuthBadge(false);
+    showAuthModal();
+  }
+
+  // Auth modal — toggle password visibility
+  if (authToggleBtn) {
+    authToggleBtn.addEventListener('click', () => {
+      if (!authTokenInput) return;
+      const isPassword = authTokenInput.type === 'password';
+      authTokenInput.type = isPassword ? 'text' : 'password';
+      if (authEyeShow) authEyeShow.style.display = isPassword ? 'none' : '';
+      if (authEyeHide) authEyeHide.style.display = isPassword ? ''     : 'none';
+    });
+  }
+
+  // Auth modal — submit on button click
+  if (authSubmitBtn) {
+    authSubmitBtn.addEventListener('click', async () => {
+      const token = authTokenInput ? authTokenInput.value.trim() : '';
+      if (!token) {
+        if (authErrorText) authErrorText.textContent = 'Please enter your access token.';
+        if (authError) authError.classList.remove('auth-error--hidden');
+        return;
+      }
+      await verifyAndSaveToken(token);
+    });
+  }
+
+  // Auth modal — submit on Enter key
+  if (authTokenInput) {
+    authTokenInput.addEventListener('keydown', async e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const token = authTokenInput.value.trim();
+        if (token) await verifyAndSaveToken(token);
+      }
+    });
+  }
+
+  // Topbar badge — click to re-authenticate (sign out + show modal)
+  if (topbarAuthBadge) {
+    topbarAuthBadge.addEventListener('click', () => {
+      if (!_authEnabled) return;
+      const authed = topbarAuthBadge.classList.contains('topbar-auth-badge--authed');
+      if (authed) {
+        // Sign out
+        clearStoredToken();
+        setAuthBadge(false);
+        showAuthModal();
+      } else {
+        showAuthModal();
+      }
+    });
+  }
+
   // ── Theme Switcher ─────────────────────────────────────────────────────────
   const html = document.documentElement;
   const THEME_KEY = 'ouwibo_theme';
@@ -310,13 +508,12 @@ document.addEventListener('DOMContentLoaded', () => {
       body.appendChild(bubble);
       body.appendChild(meta);
 
-      wrapper.innerHTML = '';
+      const avatar = document.createElement('div');
+      avatar.className = 'message__avatar message__avatar--user';
+      avatar.setAttribute('aria-hidden', 'true');
+      avatar.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:12px;height:12px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
       wrapper.appendChild(body);
-      wrapper.innerHTML += `<div class="message__avatar message__avatar--user" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:12px;height:12px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      </div>`;
-      // re-insert body since innerHTML reset it
-      wrapper.insertBefore(body, wrapper.firstChild);
+      wrapper.appendChild(avatar);
     }
 
     chatMessages.appendChild(wrapper);
@@ -397,11 +594,19 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const res = await fetch('/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({ message: text, session_id: sessionId }),
       });
 
       hideTyping();
+
+      if (res.status === 401) {
+        // Token expired or invalid — clear and prompt re-auth
+        clearStoredToken();
+        setAuthBadge(false);
+        showAuthModal('Session expired. Please enter your access token again.');
+        return;
+      }
 
       if (!res.ok) {
         let detail = `HTTP ${res.status}`;
@@ -449,6 +654,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (window.i18n) window.i18n.buildSwitcher('lang-switcher');
 
   // ── Init ───────────────────────────────────────────────────────────────────
+  initAuth();
   if (userInput) userInput.focus();
   scrollToBottom(false);
 

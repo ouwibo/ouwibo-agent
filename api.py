@@ -4,7 +4,7 @@ import os
 import time
 
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, Security
 from fastapi import Query as QueryParam
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session
 
 import models
 from core.agent import Agent
+from core.auth import auth_enabled, require_auth
 from core.config import MAX_MESSAGE_LENGTH, MAX_SESSION_ID_LENGTH
 from core.tools import WebSearch
 from database import SessionLocal, engine
@@ -121,14 +122,20 @@ class ChatRequest(BaseModel):
 # ---------------------------------------------------------------------------
 @app.get("/health", tags=["System"], summary="Health check")
 async def health_check():
-    return {"status": "ok", "version": "1.0.0"}
+    return {"status": "ok", "version": "1.0.0", "auth": auth_enabled()}
+
+
+@app.get("/auth/verify", tags=["Auth"], summary="Verifikasi token")
+async def verify_token(_: None = Depends(require_auth)):
+    """Endpoint khusus untuk memverifikasi apakah Bearer token valid."""
+    return {"authenticated": True}
 
 
 # ---------------------------------------------------------------------------
 # Endpoints — Tools
 # ---------------------------------------------------------------------------
 @app.get("/tools", tags=["Tools"], summary="Daftar semua skill / tool agent")
-async def list_tools():
+async def list_tools(_: None = Depends(require_auth)):
     """Kembalikan metadata semua tool yang tersedia di agent."""
     from core.tools import ALL_TOOLS
 
@@ -158,6 +165,7 @@ async def global_search(
     max_results: int = QueryParam(
         default=10, ge=1, le=20, description="Jumlah hasil maks"
     ),
+    _: None = Depends(require_auth),
 ):
     """Lakukan pencarian web menggunakan DuckDuckGo dan kembalikan hasil terstruktur."""
     start = time.perf_counter()
@@ -177,7 +185,11 @@ async def global_search(
 # ---------------------------------------------------------------------------
 @app.get("/sessions", tags=["Sessions"], summary="Daftar semua sesi")
 @limiter.limit("60/minute")
-async def list_sessions(request: Request, db: Session = Depends(get_db)):
+async def list_sessions(
+    request: Request,
+    db: Session = Depends(get_db),
+    _: None = Depends(require_auth),
+):
     rows = (
         db.query(models.ChatMessage.session_id)
         .distinct()
@@ -192,7 +204,10 @@ async def list_sessions(request: Request, db: Session = Depends(get_db)):
 )
 @limiter.limit("60/minute")
 async def get_session_history(
-    request: Request, session_id: str, db: Session = Depends(get_db)
+    request: Request,
+    session_id: str,
+    db: Session = Depends(get_db),
+    _: None = Depends(require_auth),
 ):
     messages = (
         db.query(models.ChatMessage)
@@ -220,7 +235,10 @@ async def get_session_history(
 @app.delete("/sessions/{session_id}", tags=["Sessions"], summary="Hapus satu sesi")
 @limiter.limit("30/minute")
 async def delete_session(
-    request: Request, session_id: str, db: Session = Depends(get_db)
+    request: Request,
+    session_id: str,
+    db: Session = Depends(get_db),
+    _: None = Depends(require_auth),
 ):
     deleted_count = (
         db.query(models.ChatMessage)
@@ -241,6 +259,7 @@ async def chat_with_agent(
     request: Request,
     body: ChatRequest,
     db: Session = Depends(get_db),
+    _: None = Depends(require_auth),
 ):
     """Terima pesan, muat riwayat sesi, jalankan agent, simpan hasil."""
     logger.info(f"[/chat] session={body.session_id!r} msg={body.message[:80]!r}")

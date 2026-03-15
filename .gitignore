@@ -61,6 +61,11 @@ logs/
 htmlcov/
 .tox/
 
+# --- Cloudflare / Wrangler ---
+.wrangler/
+.dev.vars
+worker-configuration.d.ts
+
 # --- Misc ---
 *.bak
 *.tmp

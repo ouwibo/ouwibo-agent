@@ -1,0 +1,31 @@
+# ============================================================
+# Ouwibo Agent — Cloudflare Pages (wrangler.toml)
+# Static frontend on Cloudflare CDN
+# API requests proxied → Vercel backend
+# ============================================================
+
+name        = "ouwibo-agent"
+compatibility_date = "2024-09-23"
+
+# ── Pages config ─────────────────────────────────────────────
+pages_build_output_dir = "../static"
+
+# ── Environment variables ─────────────────────────────────────
+# Set VERCEL_URL in Cloudflare Pages dashboard → Settings → Environment variables
+# Example: https://ouwibo-agent.vercel.app
+[vars]
+VERCEL_URL = ""
+
+# ── Production environment ────────────────────────────────────
+[env.production]
+name = "ouwibo-agent"
+
+[env.production.vars]
+VERCEL_URL = ""   # fill in after first Vercel deploy
+
+# ── Preview environment ───────────────────────────────────────
+[env.preview]
+name = "ouwibo-agent-preview"
+
+[env.preview.vars]
+VERCEL_URL = ""   # fill in after first Vercel deploy
