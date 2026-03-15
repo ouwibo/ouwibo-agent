@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ouwibo Search</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        background: '#09090b',
+                        card:       '#18181b',
+                        border:     '#27272a',
+                        accent:     '#f43f5e',
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        @layer base {
+            body { @apply bg-background text-zinc-100 antialiased overflow-hidden; }
+            ::-webkit-scrollbar       { @apply w-1; }
+            ::-webkit-scrollbar-thumb { @apply bg-zinc-800 rounded-full; }
+        }
+        @layer components {
+            .sidebar-link {
+                @apply flex items-center gap-3 px-3 py-1.5 rounded-md text-[13px]
+                       transition-colors duration-200 text-zinc-400
+                       hover:bg-zinc-900 hover:text-zinc-100;
+            }
+            .sidebar-link.active { @apply bg-zinc-900 text-zinc-100 border border-zinc-800/50; }
+            .sidebar-label        { @apply px-3 mt-6 mb-2 text-[10px] font-bold text-zinc-500 uppercase tracking-widest; }
+            .filter-tab {
+                @apply px-1 py-3 text-[13px] text-zinc-400 border-b-2 border-transparent
+                       hover:text-zinc-200 transition-colors cursor-pointer;
+            }
+            .filter-tab.active    { @apply text-accent border-accent; }
+            .result-card          { @apply group py-5 border-b border-zinc-800/50 last:border-0; }
+        }
+    </style>
+</head>
+<body class="flex h-screen w-screen">
+
+    <!-- ===================================================================
+         SIDEBAR
+    =================================================================== -->
+    <aside
+        role="navigation"
+        aria-label="Sidebar navigasi"
+        class="w-64 border-r border-zinc-800 flex flex-col shrink-0"
+    >
+        <!-- Logo -->
+        <div class="p-4 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2">
+                <div class="w-8 h-8 flex items-center justify-center">
+                    <i class="fa-solid fa-robot text-accent text-lg"></i>
+                </div>
+                <div class="leading-tight">
+                    <div class="text-[9px] font-bold text-zinc-500 tracking-tighter uppercase">CONTROL</div>
+                    <div class="text-sm font-bold tracking-tight">Ouwibo Agent</div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Nav -->
+        <div class="flex-1 overflow-y-auto px-2">
+            <div class="sidebar-label" data-i18n="nav.section.chat">Chat</div>
+            <a href="/" class="sidebar-link">
+                <i class="fa-regular fa-message w-4" aria-hidden="true"></i>
+                <span data-i18n="nav.chat">Chat</span>
+            </a>
+            <a href="/search.html" class="sidebar-link active" aria-current="page">
+                <i class="fa-solid fa-magnifying-glass w-4" aria-hidden="true"></i>
+                <span data-i18n="nav.search">Pencarian</span>
+            </a>
+
+            <div class="sidebar-label" data-i18n="nav.section.control">Kontrol</div>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-chart-line w-4 text-zinc-500"></i> <span data-i18n="nav.overview">Ikhtisar</span></a>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-plug w-4 text-zinc-500"></i> <span data-i18n="nav.channels">Saluran</span></a>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-server w-4 text-zinc-500"></i> <span data-i18n="nav.instances">Instansi</span></a>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-history w-4 text-zinc-500"></i> <span data-i18n="nav.sessions">Sesi</span></a>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-chart-pie w-4 text-zinc-500"></i> <span data-i18n="nav.usage">Penggunaan</span></a>
+
+            <div class="sidebar-label" data-i18n="nav.section.agent">Agent</div>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-robot w-4 text-zinc-500"></i> <span data-i18n="nav.agents">Agents</span></a>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-bolt w-4 text-zinc-500"></i> <span data-i18n="nav.skills">Kemampuan</span></a>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-circle-nodes w-4 text-zinc-500"></i> <span data-i18n="nav.nodes">Node</span></a>
+
+            <div class="sidebar-label" data-i18n="nav.section.settings">Pengaturan</div>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-sliders w-4 text-zinc-500"></i> <span data-i18n="nav.config">Konfigurasi</span></a>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-wand-magic-sparkles w-4 text-zinc-500"></i> <span data-i18n="nav.appearance">Tampilan</span></a>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-gear w-4 text-zinc-500"></i> <span data-i18n="nav.automation">Otomasi</span></a>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-terminal w-4 text-zinc-500"></i> <span data-i18n="nav.debug">Debug</span></a>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-3 border-t border-zinc-800 space-y-2">
+            <!-- Language Switcher -->
+            <div id="lang-switcher"></div>
+            <!-- Status -->
+            <div class="flex items-center justify-between bg-zinc-900/50 px-2 py-1.5 rounded-lg border border-zinc-800/50">
+                <div class="flex items-center gap-2">
+                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                    <span class="text-[9px] font-bold text-zinc-500 uppercase" data-i18n="nav.system_active">Sistem Aktif</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ===================================================================
+         MAIN
+    =================================================================== -->
+    <main class="flex-1 flex flex-col overflow-hidden bg-[#0a0a0a]" role="main">
+
+        <!-- ─── HOMEPAGE VIEW ─────────────────────────────────────────────── -->
+        <div id="view-home" class="flex-1 flex flex-col items-center justify-center px-6 pb-16">
+
+            <!-- Colorful logo -->
+            <div class="mb-10 select-none" aria-label="Ouwibo">
+                <span class="text-7xl font-bold tracking-tight" style="color:#4285F4">O</span>
+                <span class="text-7xl font-bold tracking-tight" style="color:#EA4335">u</span>
+                <span class="text-7xl font-bold tracking-tight" style="color:#FBBC05">w</span>
+                <span class="text-7xl font-bold tracking-tight" style="color:#4285F4">i</span>
+                <span class="text-7xl font-bold tracking-tight" style="color:#34A853">b</span>
+                <span class="text-7xl font-bold tracking-tight" style="color:#EA4335">o</span>
+            </div>
+
+            <!-- Search form -->
+            <form id="form-home" class="w-full max-w-xl" role="search">
+                <div
+                    id="home-input-wrap"
+                    class="flex items-center bg-zinc-900 border border-zinc-700 rounded-full
+                           px-5 py-3.5 gap-3 hover:border-zinc-600
+                           focus-within:border-zinc-500 focus-within:shadow-[0_0_0_3px_rgba(66,133,244,0.15)]
+                           transition-all"
+                >
+                    <i class="fa-solid fa-magnifying-glass text-zinc-500" aria-hidden="true"></i>
+                    <input
+                        id="input-home"
+                        type="search"
+                        autocomplete="off"
+                        spellcheck="false"
+                        aria-label="Kotak pencarian"
+                        data-i18n-ph="search.placeholder"
+                        placeholder="Cari apa saja…"
+                        class="flex-1 bg-transparent focus:outline-none text-[15px] text-zinc-100
+                               placeholder-zinc-500 min-w-0"
+                    >
+                    <button
+                        type="button"
+                        id="clear-home"
+                        aria-label="Hapus"
+                        class="hidden text-zinc-500 hover:text-zinc-300 transition-colors"
+                    >
+                        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                    </button>
+                    <div class="w-px h-5 bg-zinc-700"></div>
+                    <button
+                        type="button"
+                        id="voice-btn"
+                        aria-label="Cari dengan suara"
+                        class="text-zinc-500 hover:text-zinc-300 transition-colors"
+                    >
+                        <i class="fa-solid fa-microphone" aria-hidden="true"></i>
+                    </button>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex items-center justify-center gap-3 mt-6">
+                    <button
+                        type="submit"
+                        class="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-[13px]
+                               font-medium rounded-md border border-zinc-700 transition-colors"
+                        data-i18n="search.btn"
+                    >Ouwibo Telusuri</button>
+                    <button
+                        type="button"
+                        id="lucky-btn"
+                        class="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-[13px]
+                               font-medium rounded-md border border-zinc-700 transition-colors"
+                        data-i18n="search.lucky"
+                    >Saya Sedang Beruntung</button>
+                </div>
+            </form>
+
+            <!-- Quick links -->
+            <div class="flex items-center gap-4 mt-10 text-[12px] text-zinc-600">
+                <a href="/" class="hover:text-zinc-400 transition-colors flex items-center gap-1.5">
+                    <i class="fa-regular fa-message" aria-hidden="true"></i>
+                    <span data-i18n="nav.chat">Chat</span>
+                </a>
+                <span>·</span>
+                <a href="/docs" target="_blank" rel="noopener" class="hover:text-zinc-400 transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-book" aria-hidden="true"></i>
+                    <span data-i18n="nav.docs">Dokumentasi</span>
+                </a>
+                <span>·</span>
+                <span id="lang-hint" class="text-zinc-600"></span>
+            </div>
+        </div>
+
+        <!-- ─── RESULTS VIEW ───────────────────────────────────────────────── -->
+        <div id="view-results" class="hidden flex-col flex-1 overflow-hidden">
+
+            <!-- Top bar -->
+            <div class="h-[72px] flex items-center gap-4 px-4 border-b border-zinc-800/50 shrink-0">
+                <!-- Small logo -->
+                <a href="/search.html" aria-label="Ouwibo Search" class="shrink-0 select-none hidden sm:block">
+                    <span class="text-3xl font-bold" style="color:#4285F4">O</span>
+                    <span class="text-3xl font-bold" style="color:#EA4335">u</span>
+                    <span class="text-3xl font-bold" style="color:#FBBC05">w</span>
+                    <span class="text-3xl font-bold" style="color:#4285F4">i</span>
+                    <span class="text-3xl font-bold" style="color:#34A853">b</span>
+                    <span class="text-3xl font-bold" style="color:#EA4335">o</span>
+                </a>
+
+                <!-- Search bar -->
+                <form id="form-results" class="flex-1 max-w-2xl" role="search">
+                    <div
+                        class="flex items-center bg-zinc-900 border border-zinc-700 rounded-full
+                               px-4 py-2.5 gap-3 hover:border-zinc-600
+                               focus-within:border-zinc-500 focus-within:shadow-[0_0_0_3px_rgba(66,133,244,0.15)]
+                               transition-all"
+                    >
+                        <i class="fa-solid fa-magnifying-glass text-zinc-500 text-sm shrink-0" aria-hidden="true"></i>
+                        <input
+                            id="input-results"
+                            type="search"
+                            autocomplete="off"
+                            spellcheck="false"
+                            aria-label="Kotak pencarian"
+                            data-i18n-ph="search.placeholder"
+                            placeholder="Cari apa saja…"
+                            class="flex-1 bg-transparent focus:outline-none text-[14px] text-zinc-100
+                                   placeholder-zinc-500 min-w-0"
+                        >
+                        <button
+                            type="button"
+                            id="clear-results"
+                            aria-label="Hapus"
+                            class="hidden text-zinc-500 hover:text-zinc-300 transition-colors"
+                        >
+                            <i class="fa-solid fa-xmark text-sm" aria-hidden="true"></i>
+                        </button>
+                        <div class="w-px h-4 bg-zinc-700 shrink-0"></div>
+                        <button type="submit" class="text-zinc-400 hover:text-zinc-200 transition-colors shrink-0" aria-label="Cari">
+                            <i class="fa-solid fa-magnifying-glass text-sm" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Back to chat -->
+                <a
+                    href="/"
+                    class="hidden md:flex items-center gap-1.5 text-[12px] text-zinc-500
+                           hover:text-zinc-300 transition-colors shrink-0"
+                >
+                    <i class="fa-regular fa-message text-[11px]" aria-hidden="true"></i>
+                    <span data-i18n="search.back_chat">Kembali ke Chat</span>
+                </a>
+            </div>
+
+            <!-- Filter tabs -->
+            <div class="flex items-center gap-1 px-4 sm:px-[calc(1rem+288px)] border-b border-zinc-800/40 shrink-0 overflow-x-auto">
+                <button class="filter-tab active" data-filter="all" data-i18n="search.filter.all">Semua</button>
+                <button class="filter-tab" data-filter="news" data-i18n="search.filter.news">Berita</button>
+                <button class="filter-tab" data-filter="images" data-i18n="search.filter.images">Gambar</button>
+                <button class="filter-tab" data-filter="videos" data-i18n="search.filter.videos">Video</button>
+            </div>
+
+            <!-- Scrollable results body -->
+            <div id="results-body" class="flex-1 overflow-y-auto">
+                <div class="max-w-2xl mx-auto sm:ml-[calc(1rem+288px)] px-4 py-5">
+
+                    <!-- Stats bar -->
+                    <p id="results-stats" class="text-[13px] text-zinc-500 mb-5" aria-live="polite"></p>
+
+                    <!-- Loading skeleton -->
+                    <div id="results-loading" class="hidden space-y-8">
+                        <div class="animate-pulse space-y-2">
+                            <div class="h-3 bg-zinc-800 rounded w-40"></div>
+                            <div class="h-5 bg-zinc-800 rounded w-3/4"></div>
+                            <div class="h-3 bg-zinc-800 rounded w-full"></div>
+                            <div class="h-3 bg-zinc-800 rounded w-5/6"></div>
+                        </div>
+                        <div class="animate-pulse space-y-2">
+                            <div class="h-3 bg-zinc-800 rounded w-32"></div>
+                            <div class="h-5 bg-zinc-800 rounded w-2/3"></div>
+                            <div class="h-3 bg-zinc-800 rounded w-full"></div>
+                            <div class="h-3 bg-zinc-800 rounded w-4/5"></div>
+                        </div>
+                        <div class="animate-pulse space-y-2">
+                            <div class="h-3 bg-zinc-800 rounded w-48"></div>
+                            <div class="h-5 bg-zinc-800 rounded w-3/5"></div>
+                            <div class="h-3 bg-zinc-800 rounded w-full"></div>
+                            <div class="h-3 bg-zinc-800 rounded w-3/4"></div>
+                        </div>
+                    </div>
+
+                    <!-- Error state -->
+                    <div id="results-error" class="hidden">
+                        <div class="flex flex-col items-start gap-3 py-6">
+                            <div class="w-12 h-12 rounded-full bg-red-950/50 border border-red-900/50
+                                        flex items-center justify-center">
+                                <i class="fa-solid fa-triangle-exclamation text-red-500" aria-hidden="true"></i>
+                            </div>
+                            <p id="results-error-text" class="text-[14px] text-zinc-400"></p>
+                            <button
+                                id="retry-btn"
+                                class="px-4 py-2 text-[13px] bg-zinc-800 hover:bg-zinc-700
+                                       border border-zinc-700 rounded-md transition-colors"
+                                data-i18n="search.error"
+                            >Coba lagi</button>
+                        </div>
+                    </div>
+
+                    <!-- Empty state -->
+                    <div id="results-empty" class="hidden py-10 text-center">
+                        <i class="fa-solid fa-face-frown text-4xl text-zinc-700 mb-4 block" aria-hidden="true"></i>
+                        <p id="results-empty-text" class="text-[14px] text-zinc-500"></p>
+                    </div>
+
+                    <!-- Results list -->
+                    <div id="results-list" role="list" aria-label="Hasil pencarian" class="divide-y divide-zinc-800/50"></div>
+
+                    <!-- Load more -->
+                    <div id="load-more-area" class="hidden flex justify-center pt-6 pb-10">
+                        <button
+                            id="load-more-btn"
+                            class="flex items-center gap-2 px-6 py-2.5 text-[13px] text-zinc-300
+                                   bg-zinc-900 hover:bg-zinc-800 border border-zinc-700
+                                   rounded-full transition-colors"
+                        >
+                            <i class="fa-solid fa-plus text-[11px]" aria-hidden="true"></i>
+                            <span data-i18n="search.more">Muat lebih banyak</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- i18n must load before search.js -->
+    <script src="i18n.js"></script>
+    <script src="search.js"></script>
+</body>
+</html>

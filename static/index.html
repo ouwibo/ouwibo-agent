@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ouwibo Agent</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        background: '#09090b',
+                        sidebar:    '#09090b',
+                        card:       '#18181b',
+                        border:     '#27272a',
+                        accent:     '#f43f5e',
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        @layer base {
+            body { @apply bg-background text-zinc-100 antialiased overflow-hidden; }
+            ::-webkit-scrollbar       { @apply w-1; }
+            ::-webkit-scrollbar-thumb { @apply bg-zinc-800 rounded-full; }
+        }
+        @layer components {
+            .sidebar-link {
+                @apply flex items-center gap-3 px-3 py-1.5 rounded-md text-[13px]
+                       transition-colors duration-200 text-zinc-400
+                       hover:bg-zinc-900 hover:text-zinc-100;
+            }
+            .sidebar-link.active { @apply bg-zinc-900 text-zinc-100 border border-zinc-800/50; }
+            .sidebar-label       { @apply px-3 mt-6 mb-2 text-[10px] font-bold text-zinc-500 uppercase tracking-widest; }
+            .dropdown-mock {
+                @apply flex items-center justify-between bg-zinc-900 border border-zinc-800
+                       px-3 py-1.5 rounded-md text-xs text-zinc-300 min-w-[120px]
+                       cursor-pointer hover:bg-zinc-800 transition-colors;
+            }
+            .action-btn {
+                @apply w-8 h-8 flex items-center justify-center rounded-md border border-zinc-800
+                       text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100 transition-all;
+            }
+            /* Chat bubble prose */
+            .chat-prose h1,.chat-prose h2,.chat-prose h3 { @apply font-semibold text-zinc-100 mt-3 mb-1; }
+            .chat-prose h1  { @apply text-base; }
+            .chat-prose h2,.chat-prose h3 { @apply text-sm; }
+            .chat-prose p   { @apply text-zinc-300 leading-relaxed mb-2 last:mb-0; }
+            .chat-prose ul,.chat-prose ol { @apply pl-5 mb-2 text-zinc-300 space-y-1; }
+            .chat-prose ul  { @apply list-disc; }
+            .chat-prose ol  { @apply list-decimal; }
+            .chat-prose a   { @apply text-accent underline hover:opacity-80; }
+            .chat-prose code {
+                @apply bg-zinc-800 text-emerald-400 px-1 py-0.5 rounded text-[12px] font-mono;
+            }
+            .chat-prose pre {
+                @apply bg-zinc-900 border border-zinc-800 rounded-lg p-3 overflow-x-auto my-2;
+            }
+            .chat-prose pre code { @apply bg-transparent text-zinc-300 p-0 text-[12px]; }
+            .chat-prose blockquote { @apply border-l-2 border-zinc-700 pl-3 text-zinc-400 italic my-2; }
+            .chat-prose hr   { @apply border-zinc-800 my-3; }
+            .chat-prose strong { @apply text-zinc-100 font-semibold; }
+            .chat-prose em   { @apply text-zinc-300; }
+            .chat-prose table { @apply w-full text-sm text-left text-zinc-300 my-2; }
+            .chat-prose th   { @apply border border-zinc-700 bg-zinc-900 px-3 py-1.5 font-semibold; }
+            .chat-prose td   { @apply border border-zinc-800 px-3 py-1.5; }
+        }
+    </style>
+</head>
+<body class="flex h-screen w-screen">
+
+    <!-- =======================================================================
+         SIDEBAR
+    ======================================================================= -->
+    <aside
+        role="navigation"
+        aria-label="Sidebar navigasi"
+        class="w-64 border-r border-zinc-800 flex flex-col shrink-0"
+    >
+        <!-- Logo -->
+        <div class="p-4 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2">
+                <div class="w-8 h-8 flex items-center justify-center">
+                    <i class="fa-solid fa-robot text-accent text-lg" aria-hidden="true"></i>
+                </div>
+                <div class="leading-tight">
+                    <div class="text-[9px] font-bold text-zinc-500 tracking-tighter uppercase">CONTROL</div>
+                    <div class="text-sm font-bold tracking-tight">Ouwibo Agent</div>
+                </div>
+            </a>
+            <button
+                id="sidebar-toggle"
+                aria-label="Toggle sidebar"
+                class="text-zinc-500 hover:text-zinc-100 transition-colors"
+            >
+                <i class="fa-solid fa-bars-staggered" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <!-- Nav -->
+        <div class="flex-1 overflow-y-auto px-2">
+            <div class="sidebar-label" data-i18n="nav.section.chat">Chat</div>
+
+            <a href="/" class="sidebar-link active" aria-current="page">
+                <i class="fa-regular fa-message w-4" aria-hidden="true"></i>
+                <span data-i18n="nav.chat">Chat</span>
+            </a>
+            <button
+                id="new-chat-btn"
+                aria-label="Mulai percakapan baru"
+                class="sidebar-link w-full text-left mt-0.5"
+            >
+                <i class="fa-solid fa-plus w-4 text-zinc-500" aria-hidden="true"></i>
+                <span data-i18n="nav.new_chat">Chat Baru</span>
+            </button>
+            <a href="/search.html" class="sidebar-link mt-0.5">
+                <i class="fa-solid fa-magnifying-glass w-4 text-zinc-500" aria-hidden="true"></i>
+                <span data-i18n="nav.search">Pencarian</span>
+            </a>
+
+            <div class="sidebar-label" data-i18n="nav.section.control">Kontrol</div>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-chart-line w-4 text-zinc-500"></i> <span data-i18n="nav.overview">Ikhtisar</span></a>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-plug w-4 text-zinc-500"></i> <span data-i18n="nav.channels">Saluran</span></a>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-server w-4 text-zinc-500"></i> <span data-i18n="nav.instances">Instansi</span></a>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-history w-4 text-zinc-500"></i> <span data-i18n="nav.sessions">Sesi</span></a>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-chart-pie w-4 text-zinc-500"></i> <span data-i18n="nav.usage">Penggunaan</span></a>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-clock w-4 text-zinc-500"></i> <span data-i18n="nav.cron_jobs">Cron Jobs</span></a>
+
+            <div class="sidebar-label" data-i18n="nav.section.agent">Agent</div>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-robot w-4 text-zinc-500"></i> <span data-i18n="nav.agents">Agents</span></a>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-bolt w-4 text-zinc-500"></i> <span data-i18n="nav.skills">Kemampuan</span></a>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-circle-nodes w-4 text-zinc-500"></i> <span data-i18n="nav.nodes">Node</span></a>
+
+            <div class="sidebar-label" data-i18n="nav.section.settings">Pengaturan</div>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-sliders w-4 text-zinc-500"></i> <span data-i18n="nav.config">Konfigurasi</span></a>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-at w-4 text-zinc-500"></i> <span data-i18n="nav.communications">Komunikasi</span></a>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-wand-magic-sparkles w-4 text-zinc-500"></i> <span data-i18n="nav.appearance">Tampilan</span></a>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-gear w-4 text-zinc-500"></i> <span data-i18n="nav.automation">Otomasi</span></a>
+            <a href="#" class="sidebar-link"><i class="fa-solid fa-terminal w-4 text-zinc-500"></i> <span data-i18n="nav.debug">Debug</span></a>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-3 border-t border-zinc-800 space-y-2">
+            <!-- Language Switcher (populated by i18n.js) -->
+            <div id="lang-switcher"></div>
+
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-file-lines text-zinc-500 text-xs" aria-hidden="true"></i>
+                <span class="text-xs text-zinc-400" data-i18n="nav.docs">Dokumentasi</span>
+            </div>
+            <div class="flex items-center justify-between bg-zinc-900/50 px-2 py-1.5 rounded-lg border border-zinc-800/50">
+                <div class="flex items-center gap-2">
+                    <div
+                        id="status-dot"
+                        class="w-1.5 h-1.5 rounded-full bg-emerald-500"
+                        role="status"
+                        aria-label="System aktif"
+                    ></div>
+                    <span class="text-[9px] font-bold text-zinc-500 uppercase" data-i18n="nav.system_active">Sistem Aktif</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- =======================================================================
+         MAIN
+    ======================================================================= -->
+    <main class="flex-1 flex flex-col relative bg-[#0a0a0a] overflow-hidden" role="main">
+
+        <!-- HEADER -->
+        <header class="h-12 flex items-center justify-between px-6 border-b border-zinc-800/50 shrink-0">
+            <div class="flex items-center gap-3 text-xs" aria-label="Breadcrumb">
+                <span class="text-zinc-500">Ouwibo Agent</span>
+                <span class="text-zinc-700" aria-hidden="true">/</span>
+                <span class="text-zinc-100 font-medium" data-i18n="breadcrumb.chat">Chat</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="relative hidden sm:block">
+                    <label for="header-search" class="sr-only" data-i18n="header.search_ph">Cari</label>
+                    <input
+                        id="header-search"
+                        type="search"
+                        data-i18n-ph="header.search_ph"
+                        placeholder="Cari"
+                        aria-label="Buka pencarian"
+                        class="bg-zinc-900 border border-zinc-800 rounded-md px-3 py-1 text-[11px] w-44
+                               focus:outline-none focus:border-zinc-600 transition-colors cursor-pointer"
+                        readonly
+                        onclick="window.location.href='/search.html'"
+                    >
+                    <span class="absolute right-2 top-1 text-[9px] text-zinc-600 pointer-events-none" aria-hidden="true">⌘K</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button
+                        id="search-icon-btn"
+                        class="action-btn sm:hidden"
+                        aria-label="Buka pencarian"
+                        onclick="window.location.href='/search.html'"
+                    >
+                        <i class="fa-solid fa-magnifying-glass text-[10px]" aria-hidden="true"></i>
+                    </button>
+                    <button id="refresh-btn" class="action-btn" aria-label="Refresh halaman">
+                        <i class="fa-solid fa-rotate-right text-[10px]" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- MODEL SELECTION BAR -->
+        <div class="h-14 flex items-center gap-3 px-6 border-b border-zinc-800/30 shrink-0">
+            <div class="dropdown-mock" role="button" aria-haspopup="listbox" aria-label="Pilih branch">
+                <span>main</span>
+                <i class="fa-solid fa-chevron-down text-[10px]" aria-hidden="true"></i>
+            </div>
+            <div class="dropdown-mock min-w-[200px]" role="button" aria-haspopup="listbox" aria-label="Pilih model">
+                <span>AUTO (LLaMA 3.3 / 3.1)</span>
+                <i class="fa-solid fa-chevron-down text-[10px]" aria-hidden="true"></i>
+            </div>
+            <div class="ml-auto flex items-center gap-2">
+                <button id="clear-chat-btn" class="action-btn border-none" aria-label="Reset percakapan">
+                    <i class="fa-solid fa-rotate text-xs" aria-hidden="true"></i>
+                </button>
+                <div class="h-4 w-px bg-zinc-800 mx-1" aria-hidden="true"></div>
+                <button class="action-btn border-none" aria-label="Perluas tampilan">
+                    <i class="fa-solid fa-expand text-xs" aria-hidden="true"></i>
+                </button>
+                <button class="action-btn border-none" aria-label="Lihat riwayat">
+                    <i class="fa-solid fa-clock-rotate-left text-xs" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- CHAT VIEWPORT -->
+        <section
+            id="chat-messages"
+            role="log"
+            aria-live="polite"
+            aria-label="Percakapan"
+            class="flex-1 overflow-y-auto p-6 md:p-10 space-y-8 scroll-smooth"
+        >
+            <!-- Welcome message -->
+            <div class="max-w-3xl mx-auto w-full flex gap-6" role="article" aria-label="Pesan dari Ouwibo Agent">
+                <div
+                    class="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800
+                           flex items-center justify-center text-zinc-500 shrink-0 mt-0.5"
+                    aria-hidden="true"
+                >
+                    <i class="fa-solid fa-star text-[10px]"></i>
+                </div>
+                <div class="flex-1 space-y-2">
+                    <div class="bg-zinc-900/50 p-4 rounded-xl text-[14px] text-zinc-300 chat-prose">
+                        <p>
+                            <strong id="welcome-title" data-i18n="chat.welcome_title">
+                                Ouwibo Agent siap menerima instruksi.
+                            </strong>
+                        </p>
+                        <p id="welcome-body" data-i18n="chat.welcome_body">
+                            Saya dapat membantu pencarian web dan kalkulasi matematika. Bagaimana saya bisa membantu?
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3 text-[10px] text-zinc-600 font-medium" aria-hidden="true">
+                        <span data-i18n="chat.assistant">Asisten</span>
+                        <span class="text-zinc-700">·</span>
+                        <span class="bg-zinc-900 px-1.5 py-0.5 rounded border border-zinc-800">AUTO</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- INPUT BAR -->
+        <footer class="p-4 md:p-6 pt-0 shrink-0" role="contentinfo">
+            <div class="max-w-4xl mx-auto">
+                <div
+                    class="bg-[#111113] border border-zinc-800 rounded-2xl p-2
+                           focus-within:border-zinc-600 transition-all shadow-2xl"
+                >
+                    <form id="chat-form" novalidate>
+                        <div class="flex items-end gap-2">
+                            <div class="flex items-center gap-1 p-2">
+                                <button
+                                    type="button"
+                                    class="w-8 h-8 text-zinc-500 hover:text-zinc-300 transition-colors"
+                                    aria-label="Lampirkan file"
+                                    disabled
+                                >
+                                    <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
+                                </button>
+                            </div>
+
+                            <label for="user-input" class="sr-only" data-i18n="chat.placeholder">Ketik pesan</label>
+                            <textarea
+                                id="user-input"
+                                name="message"
+                                data-i18n-ph="chat.placeholder"
+                                placeholder="Ketik pesan… (Enter kirim, Shift+Enter baris baru)"
+                                aria-label="Kotak pesan"
+                                autocomplete="off"
+                                rows="1"
+                                class="flex-1 bg-transparent border-none py-3 px-2 focus:outline-none
+                                       text-[14px] resize-none min-h-[44px] max-h-60 placeholder-zinc-600"
+                            ></textarea>
+
+                            <div class="flex items-center gap-2 p-2">
+                                <button
+                                    type="submit"
+                                    id="send-btn"
+                                    aria-label="Kirim pesan"
+                                    class="w-8 h-8 bg-accent text-white rounded-lg flex items-center
+                                           justify-center hover:opacity-90 active:scale-95 transition-all
+                                           disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100"
+                                >
+                                    <i id="send-icon" class="fa-solid fa-arrow-up text-xs" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Error bar -->
+                        <div
+                            id="error-bar"
+                            role="alert"
+                            aria-live="assertive"
+                            class="hidden mx-2 mb-2 px-3 py-2 rounded-lg bg-red-950/60 border
+                                   border-red-800/50 text-red-400 text-[12px] items-center gap-2"
+                        >
+                            <i class="fa-solid fa-circle-exclamation shrink-0" aria-hidden="true"></i>
+                            <span id="error-text"></span>
+                        </div>
+                    </form>
+                </div>
+
+                <p
+                    id="footer-disclaimer"
+                    class="text-center text-[10px] text-zinc-700 mt-2"
+                    data-i18n="chat.footer"
+                >
+                    Ouwibo Agent dapat membuat kesalahan. Verifikasi informasi penting secara mandiri.
+                </p>
+            </div>
+        </footer>
+    </main>
+
+    <!-- i18n must load before script.js -->
+    <script src="i18n.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
