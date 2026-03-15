@@ -1,8 +1,5 @@
 # ouwibo-agent/requirements.txt
 
-# --- HTTP Client ---
-httpx>=0.27.0,<1.0.0
-
 # --- Core AI ---
 groq>=0.9.0,<2.0.0
 

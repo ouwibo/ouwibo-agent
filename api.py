@@ -3,7 +3,6 @@ import logging
 import os
 import time
 
-import httpx
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Request, Security
 from fastapi import Query as QueryParam
@@ -97,10 +96,7 @@ if not _api_key:
 
 groq_client = Groq(
     api_key=_api_key,
-    http_client=httpx.Client(
-        timeout=httpx.Timeout(55.0, connect=10.0),
-        follow_redirects=True,
-    ),
+    timeout=55.0,
 )
 logger.info("Groq client berhasil diinisialisasi.")
 
