@@ -1,6 +1,7 @@
-# ouwibo_agent/agent.py
+# core/agent.py
 import logging
 import re
+from typing import Any
 
 from .memory import Memory
 from .planner import Planner
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class Agent:
-    def __init__(self, client):
+    def __init__(self, client: Any):
         self.client = client
         self.memory = Memory()
         self.planner = Planner(client)
@@ -36,72 +37,63 @@ class Agent:
 
     def run(self, task: str) -> str:
         logger.info(f"[Agent] Task diterima: {task!r}")
-
-        # --- Planning ---
-        try:
-            plan = self.planner.plan(task)
-        except Exception as e:
-            logger.error(f"[Agent] Planner gagal: {e}", exc_info=True)
-            return f"Maaf, saya tidak dapat membuat rencana untuk tugas ini. Error: {e}"
-
-        if not plan:
-            logger.warning("[Agent] Planner mengembalikan rencana kosong.")
-            return (
-                "Maaf, saya tidak dapat memahami tugas tersebut. Coba rumuskan ulang."
-            )
-
-        logger.info(f"[Agent] Rencana ({len(plan)} langkah): {plan}")
         self.memory.add("user", task)
 
-        # --- Execution loop ---
-        for i, step in enumerate(plan):
-            step = step.strip()
-            if not step:
-                continue
+        # Iterative Loop (ReAct)
+        max_iterations = 8
+        for i in range(max_iterations):
+            logger.info(f"[Agent] Iterasi {i + 1}/{max_iterations}")
 
-            logger.info(f"[Agent] Langkah {i + 1}/{len(plan)}: {step!r}")
+            # 1. Panggil Planner dengan riwayat saat ini
+            try:
+                plan = self.planner.plan(task, self.memory.get_history())
+            except Exception as e:
+                logger.error(f"[Agent] Planner gagal di iterasi {i + 1}: {e}", exc_info=True)
+                return f"Maaf, terjadi kesalahan saat merencanakan langkah. Error: {e}"
 
-            # Strict match: command[argument]
-            match = re.match(r"^(\w+)\[(.+)\]$", step, re.DOTALL)
-            if not match:
-                logger.warning(
-                    f"[Agent] Format langkah tidak valid, dilewati: {step!r}"
-                )
-                continue
+            if not plan:
+                logger.warning("[Agent] Planner mengembalikan rencana kosong.")
+                return "Maaf, saya tidak dapat memahami tugas tersebut atau tidak mendapatkan rencana langkah selanjutnya."
 
-            command = match.group(1).lower()
-            arg = match.group(2).strip()
+            # 2. Eksekusi semua langkah dalam rencana (biasanya satu atau dua per iterasi)
+            for step in plan:
+                step = step.strip()
+                if not step: continue
 
-            # --- finish ---
-            if command == "finish":
-                logger.info(f"[Agent] Selesai. Jawaban: {arg!r}")
-                self.memory.add("assistant", arg)
-                return arg
+                match = re.match(r"^(\w+)\[(.+)\]$", step, re.DOTALL)
+                if not match:
+                    logger.warning(f"[Agent] Format langkah tidak valid: {step!r}")
+                    continue
 
-            # --- think ---
-            if command == "think":
-                logger.info(f"[Agent] Berpikir: {arg}")
-                self.memory.add("assistant", f"[thinking] {arg}")
-                continue
+                command = match.group(1).lower()
+                arg = match.group(2).strip()
 
-            # --- tool call ---
-            if command in self.tools:
-                try:
-                    result = self.tools[command].execute(arg)
-                    preview = result[:300] + "..." if len(result) > 300 else result
-                    logger.info(f"[Agent] Tool '{command}' selesai. Hasil: {preview}")
-                    self.memory.add("assistant", f"[{command} result] {result}")
-                except Exception as e:
-                    logger.error(
-                        f"[Agent] Tool '{command}' error untuk arg {arg!r}: {e}",
-                        exc_info=True,
-                    )
-                    self.memory.add("assistant", f"[{command} error] {e}")
-                continue
+                # --- finish ---
+                if command == "finish":
+                    logger.info(f"[Agent] Selesai. Jawaban: {arg!r}")
+                    self.memory.add("assistant", arg)
+                    return arg
 
-            # --- unknown command ---
-            logger.warning(f"[Agent] Perintah tidak dikenal: {command!r}")
-            self.memory.add("assistant", f"[unknown command] {command}")
+                # --- think ---
+                if command == "think":
+                    logger.info(f"[Agent] Berpikir: {arg}")
+                    # Jangan tambahkan "think" ke memori jika sudah ada agar tidak duplikat di prompt
+                    continue
 
-        logger.warning("[Agent] Semua langkah selesai tanpa perintah 'finish'.")
-        return "Saya telah menyelesaikan semua langkah, tetapi tidak menghasilkan jawaban akhir."
+                # --- tool call ---
+                if command in self.tools:
+                    try:
+                        result = self.tools[command].execute(arg)
+                        preview = result[:200] + "..." if len(result) > 200 else result
+                        logger.info(f"[Agent] Tool '{command}' selesai. Hasil: {preview}")
+                        # Simpan hasil tool ke memori agar Planner melihatnya di iterasi berikutnya
+                        self.memory.add("assistant", f"[{command} result] {result}")
+                    except Exception as e:
+                        logger.error(f"[Agent] Tool '{command}' error: {e}")
+                        self.memory.add("assistant", f"[{command} error] {e}")
+                    continue
+
+                logger.warning(f"[Agent] Perintah tidak dikenal: {command!r}")
+
+        logger.warning("[Agent] Mencapai batas iterasi maksimal tanpa 'finish'.")
+        return "Saya telah mencoba melakukan beberapa langkah, tetapi belum berhasil memberikan jawaban akhir. Coba tanyakan hal yang lebih spesifik."

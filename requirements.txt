@@ -15,6 +15,9 @@ SQLAlchemy>=2.0.0,<3.0.0
 
 # --- Tools ---
 ddgs>=7.0.0
+googlesearch-python>=1.2.3
+translate>=3.6.1
+yfinance>=0.2.40
 
 # --- Utilities ---
 python-dotenv>=1.0.0,<2.0.0

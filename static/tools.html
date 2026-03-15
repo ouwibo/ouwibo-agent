@@ -215,11 +215,11 @@
                 <!-- Stats row -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8 md:mb-10">
                     <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl px-4 py-3.5 text-center">
-                        <div class="text-2xl font-bold text-zinc-100" id="stat-total">8</div>
+                        <div class="text-2xl font-bold text-zinc-100" id="stat-total">14</div>
                         <div class="text-[11px] text-zinc-500 mt-0.5">Total Tools</div>
                     </div>
                     <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl px-4 py-3.5 text-center">
-                        <div class="text-2xl font-bold text-emerald-400">8</div>
+                        <div class="text-2xl font-bold text-emerald-400">14</div>
                         <div class="text-[11px] text-zinc-500 mt-0.5">Active</div>
                     </div>
                     <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl px-4 py-3.5 text-center">
@@ -234,6 +234,193 @@
 
                 <!-- Tools grid -->
                 <div id="tools-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+
+                    <!-- Phind Search -->
+                    <div class="tool-card">
+                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+                                    bg-emerald-500/5 blur-2xl pointer-events-none"></div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20
+                                        flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-terminal text-emerald-400 text-sm"></i>
+                            </div>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+                                         border border-emerald-500/20">
+                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+                                Active
+                            </span>
+                        </div>
+                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">Phind Search</h3>
+                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+                            Pro developer search engine specialized in code logic,
+                            debugging solutions, and programming snippets.
+                        </p>
+                        <div class="space-y-2">
+                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+                            <span class="tag">phind[how to fix memory leak in react]</span>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Coding</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Pro Dev</span>
+                        </div>
+                    </div>
+
+                    <!-- Code Search -->
+                    <div class="tool-card">
+                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+                                    bg-orange-600/5 blur-2xl pointer-events-none"></div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-orange-600/10 border border-orange-600/20
+                                        flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-code text-orange-400 text-sm"></i>
+                            </div>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+                                         border border-emerald-500/20">
+                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+                                Active
+                            </span>
+                        </div>
+                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">Code Search</h3>
+                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+                            Find programming scripts, code snippets, and automation
+                            tutorials from GitHub and StackOverflow.
+                        </p>
+                        <div class="space-y-2">
+                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+                            <span class="tag">find_script[python telegram bot]</span>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Dev</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Scripts</span>
+                        </div>
+                    </div>
+
+                    <!-- Google Search -->
+                    <div class="tool-card">
+                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+                                    bg-blue-600/5 blur-2xl pointer-events-none"></div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-blue-600/10 border border-blue-600/20
+                                        flex items-center justify-center shrink-0">
+                                <i class="fa-brands fa-google text-blue-400 text-sm"></i>
+                            </div>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+                                         border border-emerald-500/20">
+                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+                                Active
+                            </span>
+                        </div>
+                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">Google Search</h3>
+                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+                            Search the web using Google's engine to find specific
+                            website links and information.
+                        </p>
+                        <div class="space-y-2">
+                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+                            <span class="tag">google_search[best coffee in Jakarta]</span>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Search</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Google API</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">No API key</span>
+                        </div>
+                    </div>
+
+                    <!-- Translator -->
+                    <div class="tool-card">
+                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+                                    bg-indigo-500/5 blur-2xl pointer-events-none"></div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20
+                                        flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-language text-indigo-400 text-sm"></i>
+                            </div>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+                                         border border-emerald-500/20">
+                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+                                Active
+                            </span>
+                        </div>
+                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">Translator</h3>
+                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+                            Translate any text between multiple languages instantly
+                            using public translation engines.
+                        </p>
+                        <div class="space-y-2">
+                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+                            <span class="tag">translate[Thank you to Indonesian]</span>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Language</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Multilingual</span>
+                        </div>
+                    </div>
+
+                    <!-- Dictionary -->
+                    <div class="tool-card">
+                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+                                    bg-pink-500/5 blur-2xl pointer-events-none"></div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-pink-500/10 border border-pink-500/20
+                                        flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-book text-pink-400 text-sm"></i>
+                            </div>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+                                         border border-emerald-500/20">
+                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+                                Active
+                            </span>
+                        </div>
+                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">Dictionary</h3>
+                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+                            Get meanings, parts of speech, and definitions for any
+                            English word from the Free Dictionary API.
+                        </p>
+                        <div class="space-y-2">
+                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+                            <span class="tag">dictionary[serendipity]</span>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">English</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Reference</span>
+                        </div>
+                    </div>
+
+                    <!-- Stocks & Crypto -->
+                    <div class="tool-card">
+                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+                                    bg-emerald-600/5 blur-2xl pointer-events-none"></div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-600/10 border border-emerald-600/20
+                                        flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-chart-line text-emerald-400 text-sm"></i>
+                            </div>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+                                         border border-emerald-500/20">
+                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+                                Active
+                            </span>
+                        </div>
+                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">Stocks & Crypto</h3>
+                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+                            Get real-time market data for stocks (AAPL, TSLA) and
+                            cryptocurrencies (BTC, ETH) via Yahoo Finance.
+                        </p>
+                        <div class="space-y-2">
+                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+                            <span class="tag">stocks[BTC-USD]</span>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Finance</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Crypto</span>
+                        </div>
+                    </div>
 
                     <!-- Calculator -->
                     <div class="tool-card">

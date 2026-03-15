@@ -12,6 +12,9 @@ from urllib.parse import urlparse
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from ddgs import DDGS
+from googlesearch import search as gsearch
+from translate import Translator as PyTranslator
+import yfinance as yf
 
 from .config import CALCULATOR_MAX_LEN, MAX_SEARCH_RESULTS
 
@@ -221,21 +224,20 @@ class Weather(Tool):
 
 
 # ---------------------------------------------------------------------------
-# Wikipedia — English Wikipedia summary
+# Wikipedia — Multi-language support (ID/EN)
 # ---------------------------------------------------------------------------
 class Wikipedia(Tool):
     name = "wikipedia"
-    description = "Look up a topic on Wikipedia and return a summary."
-    example = "wikipedia[Artificial Intelligence]"
+    description = "Look up a topic on Wikipedia (Auto-detects Indonesian/English)."
+    example = "wikipedia[Kecerdasan Buatan]"
 
-    _API = "https://en.wikipedia.org/w/api.php"
-
-    def _get(self, params: dict) -> dict:
+    def _get(self, lang: str, params: dict) -> dict:
+        api_url = f"https://{lang}.wikipedia.org/w/api.php"
         qs = urllib.parse.urlencode(params)
-        url = f"{self._API}?{qs}"
+        url = f"{api_url}?{qs}"
         req = urllib.request.Request(
             url,
-            headers={"User-Agent": "OuwiboAgent/1.0"},
+            headers={"User-Agent": "OuwiboAgent/1.0 (https://github.com/ouwibo)"},
         )
         with urllib.request.urlopen(req, timeout=10) as resp:
             return json.loads(resp.read().decode("utf-8"))
@@ -244,9 +246,14 @@ class Wikipedia(Tool):
         query = arg.strip()
         if not query:
             return "Error: A search query is required."
+        
+        # Simple language detection: if query has common ID words, use 'id', else 'en'
+        id_keywords = ["apa", "siapa", "dimana", "yang", "adalah", "dan", "di", "itu", "dari"]
+        lang = "id" if any(word in query.lower().split() for word in id_keywords) else "en"
+        
         try:
             # Step 1 — find the best matching title
-            search_data = self._get(
+            search_data = self._get(lang,
                 {
                     "action": "query",
                     "list": "search",
@@ -257,12 +264,15 @@ class Wikipedia(Tool):
             )
             hits = search_data.get("query", {}).get("search", [])
             if not hits:
+                # If ID fails, try EN as fallback
+                if lang == "id":
+                    return self.execute(query + " (fallback en)")
                 return f"No Wikipedia article found for: '{query}'"
 
             title = hits[0]["title"]
 
             # Step 2 — fetch plain-text intro
-            extract_data = self._get(
+            extract_data = self._get(lang,
                 {
                     "action": "query",
                     "titles": title,
@@ -277,18 +287,55 @@ class Wikipedia(Tool):
                 extract = page.get("extract", "").strip()
                 if not extract:
                     return f"Article '{title}' has no summary text."
-                # Trim to 1 200 characters
-                summary = extract[:1200]
-                if len(extract) > 1200:
+                
+                summary = extract[:1500]
+                if len(extract) > 1500:
                     summary += "…"
+                
                 slug = title.replace(" ", "_")
-                link = f"https://en.wikipedia.org/wiki/{urllib.parse.quote(slug)}"
-                return f"**{title}**\n\n{summary}\n\nSource: {link}"
+                link = f"https://{lang}.wikipedia.org/wiki/{urllib.parse.quote(slug)}"
+                return f"**{title} ({lang.upper()})**\n\n{summary}\n\nSource: {link}"
 
             return f"Could not retrieve article for '{title}'."
         except Exception as e:
             logger.error(f"Wikipedia error: {e}", exc_info=True)
             return f"Wikipedia error: {e}"
+
+
+# ---------------------------------------------------------------------------
+# PhindSearch — Specialized for code and scripts
+# ---------------------------------------------------------------------------
+class PhindSearch(Tool):
+    name = "phind"
+    description = "Pro developer search for scripts, debugging, and code logic."
+    example = "phind[python script to encrypt folder with password]"
+
+    def execute(self, arg: str) -> str:
+        query = arg.strip()
+        if not query:
+            return "Error: Provide a coding topic."
+        
+        # Crafting a query that forces high-quality dev results
+        # Phind often gives the best answers for these sites
+        dev_query = f"{query} site:stackoverflow.com OR site:github.com OR site:docs.python.org OR site:npmjs.com"
+        
+        try:
+            results = []
+            with DDGS() as ddgs:
+                # We use 'text' search but filter for code-heavy sites
+                for r in ddgs.text(dev_query, max_results=4):
+                    title = r.get("title", "").strip()
+                    url = r.get("href", "").strip()
+                    snippet = r.get("body", "").strip()
+                    results.append(f"🔹 **{title}**\n   {url}\n   _{snippet}_")
+            
+            if not results:
+                return f"No code solutions found for '{query}'."
+            
+            header = f"🚀 **Phind-Style Dev Results for:** _{query}_\n\n"
+            return header + "\n\n".join(results)
+        except Exception as e:
+            return f"Phind search error: {e}"
 
 
 # ---------------------------------------------------------------------------
@@ -481,10 +528,168 @@ class URLReader(Tool):
             if len(text) > self._MAX_CHARS:
                 snippet += "…"
 
-            return f"Content from {url}:\n\n{snippet}"
+            return f"URL from {url}:\n\n{snippet}"
         except Exception as e:
             logger.error(f"URLReader error for '{url}': {e}", exc_info=True)
             return f"URL read error: {e}"
+
+
+# ---------------------------------------------------------------------------
+# GoogleSearch — Google Search (via googlesearch-python)
+# ---------------------------------------------------------------------------
+class GoogleSearch(Tool):
+    name = "google_search"
+    description = "Search the web using Google."
+    example = "google_search[latest news about AI]"
+
+    def execute(self, arg: str) -> str:
+        query = arg.strip()
+        if not query:
+            return "Error: Empty search query."
+        try:
+            results = []
+            # Fetch up to 5 results
+            for url in gsearch(query, num_results=MAX_SEARCH_RESULTS):
+                results.append(f"URL: {url}")
+            
+            if not results:
+                return "No Google search results found."
+            return "Found these links on Google:\n" + "\n".join(results)
+        except Exception as e:
+            logger.error(f"GoogleSearch error: {e}", exc_info=True)
+            return f"Google search error: {e}"
+
+
+# ---------------------------------------------------------------------------
+# Translator — Multi-language translation
+# ---------------------------------------------------------------------------
+class Translator(Tool):
+    name = "translate"
+    description = "Translate text between languages. Format: 'TEXT to LANGUAGE' or 'TEXT (from LANG to LANG)'."
+    example = "translate[Halo dunia to English]"
+
+    def execute(self, arg: str) -> str:
+        arg = arg.strip()
+        if not arg:
+            return "Error: Provide text to translate. Example: translate[Apple to Indonesian]"
+        
+        # Simple pattern: "TEXT to LANGUAGE"
+        m = re.match(r"^(.*)\s+to\s+([a-zA-Z\s]+)$", arg, re.IGNORECASE)
+        if m:
+            text = m.group(1).strip()
+            to_lang = m.group(2).strip()
+            try:
+                translator = PyTranslator(to_lang=to_lang)
+                translation = translator.translate(text)
+                return f"Translation ({to_lang}): {translation}"
+            except Exception as e:
+                return f"Translation error: {e}"
+        
+        return "Error: Use format 'TEXT to LANGUAGE', e.g., translate[Coffee to Japanese]"
+
+
+# ---------------------------------------------------------------------------
+# Dictionary — Word definitions
+# ---------------------------------------------------------------------------
+class Dictionary(Tool):
+    name = "dictionary"
+    description = "Get the definition and meaning of an English word."
+    example = "dictionary[resilience]"
+
+    _API = "https://api.dictionaryapi.dev/api/v2/entries/en/"
+
+    def execute(self, arg: str) -> str:
+        word = arg.strip().lower()
+        if not word:
+            return "Error: Provide a word to look up."
+        try:
+            url = f"{self._API}{urllib.parse.quote(word)}"
+            req = urllib.request.Request(url, headers={"User-Agent": "OuwiboAgent/1.0"})
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            
+            if not isinstance(data, list) or not data:
+                return f"Could not find definition for '{word}'."
+            
+            entry = data[0]
+            meanings = entry.get("meanings", [])
+            output = [f"**{word.capitalize()}**"]
+            
+            for m in meanings[:2]: # Show first 2 meanings
+                pos = m.get("partOfSpeech", "unknown")
+                defs = m.get("definitions", [])
+                if defs:
+                    output.append(f"_{pos}_: {defs[0].get('definition')}")
+            
+            return "\n".join(output)
+        except Exception:
+            return f"Dictionary error: Could not find '{word}'."
+
+
+# ---------------------------------------------------------------------------
+# StockMarket — Stock and Crypto prices
+# ---------------------------------------------------------------------------
+class StockMarket(Tool):
+    name = "stocks"
+    description = "Get real-time price and info for stocks (e.g. AAPL, TSLA) or crypto (e.g. BTC-USD)."
+    example = "stocks[AAPL]"
+
+    def execute(self, arg: str) -> str:
+        symbol = arg.strip().upper()
+        if not symbol:
+            return "Error: Provide a symbol like AAPL or BTC-USD."
+        try:
+            ticker = yf.Ticker(symbol)
+            
+            # Use currentPrice from regular info
+            data = ticker.info
+            last_price = data.get("currentPrice") or data.get("regularMarketPrice") or data.get("price")
+
+            if last_price is None:
+                return f"Could not find price data for symbol '{symbol}'."
+            
+            currency = data.get("currency", "USD")
+            name = data.get("longName") or symbol
+            
+            return (
+                f"**{name} ({symbol})**\n"
+                f"Price: {last_price:,.2f} {currency}"
+            )
+        except Exception as e:
+            return f"Stock/Crypto error: {e}"
+
+
+# ---------------------------------------------------------------------------
+# CodeSearch — Find scripts, code snippets, and programming tutorials
+# ---------------------------------------------------------------------------
+class CodeSearch(Tool):
+    name = "find_script"
+    description = "Search for programming scripts, code snippets, and tutorials (Python, JS, etc.)."
+    example = "find_script[python script for web scraping with beautifulsoup]"
+
+    def execute(self, arg: str) -> str:
+        query = arg.strip()
+        if not query:
+            return "Error: Provide a script topic to search."
+        
+        # We use a targeted query to find code
+        search_query = f"{query} script code snippet site:github.com OR site:stackoverflow.com OR site:gist.github.com"
+        
+        try:
+            results = []
+            with DDGS() as ddgs:
+                for r in ddgs.text(search_query, max_results=3):
+                    title = r.get("title", "").strip()
+                    url = r.get("href", "").strip()
+                    snippet = r.get("body", "").strip()
+                    results.append(f"Source: {title}\nURL: {url}\nSnippet: {snippet}")
+            
+            if not results:
+                return f"Could not find any scripts for '{query}'."
+            
+            return "**Found Scripts/Code:**\n\n" + "\n---\n".join(results)
+        except Exception as e:
+            return f"CodeSearch error: {e}"
 
 
 # ---------------------------------------------------------------------------
@@ -493,10 +698,16 @@ class URLReader(Tool):
 ALL_TOOLS: list[type[Tool]] = [
     Calculator,
     WebSearch,
+    GoogleSearch,
     DateTime,
     Weather,
     Wikipedia,
     NewsSearch,
     CurrencyConverter,
+    Translator,
+    Dictionary,
+    StockMarket,
+    CodeSearch,
+    PhindSearch,
     URLReader,
 ]
