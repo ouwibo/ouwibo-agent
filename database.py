@@ -1,15 +1,21 @@
 # database.py
+import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 # ---------------------------------------------------------------------------
-# Database URL — SQLite lokal, file agent.db di direktori kerja
+# Detect environment
+# On Vercel the filesystem is read-only except /tmp
 # ---------------------------------------------------------------------------
-SQLALCHEMY_DATABASE_URL = "sqlite:///./agent.db"
+_IS_VERCEL = bool(os.environ.get("VERCEL"))
+_DB_PATH = "/tmp/agent.db" if _IS_VERCEL else "./agent.db"
+
+SQLALCHEMY_DATABASE_URL = f"sqlite:///{_DB_PATH}"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},  # Wajib untuk SQLite + FastAPI
+    connect_args={"check_same_thread": False},
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
