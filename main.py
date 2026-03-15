@@ -7,7 +7,7 @@ import sys
 from dotenv import load_dotenv
 from groq import Groq  # type: ignore[import-untyped]
 
-from ouwibo_agent.agent import Agent
+from core.agent import Agent
 
 
 def setup_logging(verbose: bool = False) -> None:

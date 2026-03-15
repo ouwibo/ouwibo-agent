@@ -1,4 +1,4 @@
-// static/script.js — Ouwibo Agent
+// static/script.js — Ouwibo Agent (Responsive)
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -11,14 +11,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const errorBar      = document.getElementById('error-bar');
     const errorText     = document.getElementById('error-text');
     const newChatBtn    = document.getElementById('new-chat-btn');
-    const newChatMini   = document.getElementById('new-chat-mini');
     const clearChatBtn  = document.getElementById('clear-chat-btn');
     const refreshBtn    = document.getElementById('refresh-btn');
     const statusDot     = document.getElementById('status-dot');
     const sidebar       = document.getElementById('sidebar');
-    const sidebarMini   = document.getElementById('sidebar-mini');
+    const backdrop      = document.getElementById('sidebar-backdrop');
     const sidebarToggle = document.getElementById('sidebar-toggle');
-    const sidebarExpand = document.getElementById('sidebar-expand');
+    const sidebarClose  = document.getElementById('sidebar-close');
     const expandBtn     = document.getElementById('expand-btn');
 
     // ── Session ───────────────────────────────────────────────────────────────
@@ -45,6 +44,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let sessionId = getSessionId();
+
+    // ── Sidebar (mobile overlay / desktop static) ─────────────────────────────
+    function isMobile() { return window.innerWidth < 768; }
+
+    function openSidebar() {
+        if (!sidebar) return;
+        sidebar.classList.remove('-translate-x-full');
+        sidebar.classList.add('translate-x-0');
+        if (backdrop && isMobile()) {
+            backdrop.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeSidebar() {
+        if (!sidebar) return;
+        sidebar.classList.add('-translate-x-full');
+        sidebar.classList.remove('translate-x-0');
+        if (backdrop) backdrop.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    function toggleSidebar() {
+        const isOpen = !sidebar.classList.contains('-translate-x-full');
+        isOpen ? closeSidebar() : openSidebar();
+    }
+
+    if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
+    if (sidebarClose)  sidebarClose.addEventListener('click', closeSidebar);
+    if (backdrop)      backdrop.addEventListener('click', closeSidebar);
+
+    // Close sidebar on resize to desktop
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 768) {
+            sidebar.classList.remove('-translate-x-full');
+            sidebar.classList.add('translate-x-0');
+            if (backdrop) backdrop.classList.add('hidden');
+            document.body.style.overflow = '';
+        } else {
+            // Re-hide if user resizes back to mobile while sidebar was open via desktop
+            closeSidebar();
+        }
+    });
+
+    // ── Language switcher ─────────────────────────────────────────────────────
+    if (window.i18n) {
+        window.i18n.buildSwitcher('lang-switcher');
+    }
 
     // ── Marked.js ─────────────────────────────────────────────────────────────
     if (typeof marked !== 'undefined') {
@@ -132,6 +179,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (loadingBubble) { loadingBubble.remove(); loadingBubble = null; }
     }
 
+    // Close sidebar when sending message on mobile
+    function maybeCloseSidebarOnMobile() {
+        if (isMobile()) closeSidebar();
+    }
+
     // ── Scroll ────────────────────────────────────────────────────────────────
     function scrollToBottom(smooth = true) {
         chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: smooth ? 'smooth' : 'instant' });
@@ -156,12 +208,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const wrapper = document.createElement('div');
         wrapper.setAttribute('role', 'article');
-        wrapper.style.opacity   = '0';
-        wrapper.style.transform = 'translateY(6px)';
+        wrapper.style.opacity    = '0';
+        wrapper.style.transform  = 'translateY(6px)';
         wrapper.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
 
         if (isAssistant) {
-            wrapper.className = 'max-w-2xl mx-auto w-full flex gap-4';
+            wrapper.className = 'max-w-full md:max-w-2xl mx-auto w-full flex gap-3 md:gap-4';
 
             // Avatar
             const avatar = document.createElement('div');
@@ -208,10 +260,10 @@ document.addEventListener('DOMContentLoaded', () => {
             wrapper.appendChild(content);
 
         } else {
-            wrapper.className = 'max-w-2xl mx-auto w-full flex gap-3 justify-end';
+            wrapper.className = 'max-w-full md:max-w-2xl mx-auto w-full flex gap-3 justify-end';
 
             const inner = document.createElement('div');
-            inner.className = 'flex flex-col items-end gap-1.5 max-w-[80%]';
+            inner.className = 'flex flex-col items-end gap-1.5 max-w-[85%] md:max-w-[80%]';
 
             // Bubble — textContent prevents XSS
             const bubble = document.createElement('div');
@@ -260,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── System message ────────────────────────────────────────────────────────
     function appendSystemMessage(text) {
         const wrapper = document.createElement('div');
-        wrapper.className = 'max-w-2xl mx-auto w-full flex justify-center';
+        wrapper.className = 'max-w-full md:max-w-2xl mx-auto w-full flex justify-center';
         const inner = document.createElement('div');
         inner.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-900/60 border border-zinc-800/50 text-[11px] text-zinc-500';
         inner.innerHTML = `<i class="fa-solid fa-circle-info text-[9px]"></i>`;
@@ -286,36 +338,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (newChatBtn)   newChatBtn.addEventListener('click', startNewChat);
-    if (newChatMini)  newChatMini.addEventListener('click', startNewChat);
     if (clearChatBtn) clearChatBtn.addEventListener('click', startNewChat);
     if (refreshBtn)   refreshBtn.addEventListener('click', () => window.location.reload());
 
-    // ── Sidebar toggle ────────────────────────────────────────────────────────
-    let sidebarOpen = true;
-
-    function toggleSidebar() {
-        sidebarOpen = !sidebarOpen;
-        if (sidebarOpen) {
-            sidebar.classList.remove('hidden');
-            sidebar.classList.add('flex');
-            if (sidebarMini) {
-                sidebarMini.classList.add('hidden');
-                sidebarMini.classList.remove('flex');
-            }
-        } else {
-            sidebar.classList.add('hidden');
-            sidebar.classList.remove('flex');
-            if (sidebarMini) {
-                sidebarMini.classList.remove('hidden');
-                sidebarMini.classList.add('flex');
-            }
-        }
-    }
-
-    if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
-    if (sidebarExpand) sidebarExpand.addEventListener('click', toggleSidebar);
-
-    // ── Expand / fullscreen ───────────────────────────────────────────────────
+    // ── Expand / fullscreen (desktop only) ───────────────────────────────────
     let isExpanded = false;
 
     if (expandBtn) {
@@ -323,25 +349,15 @@ document.addEventListener('DOMContentLoaded', () => {
             isExpanded = !isExpanded;
             const icon = expandBtn.querySelector('i');
             if (isExpanded) {
-                if (sidebar)     { sidebar.classList.add('hidden');     sidebar.classList.remove('flex'); }
-                if (sidebarMini) { sidebarMini.classList.add('hidden'); sidebarMini.classList.remove('flex'); }
-                sidebarOpen = false;
-                icon.className = 'fa-solid fa-compress text-[11px]';
+                closeSidebar();
+                icon.className = 'fa-solid fa-compress text-sm';
                 expandBtn.setAttribute('title', 'Exit fullscreen');
             } else {
-                sidebar.classList.remove('hidden');
-                sidebar.classList.add('flex');
-                if (sidebarMini) sidebarMini.classList.add('hidden');
-                sidebarOpen = true;
-                icon.className = 'fa-solid fa-expand text-[11px]';
+                openSidebar();
+                icon.className = 'fa-solid fa-expand text-sm';
                 expandBtn.setAttribute('title', 'Fullscreen');
             }
         });
-    }
-
-    // ── Language switcher ─────────────────────────────────────────────────────
-    if (window.i18n) {
-        window.i18n.buildSwitcher('lang-switcher');
     }
 
     // ── Textarea auto-resize ──────────────────────────────────────────────────
@@ -371,6 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
         userInput.style.height = 'auto';
 
         appendMessage('user', text);
+        maybeCloseSidebarOnMobile();
         setLoading(true);
         showLoadingBubble();
 
@@ -415,15 +432,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Keyboard shortcuts ────────────────────────────────────────────────────
     document.addEventListener('keydown', (e) => {
-        // Cmd/Ctrl+K → focus input
         if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
             e.preventDefault();
             userInput.focus();
             userInput.select();
         }
-        // Escape → blur
-        if (e.key === 'Escape' && document.activeElement === userInput) {
-            userInput.blur();
+        if (e.key === 'Escape') {
+            if (isMobile() && sidebar && !sidebar.classList.contains('-translate-x-full')) {
+                closeSidebar();
+            } else if (document.activeElement === userInput) {
+                userInput.blur();
+            }
         }
     });
 

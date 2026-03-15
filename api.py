@@ -19,10 +19,10 @@ from slowapi.util import get_remote_address  # type: ignore[import-untyped]
 from sqlalchemy.orm import Session
 
 import models
+from core.agent import Agent
+from core.config import MAX_MESSAGE_LENGTH, MAX_SESSION_ID_LENGTH
+from core.tools import WebSearch
 from database import SessionLocal, engine
-from ouwibo_agent.agent import Agent
-from ouwibo_agent.config import MAX_MESSAGE_LENGTH, MAX_SESSION_ID_LENGTH
-from ouwibo_agent.tools import WebSearch
 
 # ---------------------------------------------------------------------------
 # Setup
