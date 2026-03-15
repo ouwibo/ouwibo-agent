@@ -4,7 +4,16 @@ import re
 
 from .memory import Memory
 from .planner import Planner
-from .tools import Calculator, WebSearch
+from .tools import (
+    Calculator,
+    CurrencyConverter,
+    DateTime,
+    NewsSearch,
+    URLReader,
+    Weather,
+    WebSearch,
+    Wikipedia,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +26,12 @@ class Agent:
         self.tools = {
             "calculate": Calculator(),
             "search": WebSearch(),
+            "datetime": DateTime(),
+            "weather": Weather(),
+            "wikipedia": Wikipedia(),
+            "news": NewsSearch(),
+            "currency": CurrencyConverter(),
+            "read_url": URLReader(),
         }
 
     def run(self, task: str) -> str:

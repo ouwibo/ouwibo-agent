@@ -125,6 +125,27 @@ async def health_check():
 
 
 # ---------------------------------------------------------------------------
+# Endpoints — Tools
+# ---------------------------------------------------------------------------
+@app.get("/tools", tags=["Tools"], summary="Daftar semua skill / tool agent")
+async def list_tools():
+    """Kembalikan metadata semua tool yang tersedia di agent."""
+    from core.tools import ALL_TOOLS
+
+    return {
+        "count": len(ALL_TOOLS),
+        "tools": [
+            {
+                "name": cls.name,
+                "description": cls.description,
+                "example": cls.example,
+            }
+            for cls in ALL_TOOLS
+        ],
+    }
+
+
+# ---------------------------------------------------------------------------
 # Endpoints — Search
 # ---------------------------------------------------------------------------
 @app.get("/search", tags=["Search"], summary="Pencarian web global")

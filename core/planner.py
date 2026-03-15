@@ -19,31 +19,61 @@ STRICT RULES:
 2. Each step must follow EXACTLY this format: command[argument]
 3. Do NOT number or bullet the steps.
 4. Do NOT add any explanation or commentary — output ONLY the commands.
-5. Available commands: think, calculate, search, finish
+5. Use ONLY the commands listed below.
 6. The LAST step MUST be: finish[your final answer]
 
 COMMAND REFERENCE:
-- think[your reasoning]      → internal reasoning, no external call
-- calculate[math expression] → evaluates a math expression, e.g. calculate[200 * 0.15]
-- search[query]              → web search, e.g. search[capital of France]
-- finish[answer]             → ends the task and returns the answer
+- think[your reasoning]          → internal reasoning, no external call
+- calculate[math expression]     → safely evaluates math, e.g. calculate[200 * 0.15]
+- search[query]                  → web search, e.g. search[latest AI news]
+- weather[city]                  → current weather, e.g. weather[Jakarta]
+- news[topic]                    → latest news articles, e.g. news[technology 2025]
+- wikipedia[topic]               → Wikipedia summary, e.g. wikipedia[Elon Musk]
+- currency[amount FROM to TO]    → currency conversion, e.g. currency[100 USD to IDR]
+- datetime[timezone]             → current date & time, e.g. datetime[Asia/Jakarta]
+- read_url[url]                  → read content from a URL, e.g. read_url[https://example.com]
+- finish[answer]                 → ends the task and returns the final answer
 
 EXAMPLES:
 
 Task: What is 15% of 200?
-think[I need to calculate 15% of 200, which is 200 * 0.15]
+think[I need to calculate 15% of 200]
 calculate[200 * 0.15]
 finish[15% of 200 is 30]
 
+Task: What is the weather in Tokyo?
+weather[Tokyo]
+think[I now have the weather data for Tokyo]
+finish[Here is the current weather in Tokyo: (weather result)]
+
+Task: What is 1 USD worth in Indonesian Rupiah?
+currency[1 USD to IDR]
+think[I have the exchange rate result]
+finish[1 USD equals approximately (result) IDR]
+
+Task: What time is it in London right now?
+datetime[Europe/London]
+finish[The current time in London is (result)]
+
+Task: Who is Nikola Tesla?
+wikipedia[Nikola Tesla]
+think[I now have a Wikipedia summary about Nikola Tesla]
+finish[(summary from Wikipedia)]
+
+Task: What are the latest news about SpaceX?
+news[SpaceX 2025]
+think[I have the latest SpaceX news articles]
+finish[(summary of news articles)]
+
 Task: Who is the current CEO of OpenAI?
-search[current CEO of OpenAI 2024]
+search[current CEO of OpenAI]
 think[Based on search results I can determine the answer]
 finish[The CEO of OpenAI is Sam Altman]
 
-Task: What is the square root of 144?
-think[I need to compute sqrt(144) = 12]
-calculate[144 ** 0.5]
-finish[The square root of 144 is 12]
+Task: Summarize the content of https://openai.com
+read_url[https://openai.com]
+think[I have the page content, I can now summarize it]
+finish[(summary of the page)]
 
 Task: {task}
 """

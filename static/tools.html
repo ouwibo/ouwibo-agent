@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Ouwibo — Tools</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        background: '#09090b',
+                        accent: '#f43f5e',
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        @layer base {
+            body { @apply bg-background text-zinc-100 antialiased; }
+            ::-webkit-scrollbar       { @apply w-1; }
+            ::-webkit-scrollbar-thumb { @apply bg-zinc-800 rounded-full; }
+        }
+        @layer components {
+            .sidebar-link {
+                @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px]
+                       font-medium transition-all duration-150 text-zinc-400
+                       hover:bg-zinc-800/70 hover:text-zinc-100 cursor-pointer select-none w-full;
+            }
+            .sidebar-link.active { @apply bg-zinc-800/90 text-zinc-100; }
+            .sidebar-label {
+                @apply px-3 pt-5 pb-1.5 text-[10px] font-bold text-zinc-600
+                       uppercase tracking-widest select-none;
+            }
+            .action-btn {
+                @apply w-9 h-9 flex items-center justify-center rounded-xl
+                       text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200
+                       transition-all duration-150 cursor-pointer shrink-0;
+            }
+            .tool-card {
+                @apply relative bg-zinc-900/60 border border-zinc-800/60 rounded-2xl p-5
+                       hover:border-zinc-700/80 hover:bg-zinc-900/80
+                       transition-all duration-200 cursor-default overflow-hidden;
+            }
+            .tag {
+                @apply inline-flex items-center px-2 py-0.5 rounded-md text-[11px]
+                       font-mono font-medium bg-zinc-800/80 text-zinc-400 border border-zinc-700/50;
+            }
+        }
+    </style>
+</head>
+
+<body class="flex h-screen w-screen overflow-hidden">
+
+    <!-- Mobile backdrop -->
+    <div id="sidebar-backdrop"
+         class="fixed inset-0 bg-black/60 z-40 hidden backdrop-blur-sm"
+         aria-hidden="true"></div>
+
+    <!-- =====================================================================
+         SIDEBAR
+    ===================================================================== -->
+    <aside
+        id="sidebar"
+        role="navigation"
+        aria-label="Main navigation"
+        class="fixed inset-y-0 left-0 z-50 w-72 flex flex-col
+               bg-[#09090b] border-r border-zinc-800/70
+               transform -translate-x-full transition-transform duration-300 ease-in-out
+               md:relative md:translate-x-0 md:w-60 md:shrink-0"
+    >
+        <!-- Brand -->
+        <div class="px-4 py-4 flex items-center justify-between border-b border-zinc-800/50 shrink-0">
+            <a href="/" class="flex items-center gap-2.5 min-w-0">
+                <div class="w-8 h-8 rounded-xl bg-accent/10 border border-accent/20
+                            flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-robot text-accent text-sm" aria-hidden="true"></i>
+                </div>
+                <div class="leading-tight min-w-0">
+                    <div class="text-[13px] font-semibold text-zinc-100 truncate">Ouwibo Agent</div>
+                    <div class="text-[9px] text-zinc-500 uppercase tracking-wider">AI Assistant</div>
+                </div>
+            </a>
+            <button id="sidebar-close" aria-label="Close sidebar" class="action-btn md:hidden">
+                <i class="fa-solid fa-xmark text-sm" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <!-- Nav -->
+        <div class="flex-1 overflow-y-auto px-2 py-3">
+            <div class="sidebar-label">Menu</div>
+            <a href="/" class="sidebar-link">
+                <i class="fa-regular fa-message text-xs w-4 text-center" aria-hidden="true"></i>
+                <span>Chat</span>
+            </a>
+            <a href="/search.html" class="sidebar-link">
+                <i class="fa-solid fa-magnifying-glass text-xs w-4 text-center" aria-hidden="true"></i>
+                <span>Search</span>
+            </a>
+
+            <div class="sidebar-label">Agent</div>
+            <a href="/tools.html" class="sidebar-link active" aria-current="page">
+                <i class="fa-solid fa-bolt text-xs w-4 text-center text-accent" aria-hidden="true"></i>
+                <span>Tools</span>
+            </a>
+            <a href="#" class="sidebar-link opacity-50 cursor-default pointer-events-none">
+                <i class="fa-solid fa-robot text-xs w-4 text-center text-zinc-500" aria-hidden="true"></i>
+                <span>Agents</span>
+                <span class="ml-auto text-[9px] bg-zinc-800/80 text-zinc-600 px-1.5 py-0.5 rounded-md">Soon</span>
+            </a>
+            <a href="#" class="sidebar-link opacity-50 cursor-default pointer-events-none">
+                <i class="fa-solid fa-circle-nodes text-xs w-4 text-center text-zinc-500" aria-hidden="true"></i>
+                <span>Nodes</span>
+                <span class="ml-auto text-[9px] bg-zinc-800/80 text-zinc-600 px-1.5 py-0.5 rounded-md">Soon</span>
+            </a>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-2 pb-4 pt-2 border-t border-zinc-800/50 space-y-2 shrink-0">
+            <div id="lang-switcher"></div>
+
+            <!-- Social media -->
+            <div class="flex items-center justify-center gap-1 py-1">
+                <a href="https://x.com/ouwibo" target="_blank" rel="noopener noreferrer"
+                   title="@ouwibo on X"
+                   class="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-600
+                          hover:text-zinc-300 hover:bg-zinc-800 transition-all">
+                    <i class="fa-brands fa-x-twitter text-sm"></i>
+                </a>
+                <a href="https://t.me/ouwibo" target="_blank" rel="noopener noreferrer"
+                   title="@ouwibo on Telegram"
+                   class="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-600
+                          hover:text-zinc-300 hover:bg-zinc-800 transition-all">
+                    <i class="fa-brands fa-telegram text-sm"></i>
+                </a>
+                <a href="https://github.com/ouwibo" target="_blank" rel="noopener noreferrer"
+                   title="@ouwibo on GitHub"
+                   class="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-600
+                          hover:text-zinc-300 hover:bg-zinc-800 transition-all">
+                    <i class="fa-brands fa-github text-sm"></i>
+                </a>
+            </div>
+
+            <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-900/40 border border-zinc-800/40">
+                <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></div>
+                <span class="text-[11px] text-zinc-500 font-medium">System Active</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- =====================================================================
+         MAIN
+    ===================================================================== -->
+    <main class="flex-1 flex flex-col overflow-hidden bg-[#0a0a0a] min-w-0" role="main">
+
+        <!-- HEADER -->
+        <header class="flex items-center justify-between px-3 md:px-5 border-b border-zinc-800/50 shrink-0 gap-2" style="height:52px">
+            <div class="flex items-center gap-2">
+                <button id="sidebar-toggle" aria-label="Toggle sidebar" class="action-btn">
+                    <i class="fa-solid fa-bars text-sm"></i>
+                </button>
+                <div class="hidden sm:flex items-center gap-1.5 text-xs">
+                    <span class="text-zinc-500 font-medium">Ouwibo</span>
+                    <span class="text-zinc-700">/</span>
+                    <span class="text-zinc-200 font-semibold">Tools</span>
+                </div>
+                <span class="sm:hidden text-[13px] font-semibold text-zinc-100">Tools</span>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+                <a href="/"
+                   class="hidden sm:flex items-center gap-2 bg-zinc-900 border border-zinc-800
+                          rounded-xl px-3 py-1.5 text-[11px] text-zinc-500
+                          hover:border-zinc-700 hover:text-zinc-300 transition-all">
+                    <i class="fa-regular fa-message text-[10px]"></i>
+                    <span>Chat</span>
+                </a>
+                <a href="/" class="action-btn sm:hidden" aria-label="Chat">
+                    <i class="fa-regular fa-message text-sm"></i>
+                </a>
+            </div>
+        </header>
+
+        <!-- PAGE CONTENT -->
+        <div class="flex-1 overflow-y-auto">
+            <div class="max-w-5xl mx-auto px-4 md:px-6 py-8 md:py-10">
+
+                <!-- Page title -->
+                <div class="mb-8 md:mb-10">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-2xl bg-accent/10 border border-accent/20
+                                    flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-bolt text-accent" aria-hidden="true"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl md:text-2xl font-bold text-zinc-100">Agent Tools</h1>
+                            <p class="text-[13px] text-zinc-500 mt-0.5">Skills available to Ouwibo Agent</p>
+                        </div>
+                    </div>
+                    <p class="text-[14px] text-zinc-400 leading-relaxed max-w-2xl">
+                        Ouwibo Agent can automatically select and use any of these tools to answer
+                        your questions. Just type naturally — the agent figures out which tools to call.
+                    </p>
+                </div>
+
+                <!-- Stats row -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8 md:mb-10">
+                    <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl px-4 py-3.5 text-center">
+                        <div class="text-2xl font-bold text-zinc-100" id="stat-total">8</div>
+                        <div class="text-[11px] text-zinc-500 mt-0.5">Total Tools</div>
+                    </div>
+                    <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl px-4 py-3.5 text-center">
+                        <div class="text-2xl font-bold text-emerald-400">8</div>
+                        <div class="text-[11px] text-zinc-500 mt-0.5">Active</div>
+                    </div>
+                    <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl px-4 py-3.5 text-center">
+                        <div class="text-2xl font-bold text-zinc-100">0</div>
+                        <div class="text-[11px] text-zinc-500 mt-0.5">API Keys Required</div>
+                    </div>
+                    <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl px-4 py-3.5 text-center">
+                        <div class="text-2xl font-bold text-accent">AUTO</div>
+                        <div class="text-[11px] text-zinc-500 mt-0.5">Selection Mode</div>
+                    </div>
+                </div>
+
+                <!-- Tools grid -->
+                <div id="tools-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+
+                    <!-- Calculator -->
+                    <div class="tool-card">
+                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+                                    bg-blue-500/5 blur-2xl pointer-events-none"></div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20
+                                        flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-calculator text-blue-400 text-sm"></i>
+                            </div>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+                                         border border-emerald-500/20">
+                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+                                Active
+                            </span>
+                        </div>
+                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">Calculator</h3>
+                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+                            Safely evaluate mathematical expressions without using
+                            <code class="text-xs bg-zinc-800 px-1 py-0.5 rounded text-zinc-300">eval()</code>.
+                            Supports +, -, *, /, **, %, //.
+                        </p>
+                        <div class="space-y-2">
+                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+                            <span class="tag">calculate[200 * 0.15]</span>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Math</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">No API key</span>
+                        </div>
+                    </div>
+
+                    <!-- Web Search -->
+                    <div class="tool-card">
+                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+                                    bg-purple-500/5 blur-2xl pointer-events-none"></div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20
+                                        flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-magnifying-glass text-purple-400 text-sm"></i>
+                            </div>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+                                         border border-emerald-500/20">
+                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+                                Active
+                            </span>
+                        </div>
+                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">Web Search</h3>
+                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+                            Search the web using DuckDuckGo and return relevant
+                            titles, snippets, and URLs for any query.
+                        </p>
+                        <div class="space-y-2">
+                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+                            <span class="tag">search[latest AI news 2025]</span>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Internet</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">DuckDuckGo</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">No API key</span>
+                        </div>
+                    </div>
+
+                    <!-- Weather -->
+                    <div class="tool-card">
+                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+                                    bg-sky-500/5 blur-2xl pointer-events-none"></div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20
+                                        flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-cloud-sun text-sky-400 text-sm"></i>
+                            </div>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+                                         border border-emerald-500/20">
+                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+                                Active
+                            </span>
+                        </div>
+                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">Weather</h3>
+                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+                            Get real-time weather conditions for any city or location
+                            worldwide — temperature, condition, wind, and humidity.
+                        </p>
+                        <div class="space-y-2">
+                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+                            <span class="tag">weather[Jakarta]</span>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Real-time</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">wttr.in</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">No API key</span>
+                        </div>
+                    </div>
+
+                    <!-- Wikipedia -->
+                    <div class="tool-card">
+                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+                                    bg-orange-500/5 blur-2xl pointer-events-none"></div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20
+                                        flex items-center justify-center shrink-0">
+                                <i class="fa-brands fa-wikipedia-w text-orange-400 text-sm"></i>
+                            </div>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+                                         border border-emerald-500/20">
+                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+                                Active
+                            </span>
+                        </div>
+                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">Wikipedia</h3>
+                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+                            Look up any topic on Wikipedia and return a clean plain-text
+                            summary with a source link.
+                        </p>
+                        <div class="space-y-2">
+                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+                            <span class="tag">wikipedia[Artificial Intelligence]</span>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Knowledge</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Wikipedia API</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">No API key</span>
+                        </div>
+                    </div>
+
+                    <!-- News -->
+                    <div class="tool-card">
+                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+                                    bg-red-500/5 blur-2xl pointer-events-none"></div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20
+                                        flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-newspaper text-red-400 text-sm"></i>
+                            </div>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+                                         border border-emerald-500/20">
+                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+                                Active
+                            </span>
+                        </div>
+                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">News</h3>
+                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+                            Fetch the latest news articles on any topic from sources
+                            around the world via DuckDuckGo News.
+                        </p>
+                        <div class="space-y-2">
+                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+                            <span class="tag">news[SpaceX launch 2025]</span>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Real-time</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">DuckDuckGo</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">No API key</span>
+                        </div>
+                    </div>
+
+                    <!-- Currency -->
+                    <div class="tool-card">
+                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+                                    bg-emerald-500/5 blur-2xl pointer-events-none"></div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20
+                                        flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-money-bill-transfer text-emerald-400 text-sm"></i>
+                            </div>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+                                         border border-emerald-500/20">
+                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+                                Active
+                            </span>
+                        </div>
+                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">Currency Converter</h3>
+                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+                            Convert between 30+ currencies using live exchange rates
+                            from the European Central Bank.
+                        </p>
+                        <div class="space-y-2">
+                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+                            <span class="tag">currency[100 USD to IDR]</span>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Finance</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">ECB Rates</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">No API key</span>
+                        </div>
+                    </div>
+
+                    <!-- Date & Time -->
+                    <div class="tool-card">
+                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+                                    bg-violet-500/5 blur-2xl pointer-events-none"></div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20
+                                        flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-clock text-violet-400 text-sm"></i>
+                            </div>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+                                         border border-emerald-500/20">
+                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+                                Active
+                            </span>
+                        </div>
+                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">Date & Time</h3>
+                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+                            Get the current date and time in any timezone using
+                            standard IANA timezone names. No external API needed.
+                        </p>
+                        <div class="space-y-2">
+                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+                            <span class="tag">datetime[Asia/Jakarta]</span>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Time</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Timezone</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">No API key</span>
+                        </div>
+                    </div>
+
+                    <!-- URL Reader -->
+                    <div class="tool-card">
+                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+                                    bg-yellow-500/5 blur-2xl pointer-events-none"></div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-yellow-500/10 border border-yellow-500/20
+                                        flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-link text-yellow-400 text-sm"></i>
+                            </div>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+                                         border border-emerald-500/20">
+                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+                                Active
+                            </span>
+                        </div>
+                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">URL Reader</h3>
+                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+                            Fetch and extract readable text content from any public
+                            URL — articles, documentation, landing pages, and more.
+                        </p>
+                        <div class="space-y-2">
+                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+                            <span class="tag">read_url[https://example.com]</span>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Web</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">Scraping</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg">No API key</span>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- end tools-grid -->
+
+                <!-- Try it section -->
+                <div class="mt-12 p-6 md:p-8 rounded-2xl bg-gradient-to-br from-accent/5 to-transparent
+                            border border-accent/20 text-center">
+                    <div class="w-12 h-12 rounded-2xl bg-accent/10 border border-accent/20
+                                flex items-center justify-center mx-auto mb-4">
+                        <i class="fa-solid fa-robot text-accent text-lg"></i>
+                    </div>
+                    <h2 class="text-lg font-bold text-zinc-100 mb-2">Try it now</h2>
+                    <p class="text-[14px] text-zinc-400 mb-6 max-w-md mx-auto">
+                        Just type naturally in the chat — the agent automatically picks
+                        the right tool for your request.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-3 items-center justify-center flex-wrap text-[13px] text-zinc-500 mb-6">
+                        <span class="bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-xl">"What's the weather in Tokyo?"</span>
+                        <span class="bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-xl">"Convert 500 EUR to USD"</span>
+                        <span class="bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-xl">"What time is it in New York?"</span>
+                        <span class="bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-xl">"Latest news about Tesla"</span>
+                    </div>
+                    <a href="/"
+                       class="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white font-semibold
+                              rounded-xl hover:opacity-90 active:scale-95 transition-all text-[14px]">
+                        <i class="fa-regular fa-message"></i>
+                        Open Chat
+                    </a>
+                </div>
+
+            </div>
+            <!-- end max-w-5xl -->
+        </div>
+        <!-- end page content -->
+
+    </main>
+
+    <script src="i18n.js"></script>
+
+    <script>
+        // ── Sidebar responsive ────────────────────────────────────────────────
+        const sidebar  = document.getElementById('sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        const toggleBtn = document.getElementById('sidebar-toggle');
+        const closeBtn  = document.getElementById('sidebar-close');
+
+        function openSidebar() {
+            sidebar.classList.remove('-translate-x-full');
+            sidebar.classList.add('translate-x-0');
+            if (window.innerWidth < 768) {
+                backdrop.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeSidebar() {
+            sidebar.classList.add('-translate-x-full');
+            sidebar.classList.remove('translate-x-0');
+            backdrop.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        if (toggleBtn) toggleBtn.addEventListener('click', openSidebar);
+        if (closeBtn)  closeBtn.addEventListener('click', closeSidebar);
+        backdrop.addEventListener('click', closeSidebar);
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) {
+                sidebar.classList.remove('-translate-x-full');
+                sidebar.classList.add('translate-x-0');
+                backdrop.classList.add('hidden');
+                document.body.style.overflow = '';
+            } else {
+                closeSidebar();
+            }
+        });
+
+        // ── Language switcher ─────────────────────────────────────────────────
+        if (window.i18n) window.i18n.buildSwitcher('lang-switcher');
+    </script>
+
+</body>
+</html>
