@@ -1104,15 +1104,14 @@ class Wallet(Tool):
             lines.append("- (No native balances detected on the default chains list.)")
 
         lines.append("")
-        lines.append("Links:")
-        lines.append(f"- DeBank: https://debank.com/profile/{addr}")
-        lines.append(f"- Arkham: https://arkhamintelligence.com/explorer/address/{addr}")
-        lines.append(f"- Blockscan: https://blockscan.com/address/{addr}")
+        lines.append("🔗 **Quick Links:**")
+        lines.append(f"- [DeBank Profile](https://debank.com/profile/{addr})")
+        lines.append(f"- [Arkham Explorer](https://arkhamintelligence.com/explorer/address/{addr})")
+        lines.append(f"- [Blockscan Search](https://blockscan.com/address/{addr})")
 
         if errors:
-            # Don't spam; just give a hint.
             lines.append("")
-            lines.append(f"Note: Some chains may have temporary RPC errors ({min(len(errors), 3)}/{len(self._CHAINS)}). Try again if needed.")
+            lines.append(f"⚠️ **Note:** Some chains may have temporary RPC issues ({len(errors)}/{len(self._CHAINS)}).")
 
         return "\n".join(lines)
 
