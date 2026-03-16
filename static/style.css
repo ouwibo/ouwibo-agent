@@ -723,10 +723,11 @@ svg   { display: block; width: 16px; height: 16px;
   color: var(--text-3);
 }
 
-.tools-chip.tools-chip--keyless {
-  background: rgba(244,63,94,0.16) !important;
-  border: 1px solid rgba(244,63,94,0.35) !important;
-  color: var(--accent) !important;
+.tools-page .tools-chip.tools-chip--keyless {
+  background: var(--accent) !important;
+  border: 1px solid rgba(244,63,94,0.55) !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 16px rgba(244,63,94,0.18);
 }
 
 #tools-grid {
