@@ -116,6 +116,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Expose a tiny helper surface for other page scripts (skills.js, etc.)
+  window.__Ouwibo = window.__Ouwibo || {};
+  window.__Ouwibo.authHeaders = authHeaders;
+  window.__Ouwibo.clearStoredToken = clearStoredToken;
+  window.__Ouwibo.setAuthBadge = setAuthBadge;
+  window.__Ouwibo.showAuthModal = showAuthModal;
+
   function setAuthSubmitLoading(loading) {
     if (!authSubmitBtn) return;
     authSubmitBtn.disabled = loading;
@@ -449,6 +456,62 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let sessionId = getSessionId();
 
+  // ── Skill selection ─────────────────────────────────────────────────────────
+  const SKILL_KEY = 'ouwibo_skill_id';
+  const skillSelect = document.getElementById('skill-select');
+
+  function getStoredSkill() {
+    return (localStorage.getItem(SKILL_KEY) || '').trim();
+  }
+
+  function setStoredSkill(skillId) {
+    const v = (skillId || '').trim();
+    if (v) localStorage.setItem(SKILL_KEY, v);
+    else localStorage.removeItem(SKILL_KEY);
+  }
+
+  async function initSkills() {
+    if (!skillSelect) return;
+
+    // Set initial value early for better UX; will be validated after fetch.
+    const initial = getStoredSkill() || 'general';
+    skillSelect.value = initial;
+    skillSelect.addEventListener('change', () => {
+      setStoredSkill(skillSelect.value);
+      showAiStatusNotification(`Skill: ${skillSelect.options[skillSelect.selectedIndex]?.textContent || skillSelect.value}`);
+    });
+
+    try {
+      const res = await fetch('/skills', { headers: authHeaders() });
+      if (res.status === 401) {
+        clearStoredToken();
+        setAuthBadge(false);
+        showAuthModal('Access required. Please enter your access token.');
+        return;
+      }
+      if (!res.ok) return;
+
+      const data = await res.json().catch(() => ({}));
+      const skills = Array.isArray(data.skills) ? data.skills : [];
+      if (!skills.length) return;
+
+      const current = getStoredSkill() || initial;
+      skillSelect.innerHTML = '';
+      for (const s of skills) {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.title || s.id;
+        skillSelect.appendChild(opt);
+      }
+      // Restore selection if possible.
+      skillSelect.value = current;
+      if (!skillSelect.value && skills[0]) skillSelect.value = skills[0].id;
+      setStoredSkill(skillSelect.value);
+    } catch (e) {
+      // Silent: skills are optional
+    }
+  }
+
   // ── Markdown renderer ──────────────────────────────────────────────────────
   if (typeof marked !== 'undefined') {
     marked.setOptions({ breaks: true, gfm: true });
@@ -478,8 +541,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const errorText    = document.getElementById('error-text');
   const statusDot    = document.getElementById('status-dot');
 
-  if (!chatForm || !userInput || !chatMessages) return;
+  const hasChat = !!(chatForm && userInput && chatMessages);
 
+  if (hasChat) {
   // ── Error bar ──────────────────────────────────────────────────────────────
   function showError(msg) {
     if (!errorBar || !errorText) return;
@@ -706,7 +770,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch('/chat', {
         method: 'POST',
         headers: authHeaders(),
-        body: JSON.stringify({ message: text, session_id: sessionId }),
+        body: JSON.stringify({
+          message: text,
+          session_id: sessionId,
+          skill: (skillSelect && skillSelect.value) ? skillSelect.value : (getStoredSkill() || 'general'),
+        }),
       });
 
       hideTyping();
@@ -761,12 +829,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  } // end hasChat
+
   // ── Language switcher ──────────────────────────────────────────────────────
   if (window.i18n) window.i18n.buildSwitcher('lang-switcher');
 
   // ── Init ───────────────────────────────────────────────────────────────────
-  initAuth();
-  if (userInput) userInput.focus();
-  scrollToBottom(false);
+  (async () => {
+    await initAuth();
+    await initSkills();
+    if (hasChat && userInput) userInput.focus();
+    if (hasChat) scrollToBottom(false);
+  })();
 
 });

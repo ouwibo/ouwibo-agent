@@ -55,7 +55,7 @@ class Agent:
             return ""
         return str(text).strip()
 
-    def _best_effort_answer(self, task: str, context: str = "") -> str:
+    def _best_effort_answer(self, task: str, context: str = "", skill_context: str = "") -> str:
         """
         Direct answer mode: use the LLM normally (no tool-format constraints).
         Falls back to a short apology if the client call fails.
@@ -65,6 +65,11 @@ class Agent:
             "Be practical and specific. If you use web snippets provided, cite URLs inline. "
             "If you are uncertain, propose a reasonable next step rather than stopping."
         )
+        sc = (skill_context or "").strip()
+        if sc:
+            if len(sc) > 3500:
+                sc = sc[:3500].rstrip() + "\n[skill truncated]"
+            sys = sys + "\n\nSKILL INSTRUCTIONS (follow unless they conflict with the user request):\n" + sc
         user = task if not context else f"{task}\n\nCONTEXT:\n{context}"
         messages = [{"role": "system", "content": sys}]
         # Include recent memory (keeps continuity without exploding prompt)
@@ -97,11 +102,11 @@ class Agent:
     def _looks_uncertain(self, text: str) -> bool:
         return bool(self._UNCERTAIN_RE.search(text or ""))
 
-    def _search_read_and_summarize(self, task: str) -> str:
+    def _search_read_and_summarize(self, task: str, skill_context: str = "") -> str:
         """Auto-search + optional read_url for top results, then summarize."""
         # Avoid hitting the network in unit tests where the client is mocked.
         if type(self.client).__module__.startswith("unittest.mock"):
-            return self._best_effort_answer(task)
+            return self._best_effort_answer(task, skill_context=skill_context)
 
         ws = self.tools.get("search")
         rr = self.tools.get("read_url")
@@ -144,11 +149,11 @@ class Agent:
         if context:
             # Keep tool results in memory so future turns can reuse them.
             self.memory.add("assistant", f"[auto-search context]\n{context[:3500]}")
-            return self._best_effort_answer(task, context=context)
+            return self._best_effort_answer(task, context=context, skill_context=skill_context)
 
-        return self._best_effort_answer(task)
+        return self._best_effort_answer(task, skill_context=skill_context)
 
-    def run(self, task: str) -> str:
+    def run(self, task: str, skill_context: str = "") -> str:
         logger.info(f"[Agent] Task diterima: {task!r}")
         self.memory.add("user", task)
 
@@ -159,16 +164,16 @@ class Agent:
 
             # 1. Panggil Planner dengan riwayat saat ini
             try:
-                plan = self.planner.plan(task, self.memory.get_history())
+                plan = self.planner.plan(task, self.memory.get_history(), skill_context=skill_context)
             except Exception as e:
                 logger.error(f"[Agent] Planner gagal di iterasi {i + 1}: {e}", exc_info=True)
                 prefix = f"Maaf, saya tidak dapat membuat rencana langkah. Saya akan coba jawab langsung. Error: {e}"
-                direct = self._search_read_and_summarize(task)
+                direct = self._search_read_and_summarize(task, skill_context=skill_context)
                 return f"{prefix}\n\n{direct}"
 
             if not plan:
                 logger.warning("[Agent] Planner mengembalikan rencana kosong.")
-                return self._search_read_and_summarize(task)
+                return self._search_read_and_summarize(task, skill_context=skill_context)
 
             # 2. Eksekusi semua langkah dalam rencana (biasanya satu atau dua per iterasi)
             progressed = False
@@ -190,7 +195,7 @@ class Agent:
                     final = arg
                     # If the model bails out, force an auto-search pass.
                     if self._looks_uncertain(final):
-                        final = self._search_read_and_summarize(task)
+                        final = self._search_read_and_summarize(task, skill_context=skill_context)
                     self.memory.add("assistant", final)
                     return final
 
@@ -219,7 +224,7 @@ class Agent:
             if not progressed:
                 # Planner output didn't produce a usable tool call or finish step.
                 logger.warning("[Agent] No progress from planner steps; using direct fallback.")
-                return self._search_read_and_summarize(task)
+                return self._search_read_and_summarize(task, skill_context=skill_context)
 
         logger.warning("[Agent] Mencapai batas iterasi maksimal tanpa 'finish'.")
-        return self._search_read_and_summarize(task)
+        return self._search_read_and_summarize(task, skill_context=skill_context)

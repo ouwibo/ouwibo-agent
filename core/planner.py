@@ -12,7 +12,12 @@ class Planner:
     def __init__(self, client: Any):
         self.client = client
 
-    def plan(self, task: str, history: list[dict[str, str]] = None) -> list[str]:
+    def plan(
+        self,
+        task: str,
+        history: list[dict[str, str]] | None = None,
+        skill_context: str = "",
+    ) -> list[str]:
         history_context = ""
         if history:
             history_context = "\nCONVERSATION HISTORY & TOOL RESULTS:\n"
@@ -20,6 +25,13 @@ class Planner:
                 role = msg["role"].upper()
                 content = msg["content"]
                 history_context += f"{role}: {content}\n"
+
+        skill_block = ""
+        sc = (skill_context or "").strip()
+        if sc:
+            if len(sc) > 2500:
+                sc = sc[:2500].rstrip() + "\n[skill truncated]"
+            skill_block = f"\nSKILL INSTRUCTIONS:\n{sc}\n"
 
         prompt = f"""You are an iterative planning agent. Your goal is to solve the user's task by using tools.
 
@@ -42,6 +54,7 @@ COMMAND REFERENCE:
 - read_url[url]              → Read content of a webpage.
 - finish[final_answer]       → Provide the actual, final answer based on tool results.
 
+{skill_block}
 TASK: {task}
 {history_context}
 """
