@@ -201,7 +201,7 @@ async def verify_token(_: None = Depends(require_auth)):
     return {"valid": True}
 
 
-@app.get("/health", tags=["System"])
+@app.get("/api/health", tags=["System"])
 async def health_check(db: Session = Depends(get_db)) -> dict[str, Any]:
     """Check the health of the API, database, and AI service."""
     db_status: str = "ok"
@@ -242,7 +242,7 @@ async def list_tools(_: Any = Depends(require_auth)) -> dict[str, Any]:
     }
 
 
-@app.post("/tools/execute", tags=["Tools"])
+@app.post("/api/tools/execute", tags=["Tools"])
 @limiter.limit("30/minute")
 async def execute_tool(
     request: Request,
@@ -272,7 +272,7 @@ async def execute_tool(
         raise HTTPException(status_code=500, detail="Tool execution failed.")
 
 
-@app.get("/skills", tags=["Skills"])
+@app.get("/api/skills", tags=["Skills"])
 async def list_skills(_: Any = Depends(require_auth)) -> dict[str, Any]:
     """List available skills loaded from skills/<id>/SKILL.md."""
     from core.skills import list_skills as _list
@@ -287,7 +287,7 @@ async def list_skills(_: Any = Depends(require_auth)) -> dict[str, Any]:
     }
 
 
-@app.get("/skills/{skill_id}", tags=["Skills"])
+@app.get("/api/skills/{skill_id}", tags=["Skills"])
 async def get_skill(skill_id: str, _: Any = Depends(require_auth)) -> dict[str, Any]:
     """Get one skill (metadata + markdown content)."""
     from core.skills import get_skill as _get
@@ -362,7 +362,7 @@ async def get_history(
 # ---------------------------------------------------------------------------
 # Endpoint — Chat
 # ---------------------------------------------------------------------------
-@app.post("/chat", tags=["Chat"])
+@app.post("/api/chat", tags=["Chat"])
 @limiter.limit("15/minute")
 async def chat_with_agent(
     request: Request,

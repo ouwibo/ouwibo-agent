@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let healthData = null;
     
     try {
-      const res = await fetch('/health');
+      const res = await fetch('/api/health');
       healthData = await res.json();
       _authEnabled = healthData.auth === true;
       aiClientStatus = healthData.ai_client || 'ready';
@@ -256,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!statTotal && !statActive) return;
 
       try {
-        const res = await fetch('/tools', { headers: authHeaders() });
+        const res = await fetch('/api/tools', { headers: authHeaders() });
         if (res.status === 401) {
           clearStoredToken();
           setAuthBadge(false);
@@ -559,7 +559,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     try {
-      const res = await fetch('/skills', { headers: authHeaders() });
+      const res = await fetch('/api/skills', { headers: authHeaders() });
       if (res.status === 401) {
         clearStoredToken();
         setAuthBadge(false);
@@ -882,7 +882,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showTyping();
 
     try {
-      const res = await fetch('/chat', {
+      const res = await fetch('/api/chat', {
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({

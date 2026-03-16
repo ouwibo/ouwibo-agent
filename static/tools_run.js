@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
 
     try {
-      const res = await fetch('/tools/execute', {
+      const res = await fetch('/api/tools/execute', {
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({ tool, arg }),

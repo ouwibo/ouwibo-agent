@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      const res = await fetch('/tools/execute', {
+      const res = await fetch('/api/tools/execute', {
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({ tool, arg }),
