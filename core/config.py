@@ -24,7 +24,7 @@ CALCULATOR_MAX_LEN = 200  # Panjang maksimal ekspresi yang diterima kalkulator
 # ---------------------------------------------------------------------------
 # Tools — WebSearch
 # ---------------------------------------------------------------------------
-MAX_SEARCH_RESULTS = 5  # Jumlah hasil pencarian DuckDuckGo yang dikembalikan
+MAX_SEARCH_RESULTS = 8  # Jumlah hasil pencarian web yang dikembalikan
 
 # ---------------------------------------------------------------------------
 # API / Validation
