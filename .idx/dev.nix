@@ -23,6 +23,9 @@
         web = {
           command = ["./venv/bin/python" "-m" "uvicorn" "api:app" "--host" "0.0.0.0" "--port" "$PORT"];
           manager = "web";
+          env = {
+            PORT = "$PORT";
+          };
         };
       };
     };
