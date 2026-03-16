@@ -4,26 +4,26 @@ import os
 import time
 from typing import Any, Callable, Generator
 
-import slowapi
-from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, HTTPException, Request, Response
-from fastapi import Query as QueryParam
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from groq import APIError, APIStatusError, AuthenticationError, Groq
-from pydantic import BaseModel, Field
-from slowapi import Limiter  # type: ignore
-from slowapi.errors import RateLimitExceeded  # type: ignore
-from slowapi.util import get_remote_address  # type: ignore
-from sqlalchemy import text
-from sqlalchemy.orm import Session
+import slowapi  # type: ignore[import-untyped]
+from dotenv import load_dotenv  # type: ignore[import-untyped]
+from fastapi import Depends, FastAPI, HTTPException, Request, Response  # type: ignore[import-untyped]
+from fastapi import Query as QueryParam  # type: ignore[import-untyped]
+from fastapi.middleware.cors import CORSMiddleware  # type: ignore[import-untyped]
+from fastapi.staticfiles import StaticFiles  # type: ignore[import-untyped]
+from groq import APIError, APIStatusError, AuthenticationError, Groq  # type: ignore[import-untyped]
+from pydantic import BaseModel, Field  # type: ignore[import-untyped]
+from slowapi import Limiter  # type: ignore[import-untyped]
+from slowapi.errors import RateLimitExceeded  # type: ignore[import-untyped]
+from slowapi.util import get_remote_address  # type: ignore[import-untyped]
+from sqlalchemy import text  # type: ignore[import-untyped]
+from sqlalchemy.orm import Session  # type: ignore[import-untyped]
 
-import models
-from core.agent import Agent
-from core.auth import auth_enabled, require_auth
-from core.config import MAX_MESSAGE_LENGTH, MAX_SESSION_ID_LENGTH
-from core.tools import WebSearch
-from database import SessionLocal, engine
+import models  # type: ignore[import-untyped]
+from core.agent import Agent  # type: ignore[import-untyped]
+from core.auth import auth_enabled, require_auth  # type: ignore[import-untyped]
+from core.config import MAX_MESSAGE_LENGTH, MAX_SESSION_ID_LENGTH  # type: ignore[import-untyped]
+from core.tools import WebSearch  # type: ignore[import-untyped]
+from database import SessionLocal, engine  # type: ignore[import-untyped]
 
 # ---------------------------------------------------------------------------
 # Setup & Database
@@ -82,7 +82,7 @@ class FreeAIClient:
     class Chat:
         class Completions:
             def create(self, messages, model="gpt-4o-mini", **kwargs):
-                from ddgs import DDGS
+                from ddgs import DDGS  # type: ignore[import-untyped]
                 prompt = messages[-1]["content"]
                 with DDGS() as ddgs:
                     ddgs_model = "gpt-4o-mini"
@@ -123,7 +123,7 @@ app.state.limiter = limiter
 # Definisi handler secara lokal agar Zed tidak komplain tentang akses member privat (_)
 def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     """Custom handler for rate limit exceeded errors."""
-    from fastapi.responses import JSONResponse
+    from fastapi.responses import JSONResponse  # type: ignore[import-untyped]
     return JSONResponse(
         status_code=429,
         content={
@@ -231,10 +231,10 @@ async def health_check(db: Session = Depends(get_db)) -> dict[str, Any]:
     }
 
 
-@app.get("/tools", tags=["Tools"])
+@app.get("/api/tools", tags=["Tools"])
 async def list_tools(_: Any = Depends(require_auth)) -> dict[str, Any]:
     """List all available tools for the agent."""
-    from core.tools import ALL_TOOLS
+    from core.tools import ALL_TOOLS  # type: ignore[import-untyped]
 
     return {
         "count": len(ALL_TOOLS),
@@ -250,19 +250,19 @@ async def execute_tool(
     _: Any = Depends(require_auth),
 ) -> dict[str, Any]:
     """Execute a tool directly (used by the Tools UI 'Run' button)."""
-    from core.tools import ALL_TOOLS
+    from core.tools import ALL_TOOLS  # type: ignore[import-untyped]
 
     tool_name = (body.tool or "").strip().lower()
     if not tool_name:
         raise HTTPException(status_code=400, detail="Missing tool name.")
 
-    cls_map = {c.name: c for c in ALL_TOOLS if getattr(c, "name", None)}
-    tool_cls = cls_map.get(tool_name)
+    cls_map: dict[str, Any] = {c.name: c for c in ALL_TOOLS if getattr(c, "name", None)}  # type: ignore[union-attr]
+    tool_cls: Any = cls_map.get(tool_name)
     if tool_cls is None:
         raise HTTPException(status_code=404, detail="Tool not found.")
 
     try:
-        tool = tool_cls()
+        tool: Any = tool_cls()
         out = tool.execute(body.arg or "")
         return {"tool": tool_name, "output": out}
     except HTTPException:
@@ -275,7 +275,7 @@ async def execute_tool(
 @app.get("/api/skills", tags=["Skills"])
 async def list_skills(_: Any = Depends(require_auth)) -> dict[str, Any]:
     """List available skills loaded from skills/<id>/SKILL.md."""
-    from core.skills import list_skills as _list
+    from core.skills import list_skills as _list  # type: ignore[import-untyped]
 
     skills = _list()
     return {
@@ -290,7 +290,7 @@ async def list_skills(_: Any = Depends(require_auth)) -> dict[str, Any]:
 @app.get("/api/skills/{skill_id}", tags=["Skills"])
 async def get_skill(skill_id: str, _: Any = Depends(require_auth)) -> dict[str, Any]:
     """Get one skill (metadata + markdown content)."""
-    from core.skills import get_skill as _get
+    from core.skills import get_skill as _get  # type: ignore[import-untyped]
 
     try:
         s = _get(skill_id)
@@ -314,7 +314,7 @@ async def global_search(
     try:
         t0 = time.perf_counter()
         results = WebSearch().search_raw(q, max_results=max_results, kind=type, provider=provider)
-        elapsed = round(time.perf_counter() - t0, 3)
+        elapsed: float = round(time.perf_counter() - t0, 3)  # type: ignore[assignment]
         return {
             "query": q,
             "type": type,
@@ -394,7 +394,7 @@ async def chat_with_agent(
         skill_context = ""
         if skill_id:
             try:
-                from core.skills import get_skill as _get_skill
+                from core.skills import get_skill as _get_skill  # type: ignore[import-untyped]
                 skill_context = _get_skill(skill_id).content
             except FileNotFoundError:
                 if (body.skill or "").strip():
