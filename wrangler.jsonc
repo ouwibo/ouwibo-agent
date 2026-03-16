@@ -1,12 +1,17 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "agent",
+  "main": "worker.js",
   "compatibility_date": "2025-09-27",
   "observability": {
     "enabled": true
   },
   "assets": {
-    "directory": "static"
+    "directory": "static",
+    "binding": "ASSETS"
+  },
+  "vars": {
+    "VERCEL_URL": "https://ouwibo-agent.vercel.app"
   },
   "compatibility_flags": [
     "nodejs_compat"
