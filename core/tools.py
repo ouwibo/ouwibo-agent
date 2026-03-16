@@ -1010,10 +1010,11 @@ class Wallet(Tool):
     description = "Wallet utilities (read-only). Supports: balance <address_or_ens> [eth|base]."
     example = "wallet[balance vitalik.eth eth]"
 
-    _RPC = {
-        "eth": "https://cloudflare-eth.com",
-        "ethereum": "https://cloudflare-eth.com",
-        "base": "https://mainnet.base.org",
+    # Public RPCs (no API key). Keep a small fallback list for reliability.
+    _RPCS = {
+        "eth": ["https://ethereum.publicnode.com", "https://cloudflare-eth.com"],
+        "ethereum": ["https://ethereum.publicnode.com", "https://cloudflare-eth.com"],
+        "base": ["https://mainnet.base.org"],
     }
 
     def _post_json(self, url: str, payload: dict, timeout: int = 12) -> Any:
@@ -1053,8 +1054,8 @@ class Wallet(Tool):
             return "Error: Missing address/ENS. Example: wallet[balance vitalik.eth eth]"
 
         chain = parts[2].lower() if len(parts) >= 3 else "eth"
-        rpc = self._RPC.get(chain)
-        if not rpc:
+        rpcs = self._RPCS.get(chain)
+        if not rpcs:
             return "Error: Unsupported chain. Use: eth or base"
 
         try:
@@ -1065,9 +1066,27 @@ class Wallet(Tool):
                 "method": "eth_getBalance",
                 "params": [addr, "latest"],
             }
-            resp = self._post_json(rpc, payload)
+            last_err = None
+            resp = None
+            for rpc in rpcs:
+                try:
+                    resp = self._post_json(rpc, payload)
+                    if isinstance(resp, dict) and resp.get("result"):
+                        break
+                    if isinstance(resp, dict) and resp.get("error"):
+                        last_err = resp.get("error")
+                        continue
+                except Exception as e:
+                    last_err = str(e)
+                    continue
+
+            if not isinstance(resp, dict):
+                return "Wallet error: RPC request failed."
+            if resp.get("error"):
+                return f"Wallet error: {resp.get('error')}"
+
             bal_hex = (resp.get("result") or "").strip()
-            if not bal_hex.startswith("0x"):
+            if not isinstance(bal_hex, str) or not bal_hex.startswith("0x"):
                 return f"Wallet error: unexpected RPC response."
             wei = int(bal_hex, 16)
             eth = wei / 1e18
