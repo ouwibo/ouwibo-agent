@@ -325,8 +325,12 @@ svg   { display: block; width: 16px; height: 16px;
 .nav-item:hover { background: var(--nav-item-hover-bg); color: var(--text-1); }
 .nav-item--active { background: var(--nav-item-active-bg) !important; color: var(--nav-item-active-color) !important; }
 
-/* Hide "Soon" badges without removing markup (you can re-enable later). */
-.nav-item__badge { display: none !important; }
+/* Hide unconfigured sidebar items (href="#") without removing markup. */
+a.nav-item[href="#"] { display: none !important; }
+
+/* Hide whole sidebar sections that aren't used yet (keeps markup for later edits). */
+.sidebar .nav-section--control,
+.sidebar .nav-section--settings { display: none !important; }
 
 .sidebar-shell__footer { 
   border-top: 1px solid var(--sidebar-footer-border); 
