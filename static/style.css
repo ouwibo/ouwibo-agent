@@ -691,6 +691,89 @@ svg   { display: block; width: 16px; height: 16px;
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ============================================================
+   Tools Cards (Compact, Horizontal)
+   ============================================================ */
+.tool-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  grid-auto-rows: min-content;
+  column-gap: 12px;
+  row-gap: 4px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(24,24,27,0.55);
+  border: 1px solid rgba(63,63,70,0.55);
+  overflow: hidden;
+}
+.tool-card:hover { border-color: rgba(113,113,122,0.6); background: rgba(24,24,27,0.72); }
+
+/* Turn the header row into grid items (icon left, status badge right). */
+.tool-card > div.flex.items-start.justify-between { display: contents; }
+.tool-card > div.flex.items-start.justify-between > div { grid-column: 1; grid-row: 1 / span 4; }
+.tool-card > div.flex.items-start.justify-between > span { grid-column: 3; grid-row: 1; justify-self: end; align-self: start; }
+
+.tool-card > h3 {
+  grid-column: 2;
+  grid-row: 1;
+  margin: 0 !important;
+  font-size: 14px !important;
+  line-height: 1.2;
+}
+.tool-card > p {
+  grid-column: 2;
+  grid-row: 2;
+  margin: 0 !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  color: rgba(161,161,170,0.95) !important;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* Command block: remove the "Command" label and extra spacing. */
+.tool-card > div.space-y-2 {
+  grid-column: 2;
+  grid-row: 3;
+  margin: 0 !important;
+}
+.tool-card > div.space-y-2 > :first-child { display: none !important; }
+.tool-card > div.space-y-2 > * + * { margin-top: 0 !important; }
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  color: rgba(226,232,240,0.85);
+  background: rgba(39,39,42,0.8);
+  border: 1px solid rgba(63,63,70,0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Tags row: compact spacing */
+.tool-card > div.mt-3 {
+  grid-column: 2;
+  grid-row: 4;
+  margin: 6px 0 0 !important;
+  padding-top: 6px !important;
+  border-top: 1px solid rgba(63,63,70,0.35) !important;
+}
+
+@media (max-width: 520px) {
+  .tool-card { grid-template-columns: 40px 1fr; }
+  .tool-card > div.flex.items-start.justify-between > span { grid-column: 2; grid-row: 1; }
+}
+
 /* Animations */
 .fade-in { animation: fade-in 0.2s ease; }
 @keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
