@@ -407,6 +407,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('hashchange', highlightHashTarget);
 
+  function highlightToolPageNav() {
+    // Activate tool link in sidebar when on /tool.html?tool=...
+    const path = (window.location.pathname || '').toLowerCase();
+    if (!path.endsWith('/tool.html') && !path.endsWith('tool.html')) return;
+    const params = new URLSearchParams(window.location.search || '');
+    const tool = (params.get('tool') || '').trim();
+    if (!tool) return;
+    document.querySelectorAll('a.nav-item[data-tool]').forEach(a => {
+      a.classList.toggle('nav-item--active', (a.dataset.tool || '') === tool);
+    });
+  }
+
   // ── Sidebar collapse / expand ──────────────────────────────────────────────
   const shell       = document.getElementById('shell');
   const sidebar     = document.getElementById('sidebar');
@@ -477,6 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Run after layout is stable.
   window.setTimeout(highlightHashTarget, 0);
+  window.setTimeout(highlightToolPageNav, 0);
 
   // ── Expand / fullscreen ────────────────────────────────────────────────────
   const expandBtn = document.getElementById('expand-btn');
