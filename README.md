@@ -51,9 +51,29 @@ Open your browser at **http://localhost:8000**
 |-----|-------------|
 | `/` | AI Chat |
 | `/search.html` | Global Search |
+| `/skills.html` | Skills (SKILL.md) |
 | `/docs` | API Reference |
 
 ---
+
+## Skills (SKILL.md)
+
+You can create agent "skills" as Markdown files under:
+
+- `skills/<skill_id>/SKILL.md`
+
+The app will load them automatically and you can select a skill from the chat toolbar.
+
+### Publish to ClawHub (optional)
+
+If you want to publish your skills to ClawHub, use the scripts in `scripts/`:
+
+```bash
+export CLAWHUB_TOKEN="(your ClawHub token)"
+./scripts/clawhub_publish_all.sh 0.1.0
+```
+
+This publishes each folder under `skills/` with slug `ouwibo-<skill_id>`.
 
 ## License
 

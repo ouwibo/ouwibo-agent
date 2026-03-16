@@ -1,3 +1,8 @@
+# ---
+# name: Web Research
+# description: Research mode with web search, source-first summaries, and URL citations.
+# ---
+
 # Web Research
 
 Research mode: prioritize accuracy and sources.
@@ -12,4 +17,3 @@ Research mode: prioritize accuracy and sources.
 
 - Start with a short direct answer.
 - Then "Sources" as a list of URLs.
-
