@@ -771,17 +771,25 @@ svg   { display: block; width: 16px; height: 16px;
 .skills-page .text-zinc-600 { color: var(--text-3) !important; }
 
 /* Skills page layout */
+.skills-content-area {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
 .skills-layout {
   display: grid;
   grid-template-columns: 280px 1fr;
   gap: 12px;
   align-items: start;
+  min-height: 0;
 }
 .skills-list {
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 12px;
+  min-height: 0;
 }
 .skills-list__title {
   font-size: 12px;
@@ -857,6 +865,13 @@ svg   { display: block; width: 16px; height: 16px;
   font-size: 12px;
   line-height: 1.5;
   color: var(--text-2);
+}
+
+/* Tools page: avoid relying on calc(100vh - var(--topbar-h)) so mobile topbar wrap can't clip content. */
+.tools-content-area {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
 }
 
 @media (max-width: 900px) {

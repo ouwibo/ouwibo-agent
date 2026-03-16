@@ -172,28 +172,34 @@
        MAIN CONTENT — SKILLS
   ================================================================ -->
   <main class="content skills-page">
-    <div class="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-10 w-full overflow-y-auto" style="height: calc(100dvh - var(--topbar-h));">
-      <div class="mb-8 md:mb-10">
-        <h1 class="text-xl md:text-2xl font-bold text-zinc-100">Skills</h1>
-        <p class="text-[13px] text-zinc-500 mt-1">Define your agent behavior using <code>skills/&lt;id&gt;/SKILL.md</code>.</p>
-      </div>
+    <!--
+      Use a flex "content area" that fills the shell's remaining height.
+      Avoid calc(100vh - topbar-h) because topbar can grow on mobile (wrap).
+    -->
+    <div class="skills-content-area">
+      <div class="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-10 w-full">
+        <div class="mb-8 md:mb-10">
+          <h1 class="text-xl md:text-2xl font-bold text-zinc-100">Skills</h1>
+          <p class="text-[13px] text-zinc-500 mt-1">Define your agent behavior using <code>skills/&lt;id&gt;/SKILL.md</code>.</p>
+        </div>
 
-      <div class="skills-layout">
-        <aside class="skills-list" aria-label="Skills list">
-          <div class="skills-list__title">Available</div>
-          <div id="skills-list" class="skills-list__items"></div>
-        </aside>
+        <div class="skills-layout">
+          <aside class="skills-list" aria-label="Skills list">
+            <div class="skills-list__title">Available</div>
+            <div id="skills-list" class="skills-list__items"></div>
+          </aside>
 
-        <section class="skills-detail" aria-label="Skill detail">
-          <div class="skills-detail__head">
-            <div class="skills-detail__meta">
-              <div id="skill-title" class="skills-detail__title">Select a skill</div>
-              <div id="skill-desc" class="skills-detail__desc"></div>
+          <section class="skills-detail" aria-label="Skill detail">
+            <div class="skills-detail__head">
+              <div class="skills-detail__meta">
+                <div id="skill-title" class="skills-detail__title">Select a skill</div>
+                <div id="skill-desc" class="skills-detail__desc"></div>
+              </div>
+              <button type="button" class="btn btn--sm" id="use-skill-btn" style="display:none">Use this skill</button>
             </div>
-            <button type="button" class="btn btn--sm" id="use-skill-btn" style="display:none">Use this skill</button>
-          </div>
-          <pre id="skill-content" class="skills-detail__content"></pre>
-        </section>
+            <pre id="skill-content" class="skills-detail__content"></pre>
+          </section>
+        </div>
       </div>
     </div>
   </main>
@@ -239,4 +245,3 @@
 <script src="skills.js"></script>
 </body>
 </html>
-
