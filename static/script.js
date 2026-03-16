@@ -665,15 +665,15 @@ document.addEventListener('DOMContentLoaded', () => {
     typingEl = document.createElement('div');
     typingEl.className = 'message message--agent';
     typingEl.innerHTML = `
-      <div class="message__avatar message__avatar--agent" aria-hidden="true">
+      <div class="message__avatar message__avatar--agent is-loading" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:14px;height:14px"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 4a3 3 0 1 1-3 3 3 3 0 0 1 3-3zm0 14a8 8 0 0 1-6.4-3.2C5.6 14.8 9.6 14 12 14s6.4.8 6.4 2.8A8 8 0 0 1 12 20z"/></svg>
       </div>
       <div class="message__body">
-        <div class="message__bubble">
-          <div class="typing-dots">
-            <span class="typing-dot"></span>
-            <span class="typing-dot"></span>
-            <span class="typing-dot"></span>
+        <div class="message__bubble" style="padding:10px 14px">
+          <div class="typing-indicator">
+            <span></span>
+            <span></span>
+            <span></span>
           </div>
         </div>
       </div>`;

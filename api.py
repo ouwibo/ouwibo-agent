@@ -40,20 +40,41 @@ logger = logging.getLogger(__name__)
 models.Base.metadata.create_all(bind=engine)
 
 # ---------------------------------------------------------------------------
-# AI Client Configuration
+# AI Client Configuration (Advanced Rotation)
 # ---------------------------------------------------------------------------
-# .strip() is CRITICAL to prevent "Illegal header value" errors from .env
-_api_key = (os.getenv("API_KEY") or os.getenv("GROQ_API_KEY") or os.getenv("GROQ_API_KEY2") or "").strip()
-groq_client: Groq | None = None
 
-if not _api_key:
-    logger.warning("API_KEY is missing. Falling back to FREE AI (DuckDuckGo).")
-else:
-    try:
-        groq_client = Groq(api_key=_api_key, timeout=55.0)
-        logger.info("Groq client successfully initialized.")
-    except Exception as e:
-        logger.error(f"Failed to init Groq: {e}")
+class KeyRotator:
+    """Manages multiple API keys and provides automatic failover."""
+    def __init__(self):
+        self.keys = []
+        # Support various env var names for flexibility
+        for env_name in ["API_KEY", "GROQ_API_KEY", "GROQ_API_KEY2"]:
+            val = (os.getenv(env_name) or "").strip()
+            if val and val not in self.keys:
+                self.keys.append(val)
+        
+        self.idx = 0
+        self.clients = [Groq(api_key=k, timeout=55.0) for k in self.keys]
+        
+        if self.clients:
+            logger.info(f"KeyRotator initialized with {len(self.clients)} keys.")
+        else:
+            logger.warning("No API keys found. Agent will run in FREE mode (DDGS).")
+
+    def get_current_client(self) -> Any:
+        if not self.clients:
+            return None
+        return self.clients[self.idx]
+
+    def rotate(self) -> bool:
+        """Switch to the next available key. Returns False if cycled back to start."""
+        if not self.clients:
+            return False
+        self.idx = (self.idx + 1) % len(self.clients)
+        logger.warning(f"Switched to API Key #{self.idx + 1}")
+        return self.idx != 0
+
+rotator = KeyRotator()
 
 # Free AI Wrapper for DuckDuckGo
 class FreeAIClient:
@@ -62,24 +83,18 @@ class FreeAIClient:
         class Completions:
             def create(self, messages, model="gpt-4o-mini", **kwargs):
                 from ddgs import DDGS
-                # We use the last user message as the prompt for simplicity in free mode
                 prompt = messages[-1]["content"]
                 with DDGS() as ddgs:
-                    # Model options: gpt-4o-mini, claude-3-haiku, llama-3-70b, mixtral-8x7b
-                    # Map project models to DDGS models
                     ddgs_model = "gpt-4o-mini"
                     if "llama" in str(model).lower(): ddgs_model = "llama-3.1-70b"
-                    
                     response = ddgs.chat(prompt, model=ddgs_model)
                     
-                    # Mock OpenAI response object
                     class MockResponse:
                         class Choice:
                             class Message:
                                 def __init__(self, content): self.content = content
                             def __init__(self, content): self.message = self.Message(content)
                         def __init__(self, content): self.choices = [self.Choice(content)]
-                    
                     return MockResponse(response)
         completions = Completions()
     chat = Chat()
@@ -196,27 +211,22 @@ async def health_check(db: Session = Depends(get_db)) -> dict[str, Any]:
         logger.error(f"Database health check failed: {e}")
         db_status = "error"
 
-    ai_key_configured = bool((os.getenv("API_KEY") or os.getenv("GROQ_API_KEY") or "").strip())
+    ai_key_configured = bool(rotator.keys)
     access_token_configured = bool((os.getenv("ACCESS_TOKEN") or "").strip())
     search_provider = (os.getenv("SEARCH_PROVIDER") or "auto").strip().lower()
-
-    missing = []
-    if not ai_key_configured:
-        missing.append("API_KEY")
-    if not access_token_configured:
-        missing.append("ACCESS_TOKEN")
 
     return {
         "status": "ok" if db_status == "ok" else "degraded",
         "version": "1.0.1",
         "database": db_status,
         "auth": auth_enabled(),
-        "ai_client": "ready" if groq_client else "free",
+        "ai_client": "ready" if rotator.clients else "free",
         "config": {
             "ai_key_configured": ai_key_configured,
+            "active_key_index": rotator.idx if rotator.clients else -1,
+            "total_keys": len(rotator.keys),
             "access_token_configured": access_token_configured,
             "search_provider": search_provider,
-            "missing": missing,
         },
     }
 
@@ -360,10 +370,9 @@ async def chat_with_agent(
     db: Session = Depends(get_db),
     _: None = Depends(require_auth),
 ):
-    global groq_client
     # Use Groq client if available, otherwise fall back to FreeAIClient
-    client = groq_client if groq_client else free_ai_client
-    client_type = "Groq" if groq_client else "FreeAI (DuckDuckGo)"
+    client = rotator.get_current_client() or free_ai_client
+    client_type = "Groq" if rotator.clients else "FreeAI (DuckDuckGo)"
     
     logger.info(f"[/chat] session={body.session_id} client={client_type}")
     try:
@@ -381,16 +390,13 @@ async def chat_with_agent(
             agent.memory.add(h.role, h.content)
 
         # 3. Get AI Response
-        # Load optional skill instructions (default: "general" if exists)
         skill_id = (body.skill or "").strip().lower() or "general"
         skill_context = ""
         if skill_id:
             try:
                 from core.skills import get_skill as _get_skill
-
                 skill_context = _get_skill(skill_id).content
             except FileNotFoundError:
-                # If user explicitly requested a skill that doesn't exist, reject.
                 if (body.skill or "").strip():
                     raise HTTPException(status_code=404, detail="Selected skill not found.")
                 skill_context = ""
@@ -400,39 +406,35 @@ async def chat_with_agent(
         try:
             agent_response = agent.run(body.message, skill_context=skill_context)
         except Exception as e:
-            if groq_client:
-                logger.warning(f"Groq failed: {e}. Falling back to Free AI...")
-                agent = Agent(client=free_ai_client)  # Re-init with free client
-                # Re-add history
-                for h in history:
-                    agent.memory.add(h.role, h.content)
-                agent_response = agent.run(body.message, skill_context=skill_context)
+            # If current key fails (Rate limit or Auth), try rotating
+            if rotator.clients:
+                logger.warning(f"Active API key failed: {e}. Rotating...")
+                if rotator.rotate():
+                    # Try again with new key
+                    agent = Agent(client=rotator.get_current_client())
+                    for h in history: agent.memory.add(h.role, h.content)
+                    agent_response = agent.run(body.message, skill_context=skill_context)
+                else:
+                    logger.warning("All API keys failed or cycled. Falling back to Free AI...")
+                    agent = Agent(client=free_ai_client)
+                    for h in history: agent.memory.add(h.role, h.content)
+                    agent_response = agent.run(body.message, skill_context=skill_context)
             else:
                 raise e
 
         # 4. Save both messages in one transaction
-        db.add(
-            models.ChatMessage(
-                session_id=body.session_id, role="user", content=body.message
-            )
-        )
-        db.add(
-            models.ChatMessage(
-                session_id=body.session_id, role="assistant", content=agent_response
-            )
-        )
+        db.add(models.ChatMessage(session_id=body.session_id, role="user", content=body.message))
+        db.add(models.ChatMessage(session_id=body.session_id, role="assistant", content=agent_response))
         db.commit()
 
         return {"response": agent_response}
 
-    except AuthenticationError:
+    except AuthenticationError as e:
         db.rollback()
-        logger.error("Groq Authentication Error: Invalid API Key.")
-        # Disable Groq for subsequent requests and fall back to free mode.
-        groq_client = None
-        raise HTTPException(
-            status_code=401, detail="AI authentication failed. Check your API key."
-        )
+        logger.error(f"Groq Authentication Error: {e}")
+        # If we failed auth, rotate and suggest retry or just fail for this request
+        rotator.rotate()
+        raise HTTPException(status_code=401, detail="AI authentication failed. We've rotated the key, please try again.")
 
     except (APIStatusError, APIError) as e:
         db.rollback()
