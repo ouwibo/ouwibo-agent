@@ -1447,8 +1447,14 @@ a.nav-item[href="#"] { display: none !important; }
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
   }
-  [data-theme="dark"] .chat-input-box {
+  [data-theme="dark"] .chat-input-box,
+  [data-theme="system"] .chat-input-box {
     background: rgba(18,18,20,0.85);
+  }
+  @media (prefers-color-scheme: dark) {
+    [data-theme="system"] .chat-input-box {
+      background: rgba(18,18,20,0.85);
+    }
   }
 }
 
