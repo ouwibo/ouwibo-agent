@@ -1024,35 +1024,6 @@ class Wallet(Tool):
         {"id": "gnosis", "label": "Gnosis", "symbol": "xDAI", "rpcs": ["https://rpc.gnosischain.com"]},
     ]
 
-    def _get_arkham_data(self, addr: str) -> dict:
-        """Fetch intelligence and balances from Arkham API if key is present."""
-        api_key = os.getenv("ARKHAM_API_KEY", "").strip()
-        if not api_key:
-            return {}
-        
-        try:
-            # Intelligence & Labels
-            intel_url = f"https://api.arkm.com/intelligence/address_enriched/{addr}/all"
-            req = urllib.request.Request(
-                intel_url, 
-                headers={"API-Key": api_key, "User-Agent": "OuwiboAgent/1.0"}
-            )
-            with urllib.request.urlopen(req, timeout=8) as resp:
-                intel_data = json.loads(resp.read().decode("utf-8"))
-            
-            # Token Balances
-            bal_url = f"https://api.arkm.com/balances/address/{addr}"
-            req = urllib.request.Request(
-                bal_url, 
-                headers={"API-Key": api_key, "User-Agent": "OuwiboAgent/1.0"}
-            )
-            with urllib.request.urlopen(req, timeout=8) as resp:
-                bal_data = json.loads(resp.read().decode("utf-8"))
-                
-            return {"intel": intel_data, "balances": bal_data}
-        except Exception as e:
-            logger.debug(f"Arkham API error: {e}")
-            return {}
 
     def _post_json(self, url: str, payload: dict, timeout: int = 12) -> Any:
         data = json.dumps(payload).encode("utf-8")
@@ -1125,72 +1096,12 @@ class Wallet(Tool):
         nonzero = [(cid, label, sym, amt) for (cid, label, sym, amt) in results if isinstance(amt, (int, float)) and amt > 0.000001]
         nonzero.sort(key=lambda x: x[3], reverse=True)
 
-        # Arkham Data Integration
-        arkm = self._get_arkham_data(addr)
-        intel = arkm.get("intel", {})
-        arkm_bal = arkm.get("balances", {})
-
-        lines = [f"Address: **{addr}**"]
-        
-        # Display labels if found
-        labels = []
-        entity = intel.get("entity", {})
-        if entity and isinstance(entity, dict):
-            name = entity.get("name")
-            if name: labels.append(f"Entity: **{name}**")
-        
-        # Add labels/tags
-        tags = intel.get("tags", [])
-        if tags and isinstance(tags, list):
-            # Just take relevant ones
-            tag_names = [t.get("label", t.get("id")) for t in tags[:3] if t.get("label") or t.get("id")]
-            if tag_names: labels.append(f"Tags: {', '.join(tag_names)}")
-
-        if labels:
-            lines.append(" | ".join(labels))
-        
-        lines.append("")
-        lines.append("**Multi-chain native balances:**")
+        lines = [f"Address: {addr}", "", "**Multi-chain native balances (read-only):**"]
         if nonzero:
             for (_, label, sym, amt) in nonzero:
-                lines.append(f"- {label}: {amt:.6f} {sym}")
+                lines.append(f"- {label}: {amt:.8f} {sym}")
         else:
-            lines.append("- (No native balances detected on the core chains.)")
-
-        # Display Top Tokens from Arkham
-        if arkm_bal:
-            tokens = []
-            # Arkham usually returns a dict where tokens are nested or a list
-            # We try to handle common structures: dict of address -> info OR list of info
-            items = []
-            if isinstance(arkm_bal, dict):
-                # If there's a 'balances' or 'tokens' key, use that
-                if "balances" in arkm_bal: items = arkm_bal["balances"]
-                elif "tokens" in arkm_bal: items = arkm_bal["tokens"]
-                else: items = list(arkm_bal.values())
-            elif isinstance(arkm_bal, list):
-                items = arkm_bal
-
-            for t_info in items:
-                if isinstance(t_info, dict):
-                    symbol = t_info.get("symbol", "???")
-                    balance = t_info.get("balance", 0)
-                    # Try to get USD value directly or compute it
-                    usd_value = t_info.get("usdValue", t_info.get("totalValue", 0))
-                    if not usd_value:
-                        price = t_info.get("usdPrice", t_info.get("price", 0))
-                        usd_value = (price * balance) if (price and balance) else 0
-                    
-                    if balance > 0:
-                        tokens.append((symbol, balance, usd_value))
-            
-            if tokens:
-                tokens.sort(key=lambda x: x[2], reverse=True) # Sort by USD value
-                lines.append("")
-                lines.append("**Token holdings (via Arkham):**")
-                for t_sym, t_bal, t_usd in tokens[:8]: # Show top 8
-                    usd_str = f" ($\approx{t_usd:,.0f} USD$)" if t_usd > 1 else ""
-                    lines.append(f"- {t_sym}: {t_bal:,.4f}{usd_str}")
+            lines.append("- (No native balances detected on the default chains list.)")
 
         lines.append("")
         lines.append("Links:")
