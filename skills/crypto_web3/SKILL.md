@@ -18,7 +18,7 @@ Use this disclaimer when the user asks anything investment-related:
 Ini informasi umum, bukan nasihat finansial. Crypto sangat volatil dan kamu bisa rugi. Lakukan riset sendiri dan pertimbangkan konsultasi profesional.
 ```
 
-## Preferred Tools (In This App)
+## Preferred Commands (In This App)
 
 - `crypto[...]` untuk price/top/trending via CoinGecko (tanpa API key).
 - `stocks[...]` untuk simbol seperti `BTC-USD` kalau diperlukan.
