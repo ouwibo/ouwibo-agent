@@ -5,6 +5,7 @@ import logging
 import operator
 import os
 import re
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
@@ -13,10 +14,22 @@ from typing import Any
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from translate import Translator as PyTranslator
-import yfinance as yf
+try:
+    from translate import Translator as PyTranslator # type: ignore
+except ImportError:
+    PyTranslator = None
 
-from .config import CALCULATOR_MAX_LEN, MAX_SEARCH_RESULTS
+try:
+    import yfinance as yf # type: ignore
+except ImportError:
+    yf = None
+
+try:
+    from .config import CALCULATOR_MAX_LEN, MAX_SEARCH_RESULTS # type: ignore
+except ImportError:
+    # Fallback for direct execution or misconfigured path
+    CALCULATOR_MAX_LEN = 1000
+    MAX_SEARCH_RESULTS = 5
 
 logger = logging.getLogger(__name__)
 
@@ -39,8 +52,8 @@ def _urls_to_results(urls: list[str], kind: str, provider: str) -> list[dict]:
             continue
         try:
             parsed = urlparse(url)
-            domain = parsed.netloc.replace("www.", "")
-            path = parsed.path[:60] if parsed.path else ""
+            domain = str(parsed.netloc).replace("www.", "")
+            path = str(parsed.path)[:60] if parsed.path else "" # type: ignore
         except Exception:
             domain = ""
             path = ""
@@ -362,6 +375,8 @@ class Weather(Tool):
             if result:
                 return f"Weather in {city}:\n{result}"
             return f"Could not retrieve weather for '{city}'."
+        except urllib.error.HTTPError as e:
+            return f"Weather error: HTTP {e.code}"
         except Exception as e:
             logger.error(f"Weather error for '{city}': {e}", exc_info=True)
             return f"Weather error: {e}"
@@ -441,6 +456,8 @@ class Wikipedia(Tool):
                 return f"**{title} ({lang.upper()})**\n\n{summary}\n\nSource: {link}"
 
             return f"Could not retrieve article for '{title}'."
+        except urllib.error.HTTPError as e:
+            return f"Wikipedia error: HTTP {e.code}"
         except Exception as e:
             logger.error(f"Wikipedia error: {e}", exc_info=True)
             return f"Wikipedia error: {e}"
@@ -582,6 +599,8 @@ class CurrencyConverter(Tool):
                 f"Rate: 1 {from_cur} = {base_rate:,.6f} {to_cur}\n"
                 f"Source: European Central Bank (via frankfurter.app)"
             )
+        except urllib.error.HTTPError as e:
+            return f"Currency conversion error: HTTP {e.code}"
         except Exception as e:
             logger.error(f"CurrencyConverter error: {e}", exc_info=True)
             return f"Currency conversion error: {e}"
@@ -673,6 +692,8 @@ class URLReader(Tool):
                 snippet += "…"
 
             return f"URL from {url}:\n\n{snippet}"
+        except urllib.error.HTTPError as e:
+            return f"URL read error: HTTP {e.code}"
         except Exception as e:
             logger.error(f"URLReader error for '{url}': {e}", exc_info=True)
             return f"URL read error: {e}"
@@ -734,6 +755,8 @@ class Translator(Tool):
             text = m.group(1).strip()
             to_lang = m.group(2).strip()
             try:
+                if PyTranslator is None:
+                    return "Error: Translation library not available."
                 translator = PyTranslator(to_lang=to_lang)
                 translation = translator.translate(text)
                 return f"Translation ({to_lang}): {translation}"
@@ -819,10 +842,12 @@ class StockMarket(Tool):
         if not symbol:
             return "Error: Provide a symbol like AAPL or BTC-USD."
         try:
-            ticker = yf.Ticker(symbol)
+            if yf is None: # type: ignore
+                return "Error: yfinance library not available."
+            ticker = yf.Ticker(symbol) # type: ignore
             
             # Use currentPrice from regular info
-            data = ticker.info
+            data = ticker.info # type: ignore
             last_price = data.get("currentPrice") or data.get("regularMarketPrice") or data.get("price")
 
             if last_price is None:
@@ -978,7 +1003,10 @@ class ENSResolve(Tool):
             return "Error: Provide an ENS name or address. Example: ens[vitalik.eth]"
         try:
             url = self._API + urllib.parse.quote(q)
-            req = urllib.request.Request(url, headers={"User-Agent": "OuwiboAgent/1.0"})
+            req = urllib.request.Request(
+                url,
+                headers={"User-Agent": "OuwiboAgent/1.0"},
+            )
             with urllib.request.urlopen(req, timeout=10) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
             name = (data.get("displayName") or data.get("name") or "").strip()
@@ -1041,11 +1069,13 @@ class Wallet(Tool):
         if not q:
             raise ValueError("Empty address/ENS.")
         if q.lower().endswith(".eth"):
-            data = ENSResolve().execute(q)
+            ens_tool = ENSResolve()
+            data = ens_tool.execute(q)
             # Parse "Address: 0x..."
-            for line in data.splitlines():
-                if line.lower().startswith("address:"):
-                    return line.split(":", 1)[1].strip()
+            if data and isinstance(data, str):
+                for line in data.splitlines():
+                    if line.lower().startswith("address:"):
+                        return line.split(":", 1)[1].strip()
             raise ValueError("Could not resolve ENS name.")
         return q
 
@@ -1064,7 +1094,12 @@ class Wallet(Tool):
         bal_hex = resp.get("result")
         if not isinstance(bal_hex, str) or not bal_hex.startswith("0x"):
             raise RuntimeError("Missing balance result.")
-        return int(bal_hex, 16)
+        
+        # Explicit type guard for int conversion
+        try:
+            return int(bal_hex, 16)
+        except (ValueError, TypeError):
+            raise RuntimeError(f"Invalid balance hex: {bal_hex}")
 
     def _multi_chain_summary(self, addr: str) -> str:
         # Query several chains in parallel (small pool) to keep UX snappy.
@@ -1085,7 +1120,7 @@ class Wallet(Tool):
             raise RuntimeError(f"{chain['id']}: {last_err}")
 
         with ThreadPoolExecutor(max_workers=6) as ex:
-            futs = [ex.submit(task, c) for c in self._CHAINS]
+            futs = [ex.submit(task, c) for c in self._CHAINS] # type: ignore
             for fut in as_completed(futs, timeout=18):
                 try:
                     results.append(fut.result())
@@ -1093,8 +1128,12 @@ class Wallet(Tool):
                     errors.append(str(e))
 
         # Keep only non-trivial balances.
-        nonzero = [(cid, label, sym, amt) for (cid, label, sym, amt) in results if isinstance(amt, (int, float)) and amt > 0.000001]
-        nonzero.sort(key=lambda x: x[3], reverse=True)
+        nonzero: list[Any] = []
+        for (cid, label, sym, amt) in results:
+            if isinstance(amt, (int, float)) and amt > 0.000001:
+                nonzero.append((cid, label, sym, amt))
+        
+        nonzero.sort(key=lambda x: x[3], reverse=True) # type: ignore
 
         lines = [f"Address: {addr}", "", "**Multi-chain native balances (read-only):**"]
         if nonzero:
@@ -1145,9 +1184,15 @@ class Wallet(Tool):
             addr = self._resolve_address(parts[1])
             last_err = None
             wei = None
-            for rpc in chain_entry["rpcs"]:
+            for rpc in chain_entry["rpcs"]: # type: ignore
                 try:
-                    wei = self._get_native_balance_wei(rpc, addr)
+                    wei = self._get_native_balance_wei(rpc, addr) # type: ignore
+                    if not isinstance(wei, (int, float)):
+                        continue
+                    return f"Balance on {chain_entry['label']}: {wei / 1e18:.8f} {chain_entry['symbol']}"
+                except Exception as e:
+                    last_err = e
+                    continue
                     break
                 except Exception as e:
                     last_err = e
