@@ -1,19 +1,69 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "agent",
-  "main": "worker.js",
-  "compatibility_date": "2025-09-27",
-  "observability": {
-    "enabled": true
-  },
-  "assets": {
-    "directory": "static",
-    "binding": "ASSETS"
-  },
-  "vars": {
-    "VERCEL_URL": "https://ouwibo-agent.vercel.app"
-  },
-  "compatibility_flags": [
-    "nodejs_compat"
-  ]
+	"$schema": "node_modules/wrangler/config-schema.json",
+	// ── Identity ───────────────────────────────────────────────────────────────
+	"name": "agent",
+	"main": "worker.js",
+	"compatibility_date": "2025-09-27",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	// ── Static Assets (served from Cloudflare's edge CDN) ─────────────────────
+	// Files in /static are served directly — no round-trip to Vercel.
+	// Access inside Worker via: env.ASSETS.fetch(request)
+	"assets": {
+		"directory": "static",
+		"binding": "ASSETS"
+	},
+	// ── KV Namespace (edge cache / session store) ──────────────────────────────
+	// Used for caching API responses and rate-limit counters at the edge.
+	// Create with: npx wrangler kv namespace create CACHE
+	// Then fill in the id below after creation.
+	// ── KV Namespace (edge cache / rate-limiter) ──────────────────────────────
+	// Stores: rate-limit counters, cached /api/skills & /api/tools responses
+	"kv_namespaces": [
+		{
+			"binding": "CACHE",
+			"id": "ee8492298a67484f87cc4ef5c6a01f53"
+		}
+	],
+	// ── Environment Variables (non-secret, committed safely) ──────────────────
+	"vars": {
+		// Backend origin — change this if you ever move from Vercel
+		"VERCEL_URL": "https://ouwibo-agent.vercel.app",
+		// App info
+		"APP_NAME": "Ouwibo Agent",
+		"APP_ENV": "production",
+		"APP_VERSION": "2026.1.0",
+		// CORS allowed origins (* = open, or comma-separated list)
+		"ALLOWED_ORIGINS": "*",
+		// Edge cache TTL in seconds for /api/skills & /api/tools (0 = no cache)
+		"EDGE_CACHE_TTL": "60",
+		// Worker-level rate limit (requests per minute per IP)
+		"RATE_LIMIT_RPM": "60"
+	},
+	// ── Secrets (set via dashboard or CLI — NEVER committed) ──────────────────
+	// To set: npx wrangler secret put SECRET_NAME
+	// Required secrets:
+	//   WORKER_SECRET  — shared secret Worker → Vercel for extra validation (optional)
+	//
+	// These are listed here as documentation only; actual values are in Cloudflare dashboard.
+	// ── Observability & Logging ────────────────────────────────────────────────
+	"observability": {
+		"enabled": true,
+		"head_sampling_rate": 1
+	},
+	// ── Limits ─────────────────────────────────────────────────────────────────
+	// "limits": { "cpu_ms": 50 }  ← Paid plan only. Remove comment to enable.
+	// ── Preview / staging environment ─────────────────────────────────────────
+	"env": {
+		"preview": {
+			"name": "agent-preview",
+			"vars": {
+				"VERCEL_URL": "https://ouwibo-agent.vercel.app",
+				"APP_ENV": "preview",
+				"EDGE_CACHE_TTL": "0",
+				"RATE_LIMIT_RPM": "30"
+			}
+		}
+	}
 }
