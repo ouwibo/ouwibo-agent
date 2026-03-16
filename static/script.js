@@ -593,20 +593,17 @@ document.addEventListener('DOMContentLoaded', () => {
     scrollToBottom();
   }
 
-  // ── New chat ───────────────────────────────────────────────────────────────
-  function startNewChat() {
-    sessionId = resetSession();
-    // Clear messages but keep welcome
-    const children = [...chatMessages.children];
-    children.slice(1).forEach(el => el.remove());
-    appendSystem('New session started.');
-    userInput.focus();
+  // ── Clear chat (keep the same session) ─────────────────────────────────────
+  const clearChatBtn = document.getElementById('clear-chat-btn');
+  if (clearChatBtn) {
+    clearChatBtn.addEventListener('click', () => {
+      // Clear messages but keep welcome
+      const children = [...chatMessages.children];
+      children.slice(1).forEach(el => el.remove());
+      appendSystem('Chat cleared.');
+      userInput.focus();
+    });
   }
-
-  ['new-chat-btn', 'new-chat-header-btn', 'clear-chat-btn'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('click', startNewChat);
-  });
 
   const refreshBtn = document.getElementById('refresh-btn');
   if (refreshBtn) refreshBtn.addEventListener('click', () => location.reload());
