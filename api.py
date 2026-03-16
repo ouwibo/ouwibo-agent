@@ -43,7 +43,7 @@ models.Base.metadata.create_all(bind=engine)
 # AI Client Configuration
 # ---------------------------------------------------------------------------
 # .strip() is CRITICAL to prevent "Illegal header value" errors from .env
-_api_key = (os.getenv("API_KEY") or os.getenv("GROQ_API_KEY") or "").strip()
+_api_key = (os.getenv("API_KEY") or os.getenv("GROQ_API_KEY") or os.getenv("GROQ_API_KEY2") or "").strip()
 groq_client: Groq | None = None
 
 if not _api_key:

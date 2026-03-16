@@ -20,7 +20,7 @@ def setup_logging(verbose: bool = False) -> None:
 
 
 def build_client() -> Groq:
-    api_key = os.getenv("API_KEY") or os.getenv("GROQ_API_KEY")
+    api_key = os.getenv("API_KEY") or os.getenv("GROQ_API_KEY") or os.getenv("GROQ_API_KEY2")
     if not api_key:
         logging.error(
             "API_KEY belum di-set. "
