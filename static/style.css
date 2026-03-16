@@ -723,6 +723,17 @@ svg   { display: block; width: 16px; height: 16px;
   color: var(--text-3);
 }
 
+.tools-page .tools-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px !important;
+  padding: 2px 10px !important;
+  background: var(--surface-3) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-2) !important;
+  line-height: 1.35;
+}
+
 .tools-page .tools-chip.tools-chip--keyless {
   background: var(--accent) !important;
   border: 1px solid rgba(244,63,94,0.55) !important;
