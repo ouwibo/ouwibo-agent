@@ -169,6 +169,13 @@ def get_db() -> Generator[Session, None, None]:
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=MAX_MESSAGE_LENGTH)
     session_id: str = Field(..., min_length=1, max_length=MAX_SESSION_ID_LENGTH)
+    # Optional: skill id loaded from skills/<id>/SKILL.md (default: "general" if exists)
+    skill: str | None = Field(default=None, min_length=1, max_length=64)
+
+
+class ToolExecuteRequest(BaseModel):
+    tool: str = Field(..., min_length=1, max_length=64)
+    arg: str = Field(default="", max_length=4000)
 
 
 # ---------------------------------------------------------------------------
@@ -223,6 +230,65 @@ async def list_tools(_: Any = Depends(require_auth)) -> dict[str, Any]:
         "count": len(ALL_TOOLS),
         "tools": [{"name": c.name, "description": c.description} for c in ALL_TOOLS],
     }
+
+
+@app.post("/tools/execute", tags=["Tools"])
+@limiter.limit("30/minute")
+async def execute_tool(
+    request: Request,
+    body: ToolExecuteRequest,
+    _: Any = Depends(require_auth),
+) -> dict[str, Any]:
+    """Execute a tool directly (used by the Tools UI 'Run' button)."""
+    from core.tools import ALL_TOOLS
+
+    tool_name = (body.tool or "").strip().lower()
+    if not tool_name:
+        raise HTTPException(status_code=400, detail="Missing tool name.")
+
+    cls_map = {c.name: c for c in ALL_TOOLS if getattr(c, "name", None)}
+    tool_cls = cls_map.get(tool_name)
+    if tool_cls is None:
+        raise HTTPException(status_code=404, detail="Tool not found.")
+
+    try:
+        tool = tool_cls()
+        out = tool.execute(body.arg or "")
+        return {"tool": tool_name, "output": out}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Tool execute error ({tool_name}): {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Tool execution failed.")
+
+
+@app.get("/skills", tags=["Skills"])
+async def list_skills(_: Any = Depends(require_auth)) -> dict[str, Any]:
+    """List available skills loaded from skills/<id>/SKILL.md."""
+    from core.skills import list_skills as _list
+
+    skills = _list()
+    return {
+        "count": len(skills),
+        "skills": [
+            {"id": s.slug, "title": s.title, "description": s.description}
+            for s in skills
+        ],
+    }
+
+
+@app.get("/skills/{skill_id}", tags=["Skills"])
+async def get_skill(skill_id: str, _: Any = Depends(require_auth)) -> dict[str, Any]:
+    """Get one skill (metadata + markdown content)."""
+    from core.skills import get_skill as _get
+
+    try:
+        s = _get(skill_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Skill not found.")
+    return {"id": s.slug, "title": s.title, "description": s.description, "content": s.content}
 
 
 @app.get("/search", tags=["Search"])
@@ -315,8 +381,24 @@ async def chat_with_agent(
             agent.memory.add(h.role, h.content)
 
         # 3. Get AI Response
+        # Load optional skill instructions (default: "general" if exists)
+        skill_id = (body.skill or "").strip().lower() or "general"
+        skill_context = ""
+        if skill_id:
+            try:
+                from core.skills import get_skill as _get_skill
+
+                skill_context = _get_skill(skill_id).content
+            except FileNotFoundError:
+                # If user explicitly requested a skill that doesn't exist, reject.
+                if (body.skill or "").strip():
+                    raise HTTPException(status_code=404, detail="Selected skill not found.")
+                skill_context = ""
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=str(e))
+
         try:
-            agent_response = agent.run(body.message)
+            agent_response = agent.run(body.message, skill_context=skill_context)
         except Exception as e:
             if groq_client:
                 logger.warning(f"Groq failed: {e}. Falling back to Free AI...")
@@ -324,7 +406,7 @@ async def chat_with_agent(
                 # Re-add history
                 for h in history:
                     agent.memory.add(h.role, h.content)
-                agent_response = agent.run(body.message)
+                agent_response = agent.run(body.message, skill_context=skill_context)
             else:
                 raise e
 

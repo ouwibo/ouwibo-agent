@@ -5,17 +5,31 @@ import logging
 import operator
 import os
 import re
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from html.parser import HTMLParser
+from typing import Any
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from translate import Translator as PyTranslator
-import yfinance as yf
+try:
+    from translate import Translator as PyTranslator # type: ignore
+except ImportError:
+    PyTranslator = None
 
-from .config import CALCULATOR_MAX_LEN, MAX_SEARCH_RESULTS
+try:
+    import yfinance as yf # type: ignore
+except ImportError:
+    yf = None
+
+try:
+    from .config import CALCULATOR_MAX_LEN, MAX_SEARCH_RESULTS # type: ignore
+except ImportError:
+    # Fallback for direct execution or misconfigured path
+    CALCULATOR_MAX_LEN = 1000
+    MAX_SEARCH_RESULTS = 5
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +52,8 @@ def _urls_to_results(urls: list[str], kind: str, provider: str) -> list[dict]:
             continue
         try:
             parsed = urlparse(url)
-            domain = parsed.netloc.replace("www.", "")
-            path = parsed.path[:60] if parsed.path else ""
+            domain = str(parsed.netloc).replace("www.", "")
+            path = str(parsed.path)[:60] if parsed.path else "" # type: ignore
         except Exception:
             domain = ""
             path = ""
@@ -361,6 +375,8 @@ class Weather(Tool):
             if result:
                 return f"Weather in {city}:\n{result}"
             return f"Could not retrieve weather for '{city}'."
+        except urllib.error.HTTPError as e:
+            return f"Weather error: HTTP {e.code}"
         except Exception as e:
             logger.error(f"Weather error for '{city}': {e}", exc_info=True)
             return f"Weather error: {e}"
@@ -440,6 +456,8 @@ class Wikipedia(Tool):
                 return f"**{title} ({lang.upper()})**\n\n{summary}\n\nSource: {link}"
 
             return f"Could not retrieve article for '{title}'."
+        except urllib.error.HTTPError as e:
+            return f"Wikipedia error: HTTP {e.code}"
         except Exception as e:
             logger.error(f"Wikipedia error: {e}", exc_info=True)
             return f"Wikipedia error: {e}"
@@ -581,6 +599,8 @@ class CurrencyConverter(Tool):
                 f"Rate: 1 {from_cur} = {base_rate:,.6f} {to_cur}\n"
                 f"Source: European Central Bank (via frankfurter.app)"
             )
+        except urllib.error.HTTPError as e:
+            return f"Currency conversion error: HTTP {e.code}"
         except Exception as e:
             logger.error(f"CurrencyConverter error: {e}", exc_info=True)
             return f"Currency conversion error: {e}"
@@ -672,6 +692,8 @@ class URLReader(Tool):
                 snippet += "…"
 
             return f"URL from {url}:\n\n{snippet}"
+        except urllib.error.HTTPError as e:
+            return f"URL read error: HTTP {e.code}"
         except Exception as e:
             logger.error(f"URLReader error for '{url}': {e}", exc_info=True)
             return f"URL read error: {e}"
@@ -733,6 +755,8 @@ class Translator(Tool):
             text = m.group(1).strip()
             to_lang = m.group(2).strip()
             try:
+                if PyTranslator is None:
+                    return "Error: Translation library not available."
                 translator = PyTranslator(to_lang=to_lang)
                 translation = translator.translate(text)
                 return f"Translation ({to_lang}): {translation}"
@@ -818,10 +842,12 @@ class StockMarket(Tool):
         if not symbol:
             return "Error: Provide a symbol like AAPL or BTC-USD."
         try:
-            ticker = yf.Ticker(symbol)
+            if yf is None: # type: ignore
+                return "Error: yfinance library not available."
+            ticker = yf.Ticker(symbol) # type: ignore
             
             # Use currentPrice from regular info
-            data = ticker.info
+            data = ticker.info # type: ignore
             last_price = data.get("currentPrice") or data.get("regularMarketPrice") or data.get("price")
 
             if last_price is None:
@@ -838,6 +864,395 @@ class StockMarket(Tool):
             return f"Stock/Crypto error: {e}"
 
 
+# ---------------------------------------------------------------------------
+# Crypto — CoinGecko (free, no API key)
+# ---------------------------------------------------------------------------
+class CryptoMarket(Tool):
+    name = "crypto"
+    description = "Get crypto market data via CoinGecko (no API key). Supports: price, top N, trending."
+    example = "crypto[btc usd] or crypto[top 10 usd] or crypto[trending]"
+
+    _BASE = "https://api.coingecko.com/api/v3"
+
+    def _get_json(self, url: str, timeout: int = 12) -> Any:
+        req = urllib.request.Request(url, headers={"User-Agent": "OuwiboAgent/1.0"})
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+
+    def _resolve_coin_id(self, query: str) -> tuple[str, str]:
+        """Return (coin_id, display_name)."""
+        q = (query or "").strip()
+        if not q:
+            raise ValueError("Empty coin query.")
+        url = f"{self._BASE}/search?query={urllib.parse.quote(q)}"
+        data = self._get_json(url)
+        coins = data.get("coins") or []
+        if not coins:
+            raise ValueError(f"No coin found for query: {q}")
+
+        # Prefer exact symbol match if possible.
+        sym = q.lower().replace("-", "").strip()
+        best = None
+        for c in coins[:10]:
+            csym = (c.get("symbol") or "").lower().replace("-", "")
+            if csym == sym and csym:
+                best = c
+                break
+        if best is None:
+            best = coins[0]
+
+        cid = (best.get("id") or "").strip()
+        name = (best.get("name") or cid).strip()
+        if not cid:
+            raise ValueError("CoinGecko search returned an invalid coin id.")
+        return cid, name
+
+    def execute(self, arg: str) -> str:
+        raw = (arg or "").strip()
+        if not raw:
+            return "Error: Provide a coin symbol/name. Example: crypto[btc usd] or crypto[top 10 usd] or crypto[trending]"
+
+        parts = raw.split()
+        cmd = parts[0].lower()
+
+        try:
+            if cmd == "trending":
+                data = self._get_json(f"{self._BASE}/search/trending")
+                coins = data.get("coins") or []
+                if not coins:
+                    return "No trending data found."
+                out = ["**Trending (CoinGecko):**"]
+                for i, wrap in enumerate(coins[:10], 1):
+                    item = wrap.get("item") or {}
+                    name = item.get("name") or "?"
+                    sym = item.get("symbol") or "?"
+                    score = item.get("score")
+                    out.append(f"{i}. {name} ({sym})" + (f" — score {score}" if score is not None else ""))
+                return "\n".join(out)
+
+            if cmd == "top":
+                n = 10
+                vs = "usd"
+                if len(parts) >= 2 and parts[1].isdigit():
+                    n = max(1, min(50, int(parts[1])))
+                if len(parts) >= 3:
+                    vs = parts[2].lower()
+                url = (
+                    f"{self._BASE}/coins/markets?"
+                    f"vs_currency={urllib.parse.quote(vs)}&order=market_cap_desc&per_page={n}&page=1&"
+                    f"sparkline=false&price_change_percentage=24h"
+                )
+                data = self._get_json(url)
+                if not isinstance(data, list) or not data:
+                    return "No market data returned."
+                out = [f"**Top {n} by market cap (vs {vs.upper()}):**"]
+                for i, c in enumerate(data[:n], 1):
+                    name = c.get("name") or "?"
+                    sym = (c.get("symbol") or "?").upper()
+                    price = c.get("current_price")
+                    chg = c.get("price_change_percentage_24h")
+                    out.append(f"{i}. {name} ({sym}) — {price} {vs.upper()}" + (f" ({chg:+.2f}%)" if isinstance(chg, (int, float)) else ""))
+                return "\n".join(out)
+
+            # Default: crypto[<coin> [vs]]
+            coin_query = parts[0]
+            vs = parts[1].lower() if len(parts) >= 2 else "usd"
+            cid, name = self._resolve_coin_id(coin_query)
+            url = (
+                f"{self._BASE}/simple/price?"
+                f"ids={urllib.parse.quote(cid)}&vs_currencies={urllib.parse.quote(vs)}&"
+                f"include_24hr_change=true&include_last_updated_at=true"
+            )
+            data = self._get_json(url)
+            row = data.get(cid) or {}
+            price = row.get(vs)
+            chg = row.get(f"{vs}_24h_change")
+            updated = row.get("last_updated_at")
+            if price is None:
+                return f"No price found for {name} (id={cid})."
+
+            line = f"**{name}** — {price} {vs.upper()}"
+            if isinstance(chg, (int, float)):
+                line += f" ({chg:+.2f}% / 24h)"
+            if isinstance(updated, (int, float)):
+                try:
+                    ts = datetime.fromtimestamp(int(updated), tz=timezone.utc).isoformat()
+                    line += f"\nUpdated: {ts}"
+                except Exception:
+                    pass
+            return line
+
+        except Exception as e:
+            logger.error(f"CryptoMarket error: {e}", exc_info=True)
+            return f"CryptoMarket error: {e}"
+
+
+# ---------------------------------------------------------------------------
+# ENS — Resolve ENS name or address (free, no API key)
+# ---------------------------------------------------------------------------
+class ENSResolve(Tool):
+    name = "ens"
+    description = "Resolve an ENS name to address (or reverse by address) via a public API."
+    example = "ens[vitalik.eth] or ens[0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045]"
+
+    _API = "https://api.ensideas.com/ens/resolve/"
+
+    def execute(self, arg: str) -> str:
+        q = (arg or "").strip()
+        if not q:
+            return "Error: Provide an ENS name or address. Example: ens[vitalik.eth]"
+        try:
+            url = self._API + urllib.parse.quote(q)
+            req = urllib.request.Request(
+                url,
+                headers={"User-Agent": "OuwiboAgent/1.0"},
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            name = (data.get("displayName") or data.get("name") or "").strip()
+            addr = (data.get("address") or "").strip()
+            avatar = (data.get("avatar") or "").strip()
+            if not addr and not name:
+                return "No ENS data found."
+            out = []
+            if name:
+                out.append(f"Name: {name}")
+            if addr:
+                out.append(f"Address: {addr}")
+            if avatar:
+                out.append(f"Avatar: {avatar}")
+            return "\n".join(out)
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                return "ENS not found."
+            return f"ENS error: HTTP {e.code}"
+        except Exception as e:
+            logger.error(f"ENSResolve error: {e}", exc_info=True)
+            return f"ENSResolve error: {e}"
+
+
+# ---------------------------------------------------------------------------
+# Wallet — read-only helpers (no private keys)
+# ---------------------------------------------------------------------------
+class Wallet(Tool):
+    name = "wallet"
+    description = "Wallet utilities (read-only). Paste an address/ENS for multi-chain native balances, or use: balance <address_or_ens> [chain]."
+    example = "wallet[vitalik.eth] or wallet[0xabc...] or wallet[balance vitalik.eth eth]"
+
+    # Public RPCs (no API key). We intentionally keep this list small and reliable.
+    # Balances are native token only (ETH/BNB/MATIC/AVAX/xDAI).
+    _CHAINS: list[dict[str, Any]] = [
+        {"id": "eth", "label": "Ethereum", "symbol": "ETH", "rpcs": ["https://ethereum.publicnode.com", "https://cloudflare-eth.com"]},
+        {"id": "base", "label": "Base", "symbol": "ETH", "rpcs": ["https://mainnet.base.org"]},
+        {"id": "arb", "label": "Arbitrum", "symbol": "ETH", "rpcs": ["https://arb1.arbitrum.io/rpc"]},
+        {"id": "op", "label": "Optimism", "symbol": "ETH", "rpcs": ["https://mainnet.optimism.io"]},
+        {"id": "polygon", "label": "Polygon", "symbol": "MATIC", "rpcs": ["https://polygon-rpc.com"]},
+        {"id": "bsc", "label": "BSC", "symbol": "BNB", "rpcs": ["https://bsc-dataseed.binance.org"]},
+        {"id": "avax", "label": "Avalanche C-Chain", "symbol": "AVAX", "rpcs": ["https://api.avax.network/ext/bc/C/rpc"]},
+        {"id": "gnosis", "label": "Gnosis", "symbol": "xDAI", "rpcs": ["https://rpc.gnosischain.com"]},
+    ]
+
+
+    def _post_json(self, url: str, payload: dict, timeout: int = 12) -> Any:
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            url,
+            data=data,
+            headers={"Content-Type": "application/json", "User-Agent": "OuwiboAgent/1.0"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+
+    def _resolve_address(self, s: str) -> str:
+        q = (s or "").strip()
+        if not q:
+            raise ValueError("Empty address/ENS.")
+        if q.lower().endswith(".eth"):
+            ens_tool = ENSResolve()
+            data = ens_tool.execute(q)
+            # Parse "Address: 0x..."
+            if data and isinstance(data, str):
+                for line in data.splitlines():
+                    if line.lower().startswith("address:"):
+                        return line.split(":", 1)[1].strip()
+            raise ValueError("Could not resolve ENS name.")
+        return q
+
+    def _get_native_balance_wei(self, rpc: str, addr: str) -> int:
+        payload = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "eth_getBalance",
+            "params": [addr, "latest"],
+        }
+        resp = self._post_json(rpc, payload)
+        if not isinstance(resp, dict):
+            raise RuntimeError("Invalid RPC response.")
+        if resp.get("error"):
+            raise RuntimeError(str(resp.get("error")))
+        bal_hex = resp.get("result")
+        if not isinstance(bal_hex, str) or not bal_hex.startswith("0x"):
+            raise RuntimeError("Missing balance result.")
+        
+        # Explicit type guard for int conversion
+        try:
+            return int(bal_hex, 16)
+        except (ValueError, TypeError):
+            raise RuntimeError(f"Invalid balance hex: {bal_hex}")
+
+    def _multi_chain_summary(self, addr: str) -> str:
+        # Query several chains in parallel (small pool) to keep UX snappy.
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        results: list[tuple[str, str, str, float]] = []  # (chain_id, label, symbol, amount)
+        errors: list[str] = []
+
+        def task(chain: dict[str, Any]) -> tuple[str, str, str, float]:
+            last_err = None
+            for rpc in chain["rpcs"]:
+                try:
+                    wei = self._get_native_balance_wei(rpc, addr)
+                    return (chain["id"], chain["label"], chain["symbol"], wei / 1e18)
+                except Exception as e:
+                    last_err = e
+                    continue
+            raise RuntimeError(f"{chain['id']}: {last_err}")
+
+        with ThreadPoolExecutor(max_workers=6) as ex:
+            futs = [ex.submit(task, c) for c in self._CHAINS] # type: ignore
+            for fut in as_completed(futs, timeout=18):
+                try:
+                    results.append(fut.result())
+                except Exception as e:
+                    errors.append(str(e))
+
+        # Keep only non-trivial balances.
+        nonzero: list[Any] = []
+        for (cid, label, sym, amt) in results:
+            if isinstance(amt, (int, float)) and amt > 0.000001:
+                nonzero.append((cid, label, sym, amt))
+        
+        nonzero.sort(key=lambda x: x[3], reverse=True) # type: ignore
+
+        lines = [f"Address: {addr}", "", "**Multi-chain native balances (read-only):**"]
+        if nonzero:
+            for (_, label, sym, amt) in nonzero:
+                lines.append(f"- {label}: {amt:.8f} {sym}")
+        else:
+            lines.append("- (No native balances detected on the default chains list.)")
+
+        lines.append("")
+        lines.append("🔗 **Quick Links:**")
+        lines.append(f"- [DeBank] https://debank.com/profile/{addr}")
+        lines.append(f"- [Arkham] https://arkhamintelligence.com/explorer/address/{addr}")
+        lines.append(f"- [Blockscan] https://blockscan.com/address/{addr}")
+
+        if errors:
+            lines.append("")
+            lines.append(f"⚠️ **Note:** Some chains may have temporary RPC issues ({len(errors)}/{len(self._CHAINS)}).")
+
+        return "\n".join(lines)
+
+    def execute(self, arg: str) -> str:
+        raw = (arg or "").strip()
+        if not raw:
+            return "Error: Paste a wallet address/ENS. Example: wallet[vitalik.eth] or wallet[0xabc...]"
+
+        parts = raw.split()
+        sub = parts[0].lower()
+        try:
+            # Default behavior: wallet[<address_or_ens>] -> multi-chain summary
+            if sub != "balance":
+                addr = self._resolve_address(raw)
+                return self._multi_chain_summary(addr)
+
+            # Explicit: wallet[balance <address_or_ens> [chain]]
+            if len(parts) < 2:
+                return "Error: Missing address/ENS. Example: wallet[balance vitalik.eth eth]"
+
+            chain = parts[2].lower() if len(parts) >= 3 else "eth"
+            # Map chain id to rpcs/symbol (reuse _CHAINS)
+            chain_entry = None
+            for c in self._CHAINS:
+                if c["id"] == chain or c["label"].lower() == chain:
+                    chain_entry = c
+                    break
+            if chain_entry is None:
+                return "Error: Unsupported chain. Try: eth, base, arb, op, polygon, bsc, avax, gnosis"
+
+            addr = self._resolve_address(parts[1])
+            last_err = None
+            wei = None
+            for rpc in chain_entry["rpcs"]: # type: ignore
+                try:
+                    wei = self._get_native_balance_wei(rpc, addr) # type: ignore
+                    if not isinstance(wei, (int, float)):
+                        continue
+                    return f"Balance on {chain_entry['label']}: {wei / 1e18:.8f} {chain_entry['symbol']}"
+                except Exception as e:
+                    last_err = e
+                    continue
+                    break
+                except Exception as e:
+                    last_err = e
+                    continue
+            if wei is None:
+                return f"Wallet error: {last_err}"
+            amt = wei / 1e18
+            sym = chain_entry["symbol"]
+            return f"Address: {addr}\nChain: {chain_entry['id']}\nBalance: {amt:.8f} {sym}"
+        except Exception as e:
+            logger.error(f"Wallet error: {e}", exc_info=True)
+            return f"Wallet error: {e}"
+
+
+# ---------------------------------------------------------------------------
+# Social Search — targeted web search for social platforms
+# ---------------------------------------------------------------------------
+class SocialSearch(Tool):
+    name = "social_search"
+    description = "Search across social platforms (X/Twitter, Instagram, TikTok, LinkedIn) using web search."
+    example = "social_search[ouwibo agent]"
+
+    def execute(self, arg: str) -> str:
+        q = (arg or "").strip()
+        if not q:
+            return "Error: Provide a query. Example: social_search[viral hooks for coffee shop]"
+
+        sites = [
+            "x.com",
+            "twitter.com",
+            "instagram.com",
+            "tiktok.com",
+            "linkedin.com",
+            "facebook.com",
+            "reddit.com",
+            "youtube.com",
+        ]
+        site_query = " OR ".join([f"site:{s}" for s in sites])
+        query = f"{q} ({site_query})"
+
+        try:
+            ws = WebSearch()
+            results = []
+            if hasattr(ws, "search_raw"):
+                results = ws.search_raw(query, max_results=8, kind="text", provider="auto")
+            if not results:
+                # Fallback to human-readable output
+                return ws.execute(query)
+
+            out = ["**Social search results:**"]
+            for r in results[:8]:
+                title = (r.get("title") or "").strip()
+                url = (r.get("url") or "").strip()
+                domain = (r.get("domain") or "").strip()
+                if url:
+                    out.append(f"- {title or domain}\n  {url}")
+            return "\n".join(out)
+        except Exception as e:
+            logger.error(f"SocialSearch error: {e}", exc_info=True)
+            return f"SocialSearch error: {e}"
 # ---------------------------------------------------------------------------
 # CodeSearch — Find scripts, code snippets, and programming tutorials
 # ---------------------------------------------------------------------------
@@ -886,6 +1301,10 @@ ALL_TOOLS: list[type[Tool]] = [
     Translator,
     Dictionary,
     StockMarket,
+    CryptoMarket,
+    ENSResolve,
+    Wallet,
+    SocialSearch,
     CodeSearch,
     PhindSearch,
     URLReader,

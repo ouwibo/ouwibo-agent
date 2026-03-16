@@ -116,6 +116,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Expose a tiny helper surface for other page scripts (skills.js, etc.)
+  window.__Ouwibo = window.__Ouwibo || {};
+  window.__Ouwibo.authHeaders = authHeaders;
+  window.__Ouwibo.clearStoredToken = clearStoredToken;
+  window.__Ouwibo.setAuthBadge = setAuthBadge;
+  window.__Ouwibo.showAuthModal = showAuthModal;
+
   function setAuthSubmitLoading(loading) {
     if (!authSubmitBtn) return;
     authSubmitBtn.disabled = loading;
@@ -163,7 +170,18 @@ document.addEventListener('DOMContentLoaded', () => {
       _authEnabled = healthData.auth === true;
       aiClientStatus = healthData.ai_client || 'ready';
     } catch (_) {
+      // If /health fails, don't pretend keys are "missing" — show ERROR in tools UI.
       _authEnabled = false;
+      healthData = {
+        auth: false,
+        ai_client: 'error',
+        config: {
+          ai_key_configured: false,
+          access_token_configured: false,
+          search_provider: 'auto',
+          missing: [],
+        },
+      };
     }
 
     // Update tools page config status (if present on this page).
@@ -176,9 +194,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const aiSet = cfg.ai_key_configured === true;
       const accessSet = cfg.access_token_configured === true;
       const provider = (cfg.search_provider || 'auto').toString();
+      const aiClient = (data && data.ai_client) ? String(data.ai_client) : 'ready';
+      const authEnabled = (data && data.auth) === true;
 
       if (statAiKey) {
-        statAiKey.textContent = aiSet ? 'SET' : 'MISSING';
+        // If no key but free mode works, show it as FREE (not "missing").
+        statAiKey.textContent = aiSet ? 'SET' : (aiClient === 'free' ? 'FREE' : (aiClient === 'error' ? 'ERROR' : 'MISSING'));
         statAiKey.classList.toggle('text-emerald-400', aiSet);
         statAiKey.classList.toggle('text-accent', !aiSet);
       }
@@ -211,14 +232,14 @@ document.addEventListener('DOMContentLoaded', () => {
       addRow(
         'AI API Key',
         'API_KEY or GROQ_API_KEY',
-        aiSet ? 'SET' : 'MISSING',
+        aiSet ? 'SET' : (aiClient === 'free' ? 'FREE' : (aiClient === 'error' ? 'ERROR' : 'MISSING')),
         aiSet ? 'tools-chip tools-chip--active' : 'tools-chip tools-chip--keyless'
       );
       addRow(
         'Access Token',
         'ACCESS_TOKEN (optional)',
-        accessSet ? 'SET' : 'MISSING',
-        accessSet ? 'tools-chip tools-chip--active' : 'tools-chip'
+        authEnabled ? (accessSet ? 'SET' : 'MISSING') : 'OFF',
+        authEnabled ? (accessSet ? 'tools-chip tools-chip--active' : 'tools-chip') : 'tools-chip'
       );
       addRow(
         'Search Provider',
@@ -227,6 +248,28 @@ document.addEventListener('DOMContentLoaded', () => {
         'tools-chip'
       );
     })(healthData);
+
+    // Update tools page counts (total/active) from /tools.
+    (async function updateToolsCounts() {
+      const statTotal = document.getElementById('stat-total');
+      const statActive = document.getElementById('stat-active');
+      if (!statTotal && !statActive) return;
+
+      try {
+        const res = await fetch('/tools', { headers: authHeaders() });
+        if (res.status === 401) {
+          clearStoredToken();
+          setAuthBadge(false);
+          showAuthModal('Access required. Please enter your access token.');
+          return;
+        }
+        if (!res.ok) return;
+        const data = await res.json().catch(() => ({}));
+        const count = Number(data.count || 0);
+        if (statTotal) statTotal.textContent = String(count || '0');
+        if (statActive) statActive.textContent = String(count || '0');
+      } catch (_) {}
+    })();
 
     // Show AI status notification if not using Groq
     if (aiClientStatus === 'free') {
@@ -339,6 +382,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // ── Tools hash navigation (sidebar → tools page cards) ────────────────────
+  function highlightHashTarget() {
+    const hash = (window.location.hash || '').trim();
+    if (!hash) return;
+    const id = hash.replace(/^#/, '');
+    if (!id) return;
+
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    // Scroll inside the tools content area if present; otherwise let the browser handle it.
+    try { el.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (_) {}
+
+    el.classList.add('tool-card--target');
+    window.setTimeout(() => el.classList.remove('tool-card--target'), 1400);
+
+    // Make the corresponding sidebar link active.
+    const href = `/tools.html#${id}`;
+    document.querySelectorAll('a.nav-item[href^="/tools.html#"]').forEach(a => {
+      a.classList.toggle('nav-item--active', a.getAttribute('href') === href);
+    });
+  }
+
+  window.addEventListener('hashchange', highlightHashTarget);
+
+  function highlightToolPageNav() {
+    // Activate tool link in sidebar when on /tool.html?tool=...
+    const path = (window.location.pathname || '').toLowerCase();
+    if (!path.endsWith('/tool.html') && !path.endsWith('tool.html')) return;
+    const params = new URLSearchParams(window.location.search || '');
+    const tool = (params.get('tool') || '').trim();
+    if (!tool) return;
+    document.querySelectorAll('a.nav-item[data-tool]').forEach(a => {
+      a.classList.toggle('nav-item--active', (a.dataset.tool || '') === tool);
+    });
+  }
+
   // ── Sidebar collapse / expand ──────────────────────────────────────────────
   const shell       = document.getElementById('shell');
   const sidebar     = document.getElementById('sidebar');
@@ -407,6 +487,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Run after layout is stable.
+  window.setTimeout(highlightHashTarget, 0);
+  window.setTimeout(highlightToolPageNav, 0);
+
   // ── Expand / fullscreen ────────────────────────────────────────────────────
   const expandBtn = document.getElementById('expand-btn');
   let isExpanded = false;
@@ -449,6 +533,62 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let sessionId = getSessionId();
 
+  // ── Skill selection ─────────────────────────────────────────────────────────
+  const SKILL_KEY = 'ouwibo_skill_id';
+  const skillSelect = document.getElementById('skill-select');
+
+  function getStoredSkill() {
+    return (localStorage.getItem(SKILL_KEY) || '').trim();
+  }
+
+  function setStoredSkill(skillId) {
+    const v = (skillId || '').trim();
+    if (v) localStorage.setItem(SKILL_KEY, v);
+    else localStorage.removeItem(SKILL_KEY);
+  }
+
+  async function initSkills() {
+    if (!skillSelect) return;
+
+    // Set initial value early for better UX; will be validated after fetch.
+    const initial = getStoredSkill() || 'general';
+    skillSelect.value = initial;
+    skillSelect.addEventListener('change', () => {
+      setStoredSkill(skillSelect.value);
+      showAiStatusNotification(`Skill: ${skillSelect.options[skillSelect.selectedIndex]?.textContent || skillSelect.value}`);
+    });
+
+    try {
+      const res = await fetch('/skills', { headers: authHeaders() });
+      if (res.status === 401) {
+        clearStoredToken();
+        setAuthBadge(false);
+        showAuthModal('Access required. Please enter your access token.');
+        return;
+      }
+      if (!res.ok) return;
+
+      const data = await res.json().catch(() => ({}));
+      const skills = Array.isArray(data.skills) ? data.skills : [];
+      if (!skills.length) return;
+
+      const current = getStoredSkill() || initial;
+      skillSelect.innerHTML = '';
+      for (const s of skills) {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.title || s.id;
+        skillSelect.appendChild(opt);
+      }
+      // Restore selection if possible.
+      skillSelect.value = current;
+      if (!skillSelect.value && skills[0]) skillSelect.value = skills[0].id;
+      setStoredSkill(skillSelect.value);
+    } catch (e) {
+      // Silent: skills are optional
+    }
+  }
+
   // ── Markdown renderer ──────────────────────────────────────────────────────
   if (typeof marked !== 'undefined') {
     marked.setOptions({ breaks: true, gfm: true });
@@ -478,8 +618,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const errorText    = document.getElementById('error-text');
   const statusDot    = document.getElementById('status-dot');
 
-  if (!chatForm || !userInput || !chatMessages) return;
+  const hasChat = !!(chatForm && userInput && chatMessages);
 
+  if (hasChat) {
   // ── Error bar ──────────────────────────────────────────────────────────────
   function showError(msg) {
     if (!errorBar || !errorText) return;
@@ -574,7 +715,45 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isAgent) {
       const bubble = document.createElement('div');
       bubble.className = 'message__bubble chat-prose';
-      bubble.innerHTML = renderMarkdown(text);
+      
+      // Render markdown
+      let rendered = renderMarkdown(text);
+      
+      // Transform specific wallet links into Card Buttons
+      // Pattern: <li>[Name] URL</li>
+      const linkPatterns = [
+        { name: 'DeBank',    icon: '<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>', class: 'debank' },
+        { name: 'Arkham',    icon: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>', class: 'arkham' },
+        { name: 'Blockscan', icon: '<rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>', class: 'blockscan' }
+      ];
+
+      let hasCards = false;
+      let cardHtml = '<div class="link-card-group">';
+      
+      linkPatterns.forEach(p => {
+        const regex = new RegExp(`<li>\\[${p.name}\\]\\s*(https?:\\/\\/[^<]+)<\\/li>`, 'g');
+        if (regex.test(rendered)) {
+          hasCards = true;
+          rendered = rendered.replace(regex, (match, url) => {
+            cardHtml += `
+              <a href="${url.trim()}" target="_blank" rel="noopener noreferrer" class="link-card link-card--${p.class}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">${p.icon}</svg>
+                ${p.name}
+              </a>`;
+            return ''; // Remove from original list
+          });
+        }
+      });
+      
+      cardHtml += '</div>';
+      
+      // If we found any cards, wrap the remaining list (if empty) or clean up
+      if (hasCards) {
+        rendered = rendered.replace(/<ul>\s*<\/ul>/g, '');
+        rendered += cardHtml;
+      }
+
+      bubble.innerHTML = rendered;
       bubble.querySelectorAll('a').forEach(a => { a.target = '_blank'; a.rel = 'noopener noreferrer'; });
 
       const copyBtn = document.createElement('button');
@@ -706,7 +885,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch('/chat', {
         method: 'POST',
         headers: authHeaders(),
-        body: JSON.stringify({ message: text, session_id: sessionId }),
+        body: JSON.stringify({
+          message: text,
+          session_id: sessionId,
+          skill: (skillSelect && skillSelect.value) ? skillSelect.value : (getStoredSkill() || 'general'),
+        }),
       });
 
       hideTyping();
@@ -761,12 +944,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  } // end hasChat
+
   // ── Language switcher ──────────────────────────────────────────────────────
   if (window.i18n) window.i18n.buildSwitcher('lang-switcher');
 
   // ── Init ───────────────────────────────────────────────────────────────────
-  initAuth();
-  if (userInput) userInput.focus();
-  scrollToBottom(false);
+  (async () => {
+    await initAuth();
+    await initSkills();
+    if (hasChat && userInput) userInput.focus();
+    if (hasChat) scrollToBottom(false);
+  })();
 
 });

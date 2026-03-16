@@ -8,13 +8,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    /* Custom content area - matches the shell layout */
-    .tools-content-area {
-      height: calc(100vh - var(--topbar-h));
-      overflow-y: auto;
-    }
-  </style>
 </head>
 
 <body>
@@ -121,7 +114,7 @@
             </section>
 
             <!-- CONTROL section (collapsed) -->
-            <section class="nav-section nav-section--collapsed">
+            <section class="nav-section nav-section--collapsed nav-section--control">
               <button class="nav-section__label" type="button" aria-expanded="false">
                 <span class="nav-section__label-text">Control</span>
                 <span class="nav-section__chevron"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span>
@@ -143,18 +136,66 @@
                 <span class="nav-section__chevron"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
               </button>
               <div class="nav-section__items">
-                <a href="/tools.html" class="nav-item nav-item--active" title="Tools">
-                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
-                  <span class="nav-item__text">Tools</span>
+                <a href="/skills.html" class="nav-item" title="Skills"><span class="nav-item__icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span class="nav-item__text">Skills</span></a>
+              </div>
+            </section>
+
+            <!-- TOOLS section -->
+            <section class="nav-section">
+              <button class="nav-section__label" type="button" aria-expanded="true">
+                <span class="nav-section__label-text">Tools</span>
+                <span class="nav-section__chevron"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+              </button>
+              <div class="nav-section__items">
+                <div class="nav-subtitle">Web3</div>
+                <a href="/tool.html?tool=wallet" class="nav-item" data-tool="wallet" title="Wallet Scan">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M21 7H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><path d="M16 15h2"/></svg></span>
+                  <span class="nav-item__text">Wallet Scan</span>
                 </a>
-                <a href="#" class="nav-item"><span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></span><span class="nav-item__text">Agents</span><span class="nav-item__badge">Soon</span></a>
-                <a href="#" class="nav-item"><span class="nav-item__icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span class="nav-item__text">Skills</span><span class="nav-item__badge">Soon</span></a>
-                <a href="#" class="nav-item"><span class="nav-item__icon"><svg viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg></span><span class="nav-item__text">Nodes</span><span class="nav-item__badge">Soon</span></a>
+                <a href="/tool.html?tool=crypto" class="nav-item" data-tool="crypto" title="Crypto Market">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4.03 3 9 3s9-1.34 9-3v-6"/></svg></span>
+                  <span class="nav-item__text">Market</span>
+                </a>
+
+                <!-- Core research tools (Search/Google/News/Read URL/Wikipedia) are part of agent base.
+                     Keep markup commented for later, but hide from Tools menu to reduce clutter. -->
+                <!--
+                <div class="nav-subtitle">Research</div>
+                <a href="/tool.html?tool=search" class="nav-item" data-tool="search" title="Web Search (DuckDuckGo)">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+                  <span class="nav-item__text">Search</span>
+                </a>
+                <a href="/tool.html?tool=google_search" class="nav-item" data-tool="google_search" title="Google Search">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 12h7"/><path d="M12 5v14"/></svg></span>
+                  <span class="nav-item__text">Google</span>
+                </a>
+                <a href="/tool.html?tool=news" class="nav-item" data-tool="news" title="News">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M4 6h16v14H4z"/><path d="M8 10h8"/><path d="M8 14h8"/><path d="M8 18h5"/></svg></span>
+                  <span class="nav-item__text">News</span>
+                </a>
+                <a href="/tool.html?tool=read_url" class="nav-item" data-tool="read_url" title="Read URL">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 1 0-7l1-1a5 5 0 0 1 7 7l-1 1"/><path d="M14 11a5 5 0 0 1 0 7l-1 1a5 5 0 0 1-7-7l1-1"/></svg></span>
+                  <span class="nav-item__text">Read URL</span>
+                </a>
+                <a href="/tool.html?tool=wikipedia" class="nav-item" data-tool="wikipedia" title="Wikipedia">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M7 6l5 12 5-12"/><path d="M9 12h6"/></svg></span>
+                  <span class="nav-item__text">Wikipedia</span>
+                </a>
+                -->
+
+                <!-- Social tools are part of agent base (auto), not a standalone Tools menu item. -->
+                <!--
+                <div class="nav-subtitle">Social</div>
+                <a href="/tool.html?tool=social_search" class="nav-item" data-tool="social_search" title="Social Search">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M5 9h14"/><path d="M5 15h14"/><path d="M9 4v16"/><path d="M15 4v16"/></svg></span>
+                  <span class="nav-item__text">Social Search</span>
+                </a>
+                -->
               </div>
             </section>
 
             <!-- SETTINGS section (collapsed) -->
-            <section class="nav-section nav-section--collapsed">
+            <section class="nav-section nav-section--collapsed nav-section--settings">
               <button class="nav-section__label" type="button" aria-expanded="false">
                 <span class="nav-section__label-text">Settings</span>
                 <span class="nav-section__chevron"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span>
@@ -242,14 +283,14 @@
 
                 <!-- Stats row -->
 	                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8 md:mb-10">
-	                    <div class="tools-stat-card">
-	                        <div class="tools-stat-value" id="stat-total">14</div>
-	                        <div class="tools-stat-label">Total Tools</div>
-	                    </div>
-	                    <div class="tools-stat-card">
-	                        <div class="tools-stat-value text-emerald-400">14</div>
-	                        <div class="tools-stat-label">Active</div>
-	                    </div>
+		                    <div class="tools-stat-card">
+		                        <div class="tools-stat-value" id="stat-total">…</div>
+		                        <div class="tools-stat-label">Total Tools</div>
+		                    </div>
+		                    <div class="tools-stat-card">
+		                        <div class="tools-stat-value text-emerald-400" id="stat-active">…</div>
+		                        <div class="tools-stat-label">Active</div>
+		                    </div>
 		                    <div class="tools-stat-card">
 		                        <div class="tools-stat-value" id="stat-ai-key">…</div>
 		                        <div class="tools-stat-label">AI API Key</div>
@@ -269,8 +310,8 @@
 	                <!-- Tools grid -->
 		                <div id="tools-grid" class="grid grid-cols-1 gap-3">
 
-                    <!-- Phind Search -->
-                    <div class="tool-card">
+	                    <!-- Phind Search -->
+	                    <div class="tool-card" id="tool-phind-search">
                         <div class="absolute top-0 right-0 w-24 h-24 rounded-full
                                     bg-emerald-500/5 blur-2xl pointer-events-none"></div>
                         <div class="flex items-start justify-between mb-4">
@@ -300,8 +341,39 @@
                         </div>
                     </div>
 
-                    <!-- Code Search -->
-                    <div class="tool-card">
+	                    <!-- Wallet Scan -->
+	                    <div class="tool-card" id="tool-wallet-scan">
+                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+                                    bg-orange-600/5 blur-2xl pointer-events-none"></div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-orange-600/10 border border-orange-600/20
+                                        flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-wallet text-orange-400 text-sm"></i>
+                            </div>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+                                         border border-emerald-500/20 tools-chip tools-chip--active">
+                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+                                Active
+                            </span>
+                        </div>
+                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">Wallet Scan</h3>
+                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+                            Scan any EVM wallet address to get its balance, transaction history,
+                            and ENS name.
+                        </p>
+                        <div class="space-y-2">
+                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+                            <span class="tag">wallet_scan[0x123...]</span>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Web3</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">EVM</span>
+                        </div>
+                    </div>
+
+	                    <!-- Code Search -->
+	                    <div class="tool-card" id="tool-code-search">
                         <div class="absolute top-0 right-0 w-24 h-24 rounded-full
                                     bg-orange-600/5 blur-2xl pointer-events-none"></div>
                         <div class="flex items-start justify-between mb-4">
@@ -331,8 +403,9 @@
                         </div>
                     </div>
 
-                    <!-- Google Search -->
-                    <div class="tool-card">
+	                    <!-- Core research tool (hidden from Tools page; still available as agent capability) -->
+	                    <!--
+	                    <div class="tool-card" id="tool-google-search">
                         <div class="absolute top-0 right-0 w-24 h-24 rounded-full
                                     bg-blue-600/5 blur-2xl pointer-events-none"></div>
                         <div class="flex items-start justify-between mb-4">
@@ -359,9 +432,10 @@
                         <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
                             <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Search</span>
                             <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Google API</span>
-                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">No API key</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">Ready</span>
                         </div>
                     </div>
+	                    -->
 
                     <!-- Calculator -->
                     <div class="tool-card">
@@ -391,12 +465,13 @@
                         </div>
                         <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
                             <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Math</span>
-                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">No API key</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">Ready</span>
                         </div>
                     </div>
 
-                    <!-- Web Search -->
-                    <div class="tool-card">
+	                    <!-- Core research tool (hidden from Tools page; still available as agent capability) -->
+	                    <!--
+	                    <div class="tool-card" id="tool-web-search">
                         <div class="absolute top-0 right-0 w-24 h-24 rounded-full
                                     bg-purple-500/5 blur-2xl pointer-events-none"></div>
                         <div class="flex items-start justify-between mb-4">
@@ -423,9 +498,10 @@
                         <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
                             <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Internet</span>
                             <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">DuckDuckGo</span>
-                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">No API key</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">Ready</span>
                         </div>
                     </div>
+	                    -->
 
                     <!-- Weather -->
                     <div class="tool-card">
@@ -455,12 +531,13 @@
                         <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
                             <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Real-time</span>
                             <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">wttr.in</span>
-                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">No API key</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">Ready</span>
                         </div>
                     </div>
 
-                    <!-- Wikipedia -->
-                    <div class="tool-card">
+	                    <!-- Core research tool (hidden from Tools page; still available as agent capability) -->
+	                    <!--
+	                    <div class="tool-card" id="tool-wikipedia">
                         <div class="absolute top-0 right-0 w-24 h-24 rounded-full
                                     bg-orange-500/5 blur-2xl pointer-events-none"></div>
                         <div class="flex items-start justify-between mb-4">
@@ -487,12 +564,14 @@
                         <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
                             <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Knowledge</span>
                             <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Wikipedia API</span>
-                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">No API key</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">Ready</span>
                         </div>
                     </div>
+	                    -->
 
-                    <!-- News -->
-                    <div class="tool-card">
+	                    <!-- Core research tool (hidden from Tools page; still available as agent capability) -->
+	                    <!--
+	                    <div class="tool-card" id="tool-news">
                         <div class="absolute top-0 right-0 w-24 h-24 rounded-full
                                     bg-red-500/5 blur-2xl pointer-events-none"></div>
                         <div class="flex items-start justify-between mb-4">
@@ -519,9 +598,10 @@
                         <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
                             <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Real-time</span>
                             <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">DuckDuckGo</span>
-                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">No API key</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">Ready</span>
                         </div>
                     </div>
+	                    -->
 
                     <!-- Currency -->
                     <div class="tool-card">
@@ -551,7 +631,7 @@
                         <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
                             <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Finance</span>
                             <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">ECB Rates</span>
-                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">No API key</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">Ready</span>
                         </div>
                     </div>
 
@@ -583,12 +663,13 @@
                         <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
                             <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Time</span>
                             <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Timezone</span>
-                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">No API key</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">Ready</span>
                         </div>
                     </div>
 
-                    <!-- URL Reader -->
-                    <div class="tool-card">
+	                    <!-- Core research tool (hidden from Tools page; still available as agent capability) -->
+	                    <!--
+	                    <div class="tool-card" id="tool-url-reader">
                         <div class="absolute top-0 right-0 w-24 h-24 rounded-full
                                     bg-yellow-500/5 blur-2xl pointer-events-none"></div>
                         <div class="flex items-start justify-between mb-4">
@@ -615,9 +696,10 @@
                         <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
                             <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Web</span>
                             <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Scraping</span>
-                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">No API key</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">Ready</span>
                         </div>
                     </div>
+	                    -->
 
                     <!-- Translator -->
                     <div class="tool-card">
@@ -681,8 +763,8 @@
                         </div>
                     </div>
 
-                    <!-- Stocks & Crypto -->
-                    <div class="tool-card">
+		                    <!-- Stocks & Crypto -->
+		                    <div class="tool-card" id="tool-stocks-crypto">
                         <div class="absolute top-0 right-0 w-24 h-24 rounded-full
                                     bg-emerald-600/5 blur-2xl pointer-events-none"></div>
                         <div class="flex items-start justify-between mb-4">
@@ -706,11 +788,107 @@
                             <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
                             <span class="tag">stocks[BTC-USD]</span>
                         </div>
-                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
-                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Finance</span>
-                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Crypto</span>
-                        </div>
-                    </div>
+	                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Finance</span>
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Crypto</span>
+	                        </div>
+	                    </div>
+
+		                    <!-- Crypto Market (CoinGecko) -->
+		                    <div class="tool-card" id="tool-crypto-market">
+	                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+	                                    bg-rose-600/5 blur-2xl pointer-events-none"></div>
+	                        <div class="flex items-start justify-between mb-4">
+	                            <div class="w-10 h-10 rounded-xl bg-rose-600/10 border border-rose-600/20
+	                                        flex items-center justify-center shrink-0">
+	                                <i class="fa-solid fa-coins text-rose-400 text-sm"></i>
+	                            </div>
+	                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+	                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+	                                         border border-emerald-500/20 tools-chip tools-chip--active">
+	                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+	                                Active
+	                            </span>
+	                        </div>
+	                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">Crypto Market</h3>
+	                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+	                            Quick crypto prices, top market cap list, and trending coins using CoinGecko.
+	                            No API key required.
+	                        </p>
+	                        <div class="space-y-2">
+	                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+	                            <span class="tag">crypto[btc usd]</span>
+	                        </div>
+	                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Crypto</span>
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">CoinGecko</span>
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">Ready</span>
+	                        </div>
+	                    </div>
+
+		                    <!-- ENS + Wallet -->
+		                    <div class="tool-card" id="tool-web3-wallet">
+	                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+	                                    bg-violet-600/5 blur-2xl pointer-events-none"></div>
+	                        <div class="flex items-start justify-between mb-4">
+	                            <div class="w-10 h-10 rounded-xl bg-violet-600/10 border border-violet-600/20
+	                                        flex items-center justify-center shrink-0">
+	                                <i class="fa-solid fa-wallet text-violet-400 text-sm"></i>
+	                            </div>
+	                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+	                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+	                                         border border-emerald-500/20 tools-chip tools-chip--active">
+	                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+	                                Active
+	                            </span>
+	                        </div>
+	                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">ENS + Wallet</h3>
+	                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+	                            Resolve ENS names and check wallet balances (read-only). No private keys.
+	                        </p>
+	                        <div class="space-y-2">
+	                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+	                            <span class="tag">wallet[vitalik.eth]</span>
+	                        </div>
+	                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Web3</span>
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">ENS</span>
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">Ready</span>
+	                        </div>
+	                    </div>
+
+			                    <!-- Core social tool (hidden from Tools page; handled automatically by agent) -->
+			                    <!--
+			                    <div class="tool-card" id="tool-social-search">
+	                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+	                                    bg-sky-600/5 blur-2xl pointer-events-none"></div>
+	                        <div class="flex items-start justify-between mb-4">
+	                            <div class="w-10 h-10 rounded-xl bg-sky-600/10 border border-sky-600/20
+	                                        flex items-center justify-center shrink-0">
+	                                <i class="fa-solid fa-hashtag text-sky-400 text-sm"></i>
+		                    </div>
+			                    -->
+	                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+	                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+	                                         border border-emerald-500/20 tools-chip tools-chip--active">
+	                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+	                                Active
+	                            </span>
+	                        </div>
+	                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">Social Search</h3>
+	                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+	                            Search across X/Twitter, Instagram, TikTok, LinkedIn, Reddit, and YouTube.
+	                        </p>
+	                        <div class="space-y-2">
+	                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+	                            <span class="tag">social_search[coffee shop content ideas]</span>
+	                        </div>
+	                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Search</span>
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Social</span>
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">Ready</span>
+	                        </div>
+	                    </div>
 
                 </div>
                 <!-- end tools-grid -->
@@ -751,11 +929,35 @@
 
   </div>
 
-  <!-- ================================================================
-       AUTH MODAL
-  ================================================================ -->
-  <div class="auth-overlay auth-overlay--hidden" id="auth-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
-    <div class="auth-modal">
+	  <!-- ================================================================
+	       AUTH MODAL
+	  ================================================================ -->
+	  <!-- Tool runner modal -->
+	  <div class="tool-run-overlay tool-run-overlay--hidden" id="tool-run-overlay" role="dialog" aria-modal="true" aria-labelledby="tool-run-title">
+	    <div class="tool-run-modal">
+	      <div class="tool-run-head">
+	        <div>
+	          <div class="tool-run-title" id="tool-run-title">Run tool</div>
+	          <div class="tool-run-desc" id="tool-run-desc"></div>
+	        </div>
+	        <button type="button" class="tool-run-close" id="tool-run-close" aria-label="Close">
+	          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+	        </button>
+	      </div>
+	      <div class="tool-run-body">
+	        <textarea id="tool-run-input" class="tool-run-field" rows="2" placeholder="Enter tool argument..."></textarea>
+	        <div class="tool-run-actions">
+	          <button type="button" class="tool-run-secondary" id="tool-run-copy">Copy</button>
+	          <button type="button" class="tool-run-primary" id="tool-run-submit">Run</button>
+	        </div>
+	        <div class="tool-run-error" id="tool-run-error" role="alert"></div>
+	        <pre class="tool-run-output" id="tool-run-output"></pre>
+	      </div>
+	    </div>
+	  </div>
+
+	  <div class="auth-overlay auth-overlay--hidden" id="auth-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+	    <div class="auth-modal">
 
       <div class="auth-modal__header">
         <div class="auth-modal__icon">
@@ -821,5 +1023,6 @@
 
   <script src="i18n.js"></script>
   <script src="script.js"></script>
+  <script src="tools_run.js"></script>
 </body>
 </html>
