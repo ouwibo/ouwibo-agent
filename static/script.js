@@ -155,15 +155,78 @@ document.addEventListener('DOMContentLoaded', () => {
   /** Check /health to know if auth is required, then conditionally show modal */
   async function initAuth() {
     let aiClientStatus = 'ready';
+    let healthData = null;
     
     try {
       const res = await fetch('/health');
-      const data = await res.json();
-      _authEnabled = data.auth === true;
-      aiClientStatus = data.ai_client || 'ready';
+      healthData = await res.json();
+      _authEnabled = healthData.auth === true;
+      aiClientStatus = healthData.ai_client || 'ready';
     } catch (_) {
       _authEnabled = false;
     }
+
+    // Update tools page config status (if present on this page).
+    (function updateToolsConfigUI(data) {
+      const list = document.getElementById('tools-config-list');
+      const statAiKey = document.getElementById('stat-ai-key');
+      if (!list && !statAiKey) return;
+
+      const cfg = (data && data.config) ? data.config : {};
+      const aiSet = cfg.ai_key_configured === true;
+      const accessSet = cfg.access_token_configured === true;
+      const provider = (cfg.search_provider || 'auto').toString();
+
+      if (statAiKey) {
+        statAiKey.textContent = aiSet ? 'SET' : 'MISSING';
+        statAiKey.classList.toggle('text-emerald-400', aiSet);
+        statAiKey.classList.toggle('text-accent', !aiSet);
+      }
+
+      if (!list) return;
+      list.innerHTML = '';
+
+      function addRow(title, subtitle, chipText, chipClasses) {
+        const row = document.createElement('div');
+        row.className = 'tools-config-row';
+
+        const key = document.createElement('div');
+        key.className = 'tools-config-key';
+        const strong = document.createElement('strong');
+        strong.textContent = title;
+        const sub = document.createElement('span');
+        sub.textContent = subtitle;
+        key.appendChild(strong);
+        key.appendChild(sub);
+
+        const chip = document.createElement('span');
+        chip.className = chipClasses;
+        chip.textContent = chipText;
+
+        row.appendChild(key);
+        row.appendChild(chip);
+        list.appendChild(row);
+      }
+
+      addRow(
+        'AI API Key',
+        'API_KEY or GROQ_API_KEY',
+        aiSet ? 'SET' : 'MISSING',
+        aiSet ? 'tools-chip tools-chip--active' : 'tools-chip tools-chip--keyless'
+      );
+      addRow(
+        'Access Token',
+        'ACCESS_TOKEN (optional)',
+        accessSet ? 'SET' : 'MISSING',
+        accessSet ? 'tools-chip tools-chip--active' : 'tools-chip'
+      );
+      addRow(
+        'Search Provider',
+        'SEARCH_PROVIDER',
+        provider.toUpperCase(),
+        'tools-chip'
+      );
+    })(healthData);
 
     // Show AI status notification if not using Groq
     if (aiClientStatus === 'free') {

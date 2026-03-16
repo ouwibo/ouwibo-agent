@@ -189,12 +189,28 @@ async def health_check(db: Session = Depends(get_db)) -> dict[str, Any]:
         logger.error(f"Database health check failed: {e}")
         db_status = "error"
 
+    ai_key_configured = bool((os.getenv("API_KEY") or os.getenv("GROQ_API_KEY") or "").strip())
+    access_token_configured = bool((os.getenv("ACCESS_TOKEN") or "").strip())
+    search_provider = (os.getenv("SEARCH_PROVIDER") or "auto").strip().lower()
+
+    missing = []
+    if not ai_key_configured:
+        missing.append("API_KEY")
+    if not access_token_configured:
+        missing.append("ACCESS_TOKEN")
+
     return {
         "status": "ok" if db_status == "ok" else "degraded",
         "version": "1.0.1",
         "database": db_status,
         "auth": auth_enabled(),
         "ai_client": "ready" if groq_client else "free",
+        "config": {
+            "ai_key_configured": ai_key_configured,
+            "access_token_configured": access_token_configured,
+            "search_provider": search_provider,
+            "missing": missing,
+        },
     }
 
 

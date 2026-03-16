@@ -734,11 +734,72 @@ svg   { display: block; width: 16px; height: 16px;
   line-height: 1.35;
 }
 
+.tools-page .tools-chip.tools-chip--active {
+  background: rgba(16,185,129,0.14) !important;
+  border: 1px solid rgba(16,185,129,0.32) !important;
+  color: #10b981 !important;
+}
+.tools-page .tools-chip.tools-chip--active .w-1.h-1.rounded-full {
+  background: #10b981 !important;
+}
+
 .tools-page .tools-chip.tools-chip--keyless {
   background: var(--accent) !important;
   border: 1px solid rgba(244,63,94,0.55) !important;
   color: #ffffff !important;
   box-shadow: 0 6px 16px rgba(244,63,94,0.18);
+}
+
+.tools-config-panel {
+  margin: -6px 0 14px;
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+.tools-config-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-1);
+  letter-spacing: 0.02em;
+}
+.tools-config-sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+.tools-config-list {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+.tools-config-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+}
+.tools-config-key {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.tools-config-key strong {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-1);
+}
+.tools-config-key span {
+  font-size: 12px;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #tools-grid {
