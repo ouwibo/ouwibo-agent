@@ -327,36 +327,42 @@
   }
 
   // ── Form submit handlers ────────────────────────────────────────────────────
-  formHome.addEventListener('submit', function (e) {
-    e.preventDefault();
-    var q = inputHome.value.trim();
-    if (q) doSearch(q, { maxResults: 10 });
-  });
+  if (formHome) {
+    formHome.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var q = inputHome ? inputHome.value.trim() : '';
+      if (q) doSearch(q, { maxResults: 10 });
+    });
+  }
 
-  formResults.addEventListener('submit', function (e) {
-    e.preventDefault();
-    var q = inputResults.value.trim();
-    if (q) doSearch(q, { maxResults: 10 });
-  });
+  if (formResults) {
+    formResults.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var q = inputResults ? inputResults.value.trim() : '';
+      if (q) doSearch(q, { maxResults: 10 });
+    });
+  }
 
   // ── Lucky button ────────────────────────────────────────────────────────────
-  luckyBtn.addEventListener('click', function () {
+  if (luckyBtn) luckyBtn.addEventListener('click', function () {
     var q = inputHome.value.trim() || inputResults.value.trim();
     if (!q) { inputHome.focus(); return; }
     doSearch(q, { lucky: true, maxResults: 5 });
   });
 
   // ── Load more ───────────────────────────────────────────────────────────────
-  loadMoreBtn.addEventListener('click', function () {
+  if (loadMoreBtn) loadMoreBtn.addEventListener('click', function () {
     if (!currentQuery || isLoading) return;
     var newMax = maxResults + 10;
     doSearch(currentQuery, { append: true, maxResults: newMax });
   });
 
   // ── Retry ───────────────────────────────────────────────────────────────────
-  retryBtn.addEventListener('click', function () {
-    if (currentQuery) doSearch(currentQuery, { maxResults: maxResults });
-  });
+  if (retryBtn) {
+    retryBtn.addEventListener('click', function () {
+      if (currentQuery) doSearch(currentQuery, { maxResults: maxResults });
+    });
+  }
 
   // ── Browser back/forward ────────────────────────────────────────────────────
   window.addEventListener('popstate', function (e) {
