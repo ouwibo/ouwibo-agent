@@ -694,11 +694,40 @@ svg   { display: block; width: 16px; height: 16px;
 /* ============================================================
    Tools Cards (Compact, Horizontal)
    ============================================================ */
+.tools-page {
+  background: var(--bg);
+  color: var(--text-1);
+}
+
+.tools-page .text-zinc-100 { color: var(--text-1) !important; }
+.tools-page .text-zinc-400 { color: var(--text-2) !important; }
+.tools-page .text-zinc-500 { color: var(--text-3) !important; }
+.tools-page .text-zinc-600 { color: var(--text-3) !important; }
+
+.tools-stat-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 12px 14px;
+  text-align: center;
+}
+.tools-stat-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-1);
+  line-height: 1.15;
+}
+.tools-stat-label {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--text-3);
+}
+
 #tools-grid {
-  border: 1px solid rgba(63,63,70,0.55);
+  border: 1px solid var(--border);
   border-radius: 18px;
   overflow: hidden;
-  background: rgba(24,24,27,0.35);
+  background: var(--surface-2);
 }
 
 #tools-grid .tool-card {
@@ -712,7 +741,7 @@ svg   { display: block; width: 16px; height: 16px;
   border-radius: 0;
   background: transparent;
   border: 0;
-  border-bottom: 1px solid rgba(63,63,70,0.35);
+  border-bottom: 1px solid var(--border);
   overflow: hidden;
 }
 #tools-grid .tool-card:last-child { border-bottom: 0; }
@@ -730,7 +759,7 @@ svg   { display: block; width: 16px; height: 16px;
 }
 
 #tools-grid .tool-card:hover {
-  background: rgba(24,24,27,0.65);
+  background: var(--surface-3);
 }
 #tools-grid .tool-card:hover::before {
   background: var(--accent);
@@ -789,9 +818,9 @@ svg   { display: block; width: 16px; height: 16px;
   font-size: 11px;
   font-weight: 600;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  color: rgba(226,232,240,0.85);
-  background: rgba(39,39,42,0.8);
-  border: 1px solid rgba(63,63,70,0.55);
+  color: var(--text-2);
+  background: var(--surface-3);
+  border: 1px solid var(--border);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -803,7 +832,7 @@ svg   { display: block; width: 16px; height: 16px;
   grid-row: 4;
   margin: 6px 0 0 !important;
   padding-top: 6px !important;
-  border-top: 1px solid rgba(63,63,70,0.35) !important;
+  border-top: 1px solid var(--border) !important;
 }
 
 @media (max-width: 520px) {

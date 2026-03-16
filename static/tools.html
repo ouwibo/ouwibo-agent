@@ -222,7 +222,7 @@
   <!-- ================================================================
        MAIN CONTENT — TOOLS
   ================================================================ -->
-  <main class="content bg-[#0a0a0a]">
+  <main class="content tools-page">
     <div class="tools-content-area">
       <div class="max-w-5xl mx-auto px-4 md:px-6 py-8 md:py-10">
 
@@ -245,24 +245,24 @@
                 </div>
 
                 <!-- Stats row -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8 md:mb-10">
-                    <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl px-4 py-3.5 text-center">
-                        <div class="text-2xl font-bold text-zinc-100" id="stat-total">14</div>
-                        <div class="text-[11px] text-zinc-500 mt-0.5">Total Tools</div>
-                    </div>
-                    <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl px-4 py-3.5 text-center">
-                        <div class="text-2xl font-bold text-emerald-400">14</div>
-                        <div class="text-[11px] text-zinc-500 mt-0.5">Active</div>
-                    </div>
-                    <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl px-4 py-3.5 text-center">
-                        <div class="text-2xl font-bold text-zinc-100">0</div>
-                        <div class="text-[11px] text-zinc-500 mt-0.5">API Keys Required</div>
-                    </div>
-                    <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl px-4 py-3.5 text-center">
-                        <div class="text-2xl font-bold text-accent">AUTO</div>
-                        <div class="text-[11px] text-zinc-500 mt-0.5">Selection Mode</div>
-                    </div>
-                </div>
+	                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8 md:mb-10">
+	                    <div class="tools-stat-card">
+	                        <div class="tools-stat-value" id="stat-total">14</div>
+	                        <div class="tools-stat-label">Total Tools</div>
+	                    </div>
+	                    <div class="tools-stat-card">
+	                        <div class="tools-stat-value text-emerald-400">14</div>
+	                        <div class="tools-stat-label">Active</div>
+	                    </div>
+	                    <div class="tools-stat-card">
+	                        <div class="tools-stat-value">0</div>
+	                        <div class="tools-stat-label">API Keys Required</div>
+	                    </div>
+	                    <div class="tools-stat-card">
+	                        <div class="tools-stat-value text-accent">AUTO</div>
+	                        <div class="tools-stat-label">Selection Mode</div>
+	                    </div>
+	                </div>
 
                 <!-- Tools grid -->
 	                <div id="tools-grid" class="grid grid-cols-1 gap-3">
