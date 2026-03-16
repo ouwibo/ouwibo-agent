@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function loadSkill(id) {
     try {
-      const res = await fetch(`/skills/${encodeURIComponent(id)}`, { headers: authHeaders() });
+      const res = await fetch(`/api/skills/${encodeURIComponent(id)}`, { headers: authHeaders() });
       if (res.status === 401 && api.showAuthModal) {
         api.clearStoredToken && api.clearStoredToken();
         api.setAuthBadge && api.setAuthBadge(false);
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function loadList() {
     showEmpty('Loading skills...');
     try {
-      const res = await fetch('/skills', { headers: authHeaders() });
+      const res = await fetch('/api/skills', { headers: authHeaders() });
       if (res.status === 401 && api.showAuthModal) {
         api.clearStoredToken && api.clearStoredToken();
         api.setAuthBadge && api.setAuthBadge(false);
