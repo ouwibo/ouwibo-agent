@@ -3,6 +3,7 @@ import ast
 import json
 import logging
 import operator
+import os
 import re
 import urllib.parse
 import urllib.request
@@ -11,14 +12,49 @@ from html.parser import HTMLParser
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from ddgs import DDGS
-from googlesearch import search as gsearch
 from translate import Translator as PyTranslator
 import yfinance as yf
 
 from .config import CALCULATOR_MAX_LEN, MAX_SEARCH_RESULTS
 
 logger = logging.getLogger(__name__)
+
+try:
+    from ddgs import DDGS  # type: ignore
+except Exception:  # pragma: no cover
+    DDGS = None
+
+try:
+    from googlesearch import search as gsearch  # type: ignore
+except Exception:  # pragma: no cover
+    gsearch = None
+
+
+def _urls_to_results(urls: list[str], kind: str, provider: str) -> list[dict]:
+    results = []
+    for url in urls:
+        url = (url or "").strip()
+        if not url:
+            continue
+        try:
+            parsed = urlparse(url)
+            domain = parsed.netloc.replace("www.", "")
+            path = parsed.path[:60] if parsed.path else ""
+        except Exception:
+            domain = ""
+            path = ""
+        results.append(
+            {
+                "title": url,
+                "snippet": "",
+                "url": url,
+                "domain": domain,
+                "path": path,
+                "type": kind,
+                "provider": provider,
+            }
+        )
+    return results
 
 
 # ---------------------------------------------------------------------------
@@ -103,36 +139,130 @@ class WebSearch(Tool):
     description = "Search the web using DuckDuckGo."
     example = "search[latest news about AI]"
 
+    def _default_provider(self) -> str:
+        # "free google" in this project means using googlesearch-python (URLs only).
+        return (os.getenv("SEARCH_PROVIDER") or "auto").strip().lower()
+
     def execute(self, arg: str) -> str:
         query = arg.strip()
         if not query:
             return "Error: Empty search query."
+
+        provider = self._default_provider()
+
         try:
-            results = []
-            with DDGS() as ddgs:
-                for r in ddgs.text(query, max_results=MAX_SEARCH_RESULTS):
-                    title = r.get("title", "").strip()
-                    snippet = r.get("body", "").strip()
-                    url = r.get("href", "").strip()
-                    results.append(
-                        f"Title  : {title}\nSnippet: {snippet}\nURL    : {url}"
-                    )
-            if not results:
+            # Prefer Google, fallback to DDG on rate-limit/errors.
+            if provider in ("auto", "google", "g"):
+                if gsearch:
+                    try:
+                        urls = [u for u in gsearch(query, num_results=MAX_SEARCH_RESULTS)]
+                        if urls:
+                            return "Found these links on Google:\n" + "\n".join(urls)
+                    except Exception as e:
+                        logger.warning(f"Google search failed; falling back to DDG: {e}")
+
+            if provider in ("ddg", "duckduckgo"):
+                if DDGS is None:
+                    raise RuntimeError("DuckDuckGo search provider is not available (missing dependency).")
+                results = []
+                with DDGS() as ddgs:
+                    for r in ddgs.text(query, max_results=MAX_SEARCH_RESULTS):
+                        title = r.get("title", "").strip()
+                        snippet = r.get("body", "").strip()
+                        url = r.get("href", "").strip()
+                        results.append(
+                            f"Title  : {title}\nSnippet: {snippet}\nURL    : {url}"
+                        )
+                if not results:
+                    return "No search results found."
+                return "\n---\n".join(results)
+
+            if provider == "auto":
                 return "No search results found."
-            return "\n---\n".join(results)
+
+            return f"Error: Unsupported search provider '{provider}'. Use 'auto', 'google', or 'ddg'."
         except Exception as e:
             logger.error(f"WebSearch error: {e}", exc_info=True)
             return f"Web search error: {e}"
 
-    def search_raw(self, query: str, max_results: int = MAX_SEARCH_RESULTS) -> list:
-        """Structured results for the /search API endpoint."""
+    def search_raw(
+        self,
+        query: str,
+        max_results: int = MAX_SEARCH_RESULTS,
+        kind: str = "text",
+        provider: str = "google",
+    ) -> list:
+        """Structured results for the /search API endpoint.
+
+        kind: text | news | images | videos | all
+        """
         query = query.strip()
+        kind = (kind or "text").strip().lower()
+        provider = (provider or "auto").strip().lower()
         if not query:
             return []
+
+        if kind == "all":
+            kind = "text"
+
+        allowed = {"text", "news", "images", "videos"}
+        if kind not in allowed:
+            raise ValueError(f"Unsupported search type: {kind}")
+
+        # Google provider: supports only type=text (URLs only).
+        if provider in ("auto", "google", "g"):
+            if kind == "text" and gsearch:
+                try:
+                    urls = [u for u in gsearch(query, num_results=max_results)]
+                    if urls:
+                        return _urls_to_results(urls, kind="text", provider="google")
+                except Exception as e:
+                    logger.warning(f"Google search failed; falling back to DDG: {e}")
+            # For non-text kinds, or if Google fails: fall back to DDG if available.
+            provider = "ddg"
+
+        if provider not in ("ddg", "duckduckgo"):
+            raise ValueError(f"Unsupported search provider: {provider}")
+
+        if DDGS is None:
+            raise RuntimeError("DuckDuckGo search provider is not available (missing dependency).")
+
+        def _pick_url(row: dict) -> str:
+            return (
+                row.get("href")
+                or row.get("url")
+                or row.get("link")
+                or row.get("page")
+                or row.get("source")
+                or ""
+            ).strip()
+
+        def _pick_title(row: dict) -> str:
+            return (row.get("title") or row.get("heading") or row.get("text") or "").strip()
+
+        def _pick_snippet(row: dict) -> str:
+            return (
+                row.get("body")
+                or row.get("snippet")
+                or row.get("description")
+                or row.get("content")
+                or row.get("excerpt")
+                or ""
+            ).strip()
+
         results = []
         with DDGS() as ddgs:
-            for r in ddgs.text(query, max_results=max_results):
-                url = r.get("href", "")
+            if kind == "text":
+                iterator = ddgs.text(query, max_results=max_results)
+            elif kind == "news":
+                iterator = ddgs.news(query, max_results=max_results)
+            elif kind == "images":
+                iterator = ddgs.images(query, max_results=max_results)
+            else:  # videos
+                iterator = ddgs.videos(query, max_results=max_results)
+
+            for r in iterator:
+                url = _pick_url(r)
                 try:
                     parsed = urlparse(url)
                     domain = parsed.netloc.replace("www.", "")
@@ -140,15 +270,28 @@ class WebSearch(Tool):
                 except Exception:
                     domain = ""
                     path = ""
-                results.append(
-                    {
-                        "title": r.get("title", "").strip(),
-                        "snippet": r.get("body", "").strip(),
-                        "url": url,
-                        "domain": domain,
-                        "path": path,
-                    }
-                )
+
+                item = {
+                    "title": _pick_title(r) or url,
+                    "snippet": _pick_snippet(r),
+                    "url": url,
+                    "domain": domain,
+                    "path": path,
+                    "type": kind,
+                }
+
+                # Enrich media results where available (frontend may ignore).
+                if kind == "images":
+                    item["image"] = (r.get("image") or r.get("thumbnail") or "").strip()
+                    item["thumbnail"] = (r.get("thumbnail") or "").strip()
+                    item["source"] = (r.get("source") or "").strip()
+                if kind == "videos":
+                    item["thumbnail"] = (r.get("images") or r.get("thumbnail") or "").strip()
+                    item["duration"] = (r.get("duration") or "").strip()
+                    item["published"] = (r.get("published") or r.get("date") or "").strip()
+
+                results.append(item)
+
         return results
 
 
@@ -542,6 +685,15 @@ class GoogleSearch(Tool):
     description = "Search the web using Google."
     example = "google_search[latest news about AI]"
 
+    def search_raw(self, query: str, max_results: int = MAX_SEARCH_RESULTS) -> list[dict]:
+        query = query.strip()
+        if not query:
+            return []
+        if not gsearch:
+            raise RuntimeError("Google search provider is not available (missing dependency).")
+        urls = [u for u in gsearch(query, num_results=max_results)]
+        return _urls_to_results(urls, kind="text", provider="google")
+
     def execute(self, arg: str) -> str:
         query = arg.strip()
         if not query:
@@ -549,6 +701,8 @@ class GoogleSearch(Tool):
         try:
             results = []
             # Fetch up to 5 results
+            if not gsearch:
+                return "Google search provider is not available (missing dependency)."
             for url in gsearch(query, num_results=MAX_SEARCH_RESULTS):
                 results.append(f"URL: {url}")
             
@@ -601,29 +755,54 @@ class Dictionary(Tool):
     def execute(self, arg: str) -> str:
         word = arg.strip().lower()
         if not word:
-            return "Error: Provide a word to look up."
+            return "Error: A word is required. Example: dictionary[resilience]"
         try:
             url = f"{self._API}{urllib.parse.quote(word)}"
-            req = urllib.request.Request(url, headers={"User-Agent": "OuwiboAgent/1.0"})
+            req = urllib.request.Request(
+                url,
+                headers={"User-Agent": "OuwiboAgent/1.0"},
+            )
             with urllib.request.urlopen(req, timeout=10) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
             
-            if not isinstance(data, list) or not data:
-                return f"Could not find definition for '{word}'."
+            if not data or not isinstance(data, list):
+                return f"No definition found for '{word}'"
             
             entry = data[0]
+            word = entry.get("word", word)
+            phonetics = entry.get("phonetic", "")
+            
             meanings = entry.get("meanings", [])
-            output = [f"**{word.capitalize()}**"]
+            if not meanings:
+                return f"No definition found for '{word}'"
             
-            for m in meanings[:2]: # Show first 2 meanings
-                pos = m.get("partOfSpeech", "unknown")
-                defs = m.get("definitions", [])
-                if defs:
-                    output.append(f"_{pos}_: {defs[0].get('definition')}")
+            results = []
+            if phonetics:
+                results.append(f"**{word}** {phonetics}")
+            else:
+                results.append(f"**{word}**")
             
-            return "\n".join(output)
-        except Exception:
-            return f"Dictionary error: Could not find '{word}'."
+            for meaning in meanings[:2]:  # Limit to 2 meanings
+                part_of_speech = meaning.get("partOfSpeech", "")
+                definitions = meaning.get("definitions", [])
+                
+                if part_of_speech and definitions:
+                    results.append(f"\n*{part_of_speech}*:")
+                    for i, defn in enumerate(definitions[:2], 1):  # Limit to 2 definitions
+                        definition = defn.get("definition", "")
+                        example = defn.get("example", "")
+                        results.append(f"  {i}. {definition}")
+                        if example:
+                            results.append(f"     Example: {example}")
+            
+            return "\n".join(results)
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                return f"Word '{word}' not found in dictionary."
+            return f"Dictionary error: {e}"
+        except Exception as e:
+            logger.error(f"Dictionary error: {e}", exc_info=True)
+            return f"Dictionary error: {e}"
 
 
 # ---------------------------------------------------------------------------

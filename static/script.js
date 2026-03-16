@@ -18,6 +18,46 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.removeItem(AUTH_TOKEN_KEY);
   }
 
+  /** Show a temporary notification about AI status */
+  function showAiStatusNotification(message) {
+    // Add keyframes if not already present
+    if (!document.getElementById('ai-notification-styles')) {
+      const style = document.createElement('style');
+      style.id = 'ai-notification-styles';
+      style.textContent = `
+        @keyframes ai-notification-in { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        @keyframes ai-notification-out { from { opacity: 1; transform: translateX(-50%) translateY(0); } to { opacity: 0; transform: translateX(-50%) translateY(10px); } }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = 'ai-status-notification';
+    notification.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent, #f43f5e);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      z-index: 10000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: ai-notification-in 0.3s ease;
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+      notification.style.animation = 'ai-notification-out 0.3s ease';
+      setTimeout(() => notification.remove(), 300);
+    }, 5000);
+  }
+
   /** Build headers object — includes Authorization if token present */
   function authHeaders(extra = {}) {
     const token = getStoredToken();
@@ -114,12 +154,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /** Check /health to know if auth is required, then conditionally show modal */
   async function initAuth() {
+    let aiClientStatus = 'ready';
+    
     try {
       const res = await fetch('/health');
       const data = await res.json();
       _authEnabled = data.auth === true;
+      aiClientStatus = data.ai_client || 'ready';
     } catch (_) {
       _authEnabled = false;
+    }
+
+    // Show AI status notification if not using Groq
+    if (aiClientStatus === 'free') {
+      showAiStatusNotification('Using free AI mode (DuckDuckGo). Set API_KEY for better performance.');
     }
 
     if (!_authEnabled) {
@@ -261,11 +309,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function toggleSidebar() {
+    const isCollapsed = isMobile() 
+      ? sidebar.style.transform === 'translateX(-100%)' 
+      : shell.classList.contains('shell--nav-collapsed');
+    
     if (isMobile()) {
-      const isOpen = sidebar.style.transform === 'translateX(0px)';
+      const isOpen = sidebar.style.transform === 'translateX(0px)' || sidebar.style.transform === 'translateX(0)';
       isOpen ? closeSidebar() : openSidebar();
     } else {
-      const isCollapsed = shell.classList.contains('shell--nav-collapsed');
       isCollapsed ? openSidebar() : closeSidebar();
     }
   }

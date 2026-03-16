@@ -49,7 +49,7 @@ class Agent:
                 plan = self.planner.plan(task, self.memory.get_history())
             except Exception as e:
                 logger.error(f"[Agent] Planner gagal di iterasi {i + 1}: {e}", exc_info=True)
-                return f"Maaf, terjadi kesalahan saat merencanakan langkah. Error: {e}"
+                return f"Maaf, saya tidak dapat membuat rencana langkah. Error: {e}"
 
             if not plan:
                 logger.warning("[Agent] Planner mengembalikan rencana kosong.")

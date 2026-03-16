@@ -31,6 +31,7 @@
   let maxResults     = 10;
   let isLoading      = false;
   let lastResults    = [];
+  let currentFilter  = 'all';
 
   // ── i18n helper (safe fallback if i18n.js not loaded yet) ──────────────────
   function t(key, vars) {
@@ -94,6 +95,9 @@
     tab.addEventListener('click', function () {
       filterTabs.forEach(function (t) { t.classList.remove('active'); });
       tab.classList.add('active');
+      currentFilter = tab.getAttribute('data-filter') || 'all';
+      // Re-run the current query with the new filter, similar to Google tabs.
+      if (currentQuery && !isLoading) doSearch(currentQuery, { maxResults: 10 });
     });
   });
 
@@ -255,7 +259,10 @@
       resultsList.innerHTML = '';
     }
 
-    var url = '/search?q=' + encodeURIComponent(query) + '&max_results=' + newMax;
+    var url = '/search?q=' + encodeURIComponent(query) +
+      '&type=' + encodeURIComponent(currentFilter || 'all') +
+      '&provider=' + encodeURIComponent('auto') +
+      '&max_results=' + newMax;
 
     fetch(url)
       .then(function (res) {

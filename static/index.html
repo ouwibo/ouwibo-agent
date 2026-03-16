@@ -8,18 +8,6 @@
   <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
   <link rel="stylesheet" href="style.css">
-  <style>
-    /* Social icon fix — always bright in sidebar */
-    .social-icons { display:flex; align-items:center; gap:2px; padding:4px 6px; }
-    .social-btn {
-      flex:1; display:flex; align-items:center; justify-content:center;
-      height:32px; border-radius:7px; cursor:pointer; border:none; background:none;
-      color:rgba(255,255,255,0.45); transition:color .15s, background .15s;
-      text-decoration:none;
-    }
-    .social-btn:hover { color:#fff; background:rgba(255,255,255,0.09); }
-    .social-btn svg { width:15px; height:15px; }
-  </style>
 </head>
 
 <body>
@@ -186,9 +174,9 @@
 
         <!-- Footer -->
         <div class="sidebar-shell__footer">
-          <div class="sidebar-utility-group">
+          <div class="sidebar-footer-content">
 
-            <!-- Social icons — always visible -->
+            <!-- Social icons — bottom left -->
             <div class="social-icons">
               <a href="https://x.com/ouwibo" target="_blank" rel="noopener noreferrer" class="social-btn" title="@ouwibo on X (Twitter)">
                 <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">

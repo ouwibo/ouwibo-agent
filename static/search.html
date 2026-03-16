@@ -1,432 +1,341 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" data-theme="system">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>Ouwibo Search</title>
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
-
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        background: '#09090b',
-                        accent: '#f43f5e',
-                    },
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                }
-            }
-        }
-    </script>
-
-    <style type="text/tailwindcss">
-        @layer base {
-            body { @apply bg-background text-zinc-100 antialiased; }
-            ::-webkit-scrollbar       { @apply w-1; }
-            ::-webkit-scrollbar-thumb { @apply bg-zinc-800 rounded-full; }
-        }
-        @layer components {
-            .sidebar-link {
-                @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px]
-                       font-medium transition-all duration-150 text-zinc-400
-                       hover:bg-zinc-800/70 hover:text-zinc-100 cursor-pointer select-none w-full;
-            }
-            .sidebar-link.active { @apply bg-zinc-800/90 text-zinc-100; }
-            .sidebar-label {
-                @apply px-3 pt-5 pb-1.5 text-[10px] font-bold text-zinc-600
-                       uppercase tracking-widest select-none;
-            }
-            .action-btn {
-                @apply w-9 h-9 flex items-center justify-center rounded-xl
-                       text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200
-                       transition-all duration-150 cursor-pointer shrink-0;
-            }
-            .filter-tab {
-                @apply px-4 py-2.5 text-[13px] text-zinc-400 border-b-2 border-transparent
-                       hover:text-zinc-200 transition-colors cursor-pointer whitespace-nowrap;
-            }
-            .filter-tab.active { @apply text-accent border-accent; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Ouwibo Agent — Search</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="flex h-screen w-screen overflow-hidden">
+<body>
+<div class="shell" id="shell">
 
-    <!-- Mobile backdrop -->
-    <div
-        id="sidebar-backdrop"
-        class="fixed inset-0 bg-black/60 z-40 hidden backdrop-blur-sm"
-        aria-hidden="true"
-    ></div>
+  <!-- Mobile backdrop -->
+  <button type="button" class="shell-nav-backdrop" id="nav-backdrop" aria-label="Close sidebar"></button>
 
-    <!-- =====================================================================
-         SIDEBAR
-    ===================================================================== -->
-    <aside
-        id="sidebar"
-        role="navigation"
-        aria-label="Main navigation"
-        class="fixed inset-y-0 left-0 z-50 w-72 flex flex-col
-               bg-[#09090b] border-r border-zinc-800/70
-               transform -translate-x-full transition-transform duration-300 ease-in-out
-               md:relative md:translate-x-0 md:w-60 md:shrink-0"
-    >
-        <!-- Brand -->
-        <div class="px-4 py-4 flex items-center justify-between border-b border-zinc-800/50 shrink-0">
-            <a href="/" class="flex items-center gap-2.5 min-w-0">
-                <div class="w-8 h-8 rounded-xl bg-accent/10 border border-accent/20
-                            flex items-center justify-center shrink-0">
-                    <i class="fa-solid fa-robot text-accent text-sm" aria-hidden="true"></i>
-                </div>
-                <div class="leading-tight min-w-0">
-                    <div class="text-[13px] font-semibold text-zinc-100 truncate">Ouwibo Agent</div>
-                    <div class="text-[9px] text-zinc-500 uppercase tracking-wider">AI Assistant</div>
-                </div>
-            </a>
-            <button id="sidebar-close" aria-label="Close sidebar" class="action-btn md:hidden">
-                <i class="fa-solid fa-xmark text-sm" aria-hidden="true"></i>
+  <!-- ================================================================
+       TOPBAR
+  ================================================================ -->
+  <header class="topbar">
+    <div class="topnav-shell">
+
+      <!-- Mobile hamburger -->
+      <button type="button" class="topbar-nav-toggle" id="nav-toggle-mobile" aria-label="Open sidebar">
+        <span class="nav-collapse-toggle__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><line x1="4" x2="20" y1="6"  y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+        </span>
+      </button>
+
+      <div class="topnav-shell__content"></div>
+
+      <!-- Actions -->
+      <div class="topnav-shell__actions">
+        <button class="topbar-search" onclick="window.location.href='/search.html'" title="Search (⌘K)" aria-label="Open search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span class="topbar-search__label">Search</span>
+          <kbd class="topbar-search__kbd">⌘K</kbd>
+        </button>
+
+        <!-- Auth badge -->
+        <button type="button" class="topbar-auth-badge" id="topbar-auth-badge" title="Authentication status" aria-label="Authentication status" style="display:none">
+          <svg id="topbar-auth-icon-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <svg id="topbar-auth-icon-unlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+            <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+          </svg>
+          <span id="topbar-auth-label">Locked</span>
+        </button>
+
+        <div class="topbar-status">
+          <div class="topbar-theme-mode" role="group" aria-label="Color mode" id="theme-switcher">
+            <button type="button" class="topbar-theme-mode__btn topbar-theme-mode__btn--active" data-theme-val="system" title="System" aria-label="System theme">
+              <svg viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
             </button>
+            <button type="button" class="topbar-theme-mode__btn" data-theme-val="light" title="Light" aria-label="Light theme">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+            </button>
+            <button type="button" class="topbar-theme-mode__btn" data-theme-val="dark" title="Dark" aria-label="Dark theme">
+              <svg viewBox="0 0 24 24"><path d="M12 3a6.5 6.5 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================================================================
+       SIDEBAR
+  ================================================================ -->
+  <div class="shell-nav">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-shell">
+
+        <!-- Brand -->
+        <div class="sidebar-shell__header">
+          <a href="/" class="sidebar-brand">
+            <div class="sidebar-brand__logo-icon">
+              <svg viewBox="0 0 24 24" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 4a3 3 0 1 1-3 3 3 3 0 0 1 3-3zm0 14a8 8 0 0 1-6.4-3.2C5.6 14.8 9.6 14 12 14s6.4.8 6.4 2.8A8 8 0 0 1 12 20z" fill="currentColor" stroke="none"/></svg>
+            </div>
+            <span class="sidebar-brand__copy">
+              <span class="sidebar-brand__eyebrow">Control</span>
+              <span class="sidebar-brand__title">Ouwibo Agent</span>
+            </span>
+          </a>
+          <button type="button" class="nav-collapse-toggle" id="nav-collapse-btn" title="Collapse sidebar" aria-label="Collapse sidebar">
+            <span class="nav-collapse-toggle__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </span>
+          </button>
         </div>
 
-        <!-- Nav -->
-        <div class="flex-1 overflow-y-auto px-2 py-3">
-            <div class="sidebar-label">Menu</div>
-            <a href="/" class="sidebar-link">
-                <i class="fa-regular fa-message text-xs w-4 text-center" aria-hidden="true"></i>
-                <span>Chat</span>
-            </a>
-            <a href="/search.html" class="sidebar-link active" aria-current="page">
-                <i class="fa-solid fa-magnifying-glass text-xs w-4 text-center" aria-hidden="true"></i>
-                <span>Search</span>
-            </a>
+        <!-- Nav body -->
+        <div class="sidebar-shell__body">
+          <nav class="sidebar-nav">
 
-            <div class="sidebar-label">Agent</div>
-            <a href="/tools.html" class="sidebar-link">
-                <i class="fa-solid fa-bolt text-xs w-4 text-center text-zinc-500" aria-hidden="true"></i>
-                <span>Tools</span>
-            </a>
-            <a href="#" class="sidebar-link opacity-50 cursor-default pointer-events-none">
-                <i class="fa-solid fa-robot text-xs w-4 text-center text-zinc-500" aria-hidden="true"></i>
-                <span>Agents</span>
-                <span class="ml-auto text-[9px] bg-zinc-800/80 text-zinc-600 px-1.5 py-0.5 rounded-md">Soon</span>
-            </a>
-            <a href="#" class="sidebar-link opacity-50 cursor-default pointer-events-none">
-                <i class="fa-solid fa-circle-nodes text-xs w-4 text-center text-zinc-500" aria-hidden="true"></i>
-                <span>Nodes</span>
-                <span class="ml-auto text-[9px] bg-zinc-800/80 text-zinc-600 px-1.5 py-0.5 rounded-md">Soon</span>
-            </a>
+            <!-- CHAT section -->
+            <section class="nav-section">
+              <button class="nav-section__label" type="button" aria-expanded="true">
+                <span class="nav-section__label-text">Chat</span>
+                <span class="nav-section__chevron"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+              </button>
+              <div class="nav-section__items">
+                <a href="/" class="nav-item" title="Chat">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+                  <span class="nav-item__text">Chat</span>
+                </a>
+                <button type="button" class="nav-item" id="new-chat-btn" title="New Chat">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+                  <span class="nav-item__text">New Chat</span>
+                </button>
+                <a href="/search.html" class="nav-item nav-item--active" title="Search">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+                  <span class="nav-item__text">Search</span>
+                </a>
+              </div>
+            </section>
+
+            <!-- CONTROL section (collapsed) -->
+            <section class="nav-section nav-section--collapsed">
+              <button class="nav-section__label" type="button" aria-expanded="false">
+                <span class="nav-section__label-text">Control</span>
+                <span class="nav-section__chevron"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span>
+              </button>
+              <div class="nav-section__items">
+                <a href="#" class="nav-item"><span class="nav-item__icon"><svg viewBox="0 0 24 24"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg></span><span class="nav-item__text">Overview</span><span class="nav-item__badge">Soon</span></a>
+                <a href="#" class="nav-item"><span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span><span class="nav-item__text">Channels</span><span class="nav-item__badge">Soon</span></a>
+                <a href="#" class="nav-item"><span class="nav-item__icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg></span><span class="nav-item__text">Instances</span><span class="nav-item__badge">Soon</span></a>
+                <a href="#" class="nav-item"><span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span><span class="nav-item__text">Sessions</span><span class="nav-item__badge">Soon</span></a>
+                <a href="#" class="nav-item"><span class="nav-item__icon"><svg viewBox="0 0 24 24"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg></span><span class="nav-item__text">Usage</span><span class="nav-item__badge">Soon</span></a>
+                <a href="#" class="nav-item"><span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M12 2v4m5.66-.34-2.83 2.83M20 12h-4m.34 5.66-2.83-2.83M12 20v-4m-5.66.34 2.83-2.83M4 12h4M7.34 6.34 4.51 3.51"/></svg></span><span class="nav-item__text">Cron Jobs</span><span class="nav-item__badge">Soon</span></a>
+              </div>
+            </section>
+
+            <!-- AGENT section -->
+            <section class="nav-section">
+              <button class="nav-section__label" type="button" aria-expanded="true">
+                <span class="nav-section__label-text">Agent</span>
+                <span class="nav-section__chevron"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+              </button>
+              <div class="nav-section__items">
+                <a href="/tools.html" class="nav-item" title="Tools">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+                  <span class="nav-item__text">Tools</span>
+                </a>
+                <a href="#" class="nav-item"><span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></span><span class="nav-item__text">Agents</span><span class="nav-item__badge">Soon</span></a>
+                <a href="#" class="nav-item"><span class="nav-item__icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span class="nav-item__text">Skills</span><span class="nav-item__badge">Soon</span></a>
+                <a href="#" class="nav-item"><span class="nav-item__icon"><svg viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg></span><span class="nav-item__text">Nodes</span><span class="nav-item__badge">Soon</span></a>
+              </div>
+            </section>
+
+            <!-- SETTINGS section (collapsed) -->
+            <section class="nav-section nav-section--collapsed">
+              <button class="nav-section__label" type="button" aria-expanded="false">
+                <span class="nav-section__label-text">Settings</span>
+                <span class="nav-section__chevron"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span>
+              </button>
+              <div class="nav-section__items">
+                <a href="#" class="nav-item"><span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="nav-item__text">Config</span><span class="nav-item__badge">Soon</span></a>
+                <a href="#" class="nav-item"><span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></span><span class="nav-item__text">Communications</span><span class="nav-item__badge">Soon</span></a>
+                <a href="#" class="nav-item"><span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></span><span class="nav-item__text">Appearance</span><span class="nav-item__badge">Soon</span></a>
+                <a href="#" class="nav-item"><span class="nav-item__icon"><svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/></svg></span><span class="nav-item__text">Automation</span><span class="nav-item__badge">Soon</span></a>
+                <a href="#" class="nav-item"><span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="m8 2 1.88 1.88M14.12 3.88 16 2M9 7.13v-1a3.003 3.003 0 1 1 6 0v1M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6M12 20v-9"/></svg></span><span class="nav-item__text">Debug</span><span class="nav-item__badge">Soon</span></a>
+              </div>
+            </section>
+
+          </nav>
         </div>
 
         <!-- Footer -->
-        <div class="px-2 pb-4 pt-2 border-t border-zinc-800/50 space-y-2 shrink-0">
-            <div id="lang-switcher"></div>
+        <div class="sidebar-shell__footer">
+          <div class="sidebar-footer-content">
 
-            <!-- Social media -->
-            <div class="flex items-center justify-center gap-1 py-1">
-                <a href="https://x.com/ouwibo" target="_blank" rel="noopener noreferrer"
-                   title="@ouwibo on X"
-                   class="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-600
-                          hover:text-zinc-300 hover:bg-zinc-800 transition-all">
-                    <i class="fa-brands fa-x-twitter text-sm"></i>
-                </a>
-                <a href="https://t.me/ouwibo" target="_blank" rel="noopener noreferrer"
-                   title="@ouwibo on Telegram"
-                   class="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-600
-                          hover:text-zinc-300 hover:bg-zinc-800 transition-all">
-                    <i class="fa-brands fa-telegram text-sm"></i>
-                </a>
-                <a href="https://github.com/ouwibo" target="_blank" rel="noopener noreferrer"
-                   title="@ouwibo on GitHub"
-                   class="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-600
-                          hover:text-zinc-300 hover:bg-zinc-800 transition-all">
-                    <i class="fa-brands fa-github text-sm"></i>
-                </a>
+            <!-- Social icons — bottom left -->
+            <div class="social-icons">
+              <a href="https://x.com/ouwibo" target="_blank" rel="noopener noreferrer" class="social-btn" title="@ouwibo on X (Twitter)">
+                <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+              </a>
+              <a href="https://t.me/ouwibo" target="_blank" rel="noopener noreferrer" class="social-btn" title="@ouwibo on Telegram">
+                <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                  <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                </svg>
+              </a>
+              <a href="https://github.com/ouwibo" target="_blank" rel="noopener noreferrer" class="social-btn" title="@ouwibo on GitHub">
+                <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                  <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/>
+                </svg>
+              </a>
             </div>
 
-            <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-900/40 border border-zinc-800/40">
-                <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></div>
-                <span class="text-[11px] text-zinc-500 font-medium">System Active</span>
+            <!-- Docs link -->
+            <a class="nav-item nav-item--external sidebar-utility-link" href="https://github.com/ouwibo/ouwibo-agent" target="_blank" rel="noopener noreferrer" title="Docs">
+              <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg></span>
+              <span class="nav-item__text">Docs</span>
+              <span class="nav-item__external-icon"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+            </a>
+
+            <!-- Version + status -->
+            <div class="sidebar-version">
+              <span class="sidebar-version__label">Version</span>
+              <span class="sidebar-version__text">v2026.1.0</span>
+              <span id="status-dot" class="sidebar-version__status sidebar-connection-status--online" role="img" aria-label="Online" title="System online"></span>
             </div>
+
+          </div>
         </div>
+
+      </div>
     </aside>
+  </div>
 
-    <!-- =====================================================================
-         MAIN
-    ===================================================================== -->
-    <main class="flex-1 flex flex-col overflow-hidden bg-[#0a0a0a] min-w-0" role="main">
+  <!-- ================================================================
+       MAIN CONTENT — SEARCH
+  ================================================================ -->
+  <main class="content">
 
-        <!-- ── HOMEPAGE VIEW ───────────────────────────────────────────────── -->
-        <div id="view-home" class="flex-1 flex flex-col overflow-y-auto">
+    <!-- ── HOMEPAGE VIEW ───────────────────────────────────────────────── -->
+    <div id="view-home" class="flex-1 flex flex-col overflow-y-auto bg-transparent">
+      <!-- Centered content -->
+      <div class="flex-1 flex flex-col items-center justify-center px-4 pb-10 pt-6">
 
-            <!-- Mobile header -->
-            <div class="flex items-center justify-between px-3 py-3 border-b border-zinc-800/50 md:hidden shrink-0">
-                <button id="sidebar-toggle-home" aria-label="Menu" class="action-btn">
-                    <i class="fa-solid fa-bars text-sm"></i>
-                </button>
-                <span class="text-[13px] font-semibold text-zinc-100">Ouwibo Search</span>
-                <a href="/" class="action-btn" title="Chat">
-                    <i class="fa-regular fa-message text-sm"></i>
-                </a>
-            </div>
-
-            <!-- Centered content -->
-            <div class="flex-1 flex flex-col items-center justify-center px-4 pb-10 pt-6">
-
-                <!-- Colorful logo -->
-                <div class="mb-8 md:mb-10 select-none" aria-label="Ouwibo">
-                    <span class="text-5xl md:text-7xl font-bold tracking-tight" style="color:#4285F4">O</span>
-                    <span class="text-5xl md:text-7xl font-bold tracking-tight" style="color:#EA4335">u</span>
-                    <span class="text-5xl md:text-7xl font-bold tracking-tight" style="color:#FBBC05">w</span>
-                    <span class="text-5xl md:text-7xl font-bold tracking-tight" style="color:#4285F4">i</span>
-                    <span class="text-5xl md:text-7xl font-bold tracking-tight" style="color:#34A853">b</span>
-                    <span class="text-5xl md:text-7xl font-bold tracking-tight" style="color:#EA4335">o</span>
-                </div>
-
-                <!-- Search form -->
-                <form id="form-home" class="w-full max-w-xl" role="search">
-                    <div class="flex items-center bg-zinc-900 border border-zinc-700 rounded-full
-                                px-4 md:px-5 py-3 md:py-3.5 gap-3
-                                hover:border-zinc-600 focus-within:border-zinc-500
-                                focus-within:shadow-[0_0_0_3px_rgba(66,133,244,0.15)] transition-all">
-                        <i class="fa-solid fa-magnifying-glass text-zinc-500 shrink-0" aria-hidden="true"></i>
-                        <input
-                            id="input-home"
-                            type="search"
-                            autocomplete="off"
-                            spellcheck="false"
-                            aria-label="Search"
-                            placeholder="Search anything…"
-                            class="flex-1 bg-transparent focus:outline-none text-[15px] text-zinc-100
-                                   placeholder-zinc-500 min-w-0"
-                        >
-                        <button type="button" id="clear-home"
-                            class="hidden text-zinc-500 hover:text-zinc-300 transition-colors shrink-0"
-                            aria-label="Clear">
-                            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-                        </button>
-                    </div>
-
-                    <!-- Buttons -->
-                    <div class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 mt-6">
-                        <button type="submit"
-                            class="w-full sm:w-auto px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700
-                                   text-zinc-200 text-[13px] font-medium rounded-xl
-                                   border border-zinc-700 transition-colors">
-                            Ouwibo Search
-                        </button>
-                        <button type="button" id="lucky-btn"
-                            class="w-full sm:w-auto px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700
-                                   text-zinc-200 text-[13px] font-medium rounded-xl
-                                   border border-zinc-700 transition-colors">
-                            I'm Feeling Lucky
-                        </button>
-                    </div>
-                </form>
-
-                <!-- Quick links -->
-                <div class="flex items-center gap-3 mt-8 text-[12px] text-zinc-600 flex-wrap justify-center">
-                    <a href="/" class="hover:text-zinc-400 transition-colors flex items-center gap-1.5">
-                        <i class="fa-regular fa-message" aria-hidden="true"></i>
-                        <span>Chat</span>
-                    </a>
-                    <span>·</span>
-                    <span id="lang-hint-home"></span>
-                </div>
-            </div>
+        <!-- Colorful logo -->
+        <div class="mb-8 md:mb-10 select-none" aria-label="Ouwibo">
+          <span class="text-5xl md:text-7xl font-bold tracking-tight" style="color:#4285F4">O</span>
+          <span class="text-5xl md:text-7xl font-bold tracking-tight" style="color:#EA4335">u</span>
+          <span class="text-5xl md:text-7xl font-bold tracking-tight" style="color:#FBBC05">w</span>
+          <span class="text-5xl md:text-7xl font-bold tracking-tight" style="color:#4285F4">i</span>
+          <span class="text-5xl md:text-7xl font-bold tracking-tight" style="color:#34A853">b</span>
+          <span class="text-5xl md:text-7xl font-bold tracking-tight" style="color:#EA4335">o</span>
         </div>
 
-        <!-- ── RESULTS VIEW ────────────────────────────────────────────────── -->
-        <div id="view-results" class="hidden flex-col flex-1 overflow-hidden">
+        <!-- Search form -->
+        <form id="form-home" class="w-full max-w-xl" role="search">
+          <div class="flex items-center bg-[var(--bg-2)] border border-[var(--border)] rounded-full
+                      px-4 md:px-5 py-3 md:py-3.5 gap-3
+                      hover:border-[var(--border-2)] focus-within:border-[var(--accent)]
+                      focus-within:shadow-[0_0_0_3px_var(--accent-subtle)] transition-all">
+            <svg class="text-[var(--text-3)]" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input
+              id="input-home"
+              type="search"
+              autocomplete="off"
+              spellcheck="false"
+              aria-label="Search"
+              placeholder="Search anything…"
+              class="flex-1 bg-transparent focus:outline-none text-[15px] text-[var(--text-1)]
+                     placeholder-[var(--text-3)] min-w-0"
+            >
+            <button type="button" id="clear-home"
+              class="hidden text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors shrink-0"
+              aria-label="Clear">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
 
-            <!-- Results top bar -->
-            <div class="flex items-center gap-2 md:gap-4 px-3 md:px-4 py-2.5 border-b border-zinc-800/50 shrink-0" style="min-height:56px">
+          <!-- Buttons -->
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 mt-6">
+            <button type="submit"
+              class="w-full sm:w-auto px-5 py-2.5 bg-[var(--bg-3)] hover:bg-[var(--bg-2)]
+                     text-[var(--text-2)] text-[13px] font-medium rounded-xl
+                     border border-[var(--border)] transition-colors">
+              Ouwibo Search
+            </button>
+            <button type="button" id="lucky-btn"
+              class="w-full sm:w-auto px-5 py-2.5 bg-[var(--bg-3)] hover:bg-[var(--bg-2)]
+                     text-[var(--text-2)] text-[13px] font-medium rounded-xl
+                     border border-[var(--border)] transition-colors">
+              I'm Feeling Lucky
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
 
-                <!-- Hamburger (mobile) -->
-                <button id="sidebar-toggle-results" aria-label="Menu" class="action-btn md:hidden">
-                    <i class="fa-solid fa-bars text-sm"></i>
-                </button>
+    <!-- ── RESULTS VIEW ────────────────────────────────────────────────── -->
+    <div id="view-results" class="hidden flex-col flex-1 overflow-hidden bg-transparent">
+      <!-- Filter tabs -->
+      <div class="flex items-center border-b border-[var(--border)] shrink-0 overflow-x-auto px-3 md:px-4 gap-1">
+        <button class="filter-tab active" data-filter="all">All</button>
+        <button class="filter-tab" data-filter="news">News</button>
+        <button class="filter-tab" data-filter="images">Images</button>
+        <button class="filter-tab" data-filter="videos">Videos</button>
+      </div>
 
-                <!-- Small logo (desktop) -->
-                <a href="/search.html" aria-label="Ouwibo Search" class="shrink-0 select-none hidden md:block">
-                    <span class="text-2xl font-bold" style="color:#4285F4">O</span>
-                    <span class="text-2xl font-bold" style="color:#EA4335">u</span>
-                    <span class="text-2xl font-bold" style="color:#FBBC05">w</span>
-                    <span class="text-2xl font-bold" style="color:#4285F4">i</span>
-                    <span class="text-2xl font-bold" style="color:#34A853">b</span>
-                    <span class="text-2xl font-bold" style="color:#EA4335">o</span>
-                </a>
-
-                <!-- Search bar -->
-                <form id="form-results" class="flex-1 min-w-0" role="search">
-                    <div class="flex items-center bg-zinc-900 border border-zinc-700 rounded-full
-                                px-3 md:px-4 py-2 md:py-2.5 gap-2 md:gap-3
-                                hover:border-zinc-600 focus-within:border-zinc-500
-                                focus-within:shadow-[0_0_0_3px_rgba(66,133,244,0.15)] transition-all">
-                        <i class="fa-solid fa-magnifying-glass text-zinc-500 text-sm shrink-0" aria-hidden="true"></i>
-                        <input
-                            id="input-results"
-                            type="search"
-                            autocomplete="off"
-                            spellcheck="false"
-                            placeholder="Search anything…"
-                            aria-label="Search"
-                            class="flex-1 bg-transparent focus:outline-none text-[14px] text-zinc-100
-                                   placeholder-zinc-500 min-w-0"
-                        >
-                        <button type="button" id="clear-results"
-                            class="hidden text-zinc-500 hover:text-zinc-300 transition-colors shrink-0"
-                            aria-label="Clear">
-                            <i class="fa-solid fa-xmark text-sm" aria-hidden="true"></i>
-                        </button>
-                        <button type="submit" aria-label="Search"
-                            class="text-zinc-400 hover:text-zinc-200 transition-colors shrink-0">
-                            <i class="fa-solid fa-arrow-right text-sm" aria-hidden="true"></i>
-                        </button>
-                    </div>
-                </form>
-
-                <!-- Back to chat (desktop) -->
-                <a href="/"
-                   class="hidden md:flex items-center gap-1.5 text-[12px] text-zinc-500
-                          hover:text-zinc-300 transition-colors shrink-0">
-                    <i class="fa-regular fa-message text-[11px]" aria-hidden="true"></i>
-                    <span>Chat</span>
-                </a>
-            </div>
-
-            <!-- Filter tabs -->
-            <div class="flex items-center border-b border-zinc-800/40 shrink-0 overflow-x-auto px-3 md:px-4 gap-1">
-                <button class="filter-tab active" data-filter="all">All</button>
-                <button class="filter-tab" data-filter="news">News</button>
-                <button class="filter-tab" data-filter="images">Images</button>
-                <button class="filter-tab" data-filter="videos">Videos</button>
-            </div>
-
-            <!-- Scrollable results body -->
-            <div id="results-body" class="flex-1 overflow-y-auto">
-                <div class="max-w-2xl mx-auto px-3 md:px-4 py-4 md:py-6">
-
-                    <!-- Stats -->
-                    <p id="results-stats" class="text-[12px] md:text-[13px] text-zinc-500 mb-4 md:mb-5" aria-live="polite"></p>
-
-                    <!-- Loading skeleton -->
-                    <div id="results-loading" class="hidden space-y-6 md:space-y-8">
-                        <div class="animate-pulse space-y-2">
-                            <div class="h-3 bg-zinc-800 rounded w-36"></div>
-                            <div class="h-5 bg-zinc-800 rounded w-3/4"></div>
-                            <div class="h-3 bg-zinc-800 rounded w-full"></div>
-                            <div class="h-3 bg-zinc-800 rounded w-5/6"></div>
-                        </div>
-                        <div class="animate-pulse space-y-2">
-                            <div class="h-3 bg-zinc-800 rounded w-28"></div>
-                            <div class="h-5 bg-zinc-800 rounded w-2/3"></div>
-                            <div class="h-3 bg-zinc-800 rounded w-full"></div>
-                            <div class="h-3 bg-zinc-800 rounded w-4/5"></div>
-                        </div>
-                        <div class="animate-pulse space-y-2">
-                            <div class="h-3 bg-zinc-800 rounded w-44"></div>
-                            <div class="h-5 bg-zinc-800 rounded w-3/5"></div>
-                            <div class="h-3 bg-zinc-800 rounded w-full"></div>
-                            <div class="h-3 bg-zinc-800 rounded w-3/4"></div>
-                        </div>
-                    </div>
-
-                    <!-- Error state -->
-                    <div id="results-error" class="hidden py-6">
-                        <div class="flex flex-col items-start gap-3">
-                            <div class="w-11 h-11 rounded-full bg-red-950/50 border border-red-900/50
-                                        flex items-center justify-center">
-                                <i class="fa-solid fa-triangle-exclamation text-red-500 text-sm" aria-hidden="true"></i>
-                            </div>
-                            <p id="results-error-text" class="text-[14px] text-zinc-400"></p>
-                            <button id="retry-btn"
-                                class="px-4 py-2 text-[13px] bg-zinc-800 hover:bg-zinc-700
-                                       border border-zinc-700 rounded-xl transition-colors">
-                                Try again
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Empty state -->
-                    <div id="results-empty" class="hidden py-10 text-center">
-                        <i class="fa-solid fa-face-frown text-4xl text-zinc-700 mb-4 block" aria-hidden="true"></i>
-                        <p id="results-empty-text" class="text-[14px] text-zinc-500"></p>
-                    </div>
-
-                    <!-- Results list -->
-                    <div id="results-list" role="list" aria-label="Search results" class="divide-y divide-zinc-800/50"></div>
-
-                    <!-- Load more -->
-                    <div id="load-more-area" class="hidden flex justify-center pt-6 pb-10">
-                        <button id="load-more-btn"
-                            class="flex items-center gap-2 px-6 py-2.5 text-[13px] text-zinc-300
-                                   bg-zinc-900 hover:bg-zinc-800 border border-zinc-700
-                                   rounded-full transition-colors">
-                            <i class="fa-solid fa-plus text-[11px]" aria-hidden="true"></i>
-                            <span>Load more</span>
-                        </button>
-                    </div>
-
-                </div>
-            </div>
+      <!-- Scrollable results body -->
+      <div id="results-body" class="flex-1 overflow-y-auto">
+        <div class="max-w-2xl mx-auto px-3 md:px-4 py-4 md:py-6">
+          <p id="results-stats" class="text-[12px] md:text-[13px] text-[var(--text-3)] mb-4 md:mb-5" aria-live="polite"></p>
+          <div id="results-loading" class="hidden space-y-6 md:space-y-8">
+            <!-- Skeletons... -->
+          </div>
+          <div id="results-error" class="hidden py-6">
+             <!-- Error state... -->
+          </div>
+          <div id="results-empty" class="hidden py-10 text-center">
+            <p id="results-empty-text" class="text-[14px] text-[var(--text-3)]"></p>
+          </div>
+          <div id="results-list" role="list" aria-label="Search results" class="divide-y divide-[var(--border)]"></div>
+          <div id="load-more-area" class="hidden flex justify-center pt-6 pb-10">
+            <button id="load-more-btn" class="btn btn--sm">Load more</button>
+          </div>
         </div>
+      </div>
+    </div>
 
-    </main>
+  </main>
 
-    <script src="i18n.js"></script>
-    <script src="search.js"></script>
+</div>
 
-    <script>
-        // Sidebar responsive logic (shared with index)
-        const sidebar       = document.getElementById('sidebar');
-        const backdrop      = document.getElementById('sidebar-backdrop');
-        const closeBtns     = [
-            document.getElementById('sidebar-close'),
-        ];
-        const openBtns      = [
-            document.getElementById('sidebar-toggle-home'),
-            document.getElementById('sidebar-toggle-results'),
-        ];
+<!-- Auth Modal (Standardized) -->
+<div class="auth-overlay auth-overlay--hidden" id="auth-overlay" role="dialog" aria-modal="true">
+  <div class="auth-modal">
+    <div class="auth-modal__header">
+      <div class="auth-modal__icon"><svg viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+      <h2 class="auth-modal__title">Access Required</h2>
+      <p class="auth-modal__sub">Enter your access token to continue.</p>
+    </div>
+    <div class="auth-modal__body">
+      <div class="auth-error auth-error--hidden" id="auth-error"><span id="auth-error-text"></span></div>
+      <div class="auth-field">
+        <label class="auth-field__label" for="auth-token-input">Access Token</label>
+        <div class="auth-field__wrap">
+          <input type="password" id="auth-token-input" class="auth-field__input" placeholder="sk-••••">
+        </div>
+      </div>
+      <button type="button" class="auth-submit" id="auth-submit-btn"><span class="auth-submit__label">Unlock</span></button>
+    </div>
+  </div>
+</div>
 
-        function openSidebar() {
-            sidebar.classList.remove('-translate-x-full');
-            sidebar.classList.add('translate-x-0');
-            backdrop.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeSidebar() {
-            sidebar.classList.add('-translate-x-full');
-            sidebar.classList.remove('translate-x-0');
-            backdrop.classList.add('hidden');
-            document.body.style.overflow = '';
-        }
-
-        openBtns.forEach(btn => btn && btn.addEventListener('click', openSidebar));
-        closeBtns.forEach(btn => btn && btn.addEventListener('click', closeSidebar));
-        backdrop.addEventListener('click', closeSidebar);
-
-        // Close sidebar on md+ screens when resizing
-        window.addEventListener('resize', () => {
-            if (window.innerWidth >= 768) closeSidebar();
-        });
-
-        // Language switcher
-        if (window.i18n) {
-            window.i18n.buildSwitcher('lang-switcher');
-            const langHintHome = document.getElementById('lang-hint-home');
-            if (langHintHome) {
-                const lang  = window.i18n.getLang();
-                const langs = window.i18n.getLanguages();
-                if (langs[lang]) langHintHome.textContent = langs[lang].flag + ' ' + langs[lang].name;
-            }
-        }
-    </script>
+<script src="i18n.js"></script>
+<script src="script.js"></script>
+<script src="search.js"></script>
 </body>
 </html>

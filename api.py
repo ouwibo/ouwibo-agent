@@ -1,6 +1,7 @@
 # api.py
 import logging
 import os
+import time
 from typing import Any, Callable, Generator
 
 import slowapi
@@ -41,7 +42,8 @@ models.Base.metadata.create_all(bind=engine)
 # ---------------------------------------------------------------------------
 # AI Client Configuration
 # ---------------------------------------------------------------------------
-_api_key: str = (os.getenv("API_KEY") or os.getenv("GROQ_API_KEY") or "").strip()
+# .strip() is CRITICAL to prevent "Illegal header value" errors from .env
+_api_key = (os.getenv("API_KEY") or os.getenv("GROQ_API_KEY") or "").strip()
 groq_client: Groq | None = None
 
 if not _api_key:
@@ -87,7 +89,7 @@ free_ai_client = FreeAIClient()
 # ---------------------------------------------------------------------------
 # Rate Limiter
 # ---------------------------------------------------------------------------
-limiter: Limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
+limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
 
 # ---------------------------------------------------------------------------
 # FastAPI App
@@ -102,11 +104,22 @@ app = FastAPI(
 
 app.state.limiter = limiter
 
-def rate_limit_handler(request: Request, exc: RateLimitExceeded) -> Response:
+
+# Definisi handler secara lokal agar Zed tidak komplain tentang akses member privat (_)
+def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     """Custom handler for rate limit exceeded errors."""
-    return slowapi._rate_limit_exceeded_handler(request, exc)  # type: ignore
+    from fastapi.responses import JSONResponse
+    return JSONResponse(
+        status_code=429,
+        content={
+            "detail": f"Rate limit exceeded: {exc.detail}",
+            "error": "rate_limit_exceeded",
+        },
+    )
+
 
 app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
+
 
 # ---------------------------------------------------------------------------
 # Security & CORS
@@ -121,8 +134,13 @@ async def security_headers(request: Request, call_next: Callable[[Request], Any]
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     return response
 
-_raw_origins: str = os.getenv("ALLOWED_ORIGINS", "*")
-_allowed_origins: list[str] = ["*"] if _raw_origins == "*" else [o.strip() for o in _raw_origins.split(",") if o.strip()]
+
+# Handle CORS more robustly
+_raw_origins = os.getenv("ALLOWED_ORIGINS", "*")
+if _raw_origins == "*":
+    _allowed_origins = ["*"]
+else:
+    _allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
 
 app.add_middleware(
     CORSMiddleware,
@@ -131,6 +149,7 @@ app.add_middleware(
     allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
 )
+
 
 # ---------------------------------------------------------------------------
 # Dependencies
@@ -143,6 +162,7 @@ def get_db() -> Generator[Session, None, None]:
     finally:
         db.close()
 
+
 # ---------------------------------------------------------------------------
 # Schemas
 # ---------------------------------------------------------------------------
@@ -150,9 +170,15 @@ class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=MAX_MESSAGE_LENGTH)
     session_id: str = Field(..., min_length=1, max_length=MAX_SESSION_ID_LENGTH)
 
+
 # ---------------------------------------------------------------------------
 # Endpoints — System & Search
 # ---------------------------------------------------------------------------
+@app.get("/auth/verify", tags=["Auth"])
+async def verify_token(_: None = Depends(require_auth)):
+    return {"valid": True}
+
+
 @app.get("/health", tags=["System"])
 async def health_check(db: Session = Depends(get_db)) -> dict[str, Any]:
     """Check the health of the API, database, and AI service."""
@@ -168,56 +194,78 @@ async def health_check(db: Session = Depends(get_db)) -> dict[str, Any]:
         "version": "1.0.1",
         "database": db_status,
         "auth": auth_enabled(),
-        "ai_client": "ready" if groq_client else "missing_key"
+        "ai_client": "ready" if groq_client else "free",
     }
+
 
 @app.get("/tools", tags=["Tools"])
 async def list_tools(_: Any = Depends(require_auth)) -> dict[str, Any]:
     """List all available tools for the agent."""
     from core.tools import ALL_TOOLS
+
     return {
         "count": len(ALL_TOOLS),
-        "tools": [{"name": c.name, "description": c.description} for c in ALL_TOOLS]
+        "tools": [{"name": c.name, "description": c.description} for c in ALL_TOOLS],
     }
+
 
 @app.get("/search", tags=["Search"])
 @limiter.limit("30/minute")
 async def global_search(
     request: Request,
     q: str = QueryParam(..., min_length=1),
+    type: str = QueryParam("all", min_length=1),
+    provider: str = QueryParam("auto", min_length=1),
     max_results: int = 10,
-    _: Any = Depends(require_auth),
-) -> dict[str, Any]:
-    """Global web search endpoint."""
+    _: None = Depends(require_auth),
+):
     try:
-        results: list[dict[str, Any]] = WebSearch().search_raw(q, max_results=max_results)
-        return {"query": q, "results": results}
+        t0 = time.perf_counter()
+        results = WebSearch().search_raw(q, max_results=max_results, kind=type, provider=provider)
+        elapsed = round(time.perf_counter() - t0, 3)
+        return {
+            "query": q,
+            "type": type,
+            "provider": provider,
+            "count": len(results),
+            "time": elapsed,
+            "results": results,
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error(f"Search error: {e}")
-        raise HTTPException(status_code=500, detail="Search service temporarily unavailable.")
+        raise HTTPException(
+            status_code=500, detail="Search service temporarily unavailable."
+        )
+
 
 # ---------------------------------------------------------------------------
 # Endpoints — Sessions
 # ---------------------------------------------------------------------------
 @app.get("/sessions", tags=["Sessions"])
-async def list_sessions(db: Session = Depends(get_db), _: Any = Depends(require_auth)) -> dict[str, list[str]]:
-    """List all unique session IDs."""
-    rows: list[Any] = db.query(models.ChatMessage.session_id).distinct().all()
+async def list_sessions(db: Session = Depends(get_db), _: None = Depends(require_auth)):
+    rows = db.query(models.ChatMessage.session_id).distinct().all()
     return {"sessions": [r[0] for r in rows]}
+
 
 @app.get("/sessions/{session_id}/history", tags=["Sessions"])
 async def get_history(
-    session_id: str, 
-    db: Session = Depends(get_db), 
-    _: Any = Depends(require_auth)
-) -> dict[str, list[dict[str, Any]]]:
-    """Get the message history for a specific session."""
-    messages: list[models.ChatMessage] = db.query(models.ChatMessage).filter_by(
-        session_id=session_id
-    ).order_by(models.ChatMessage.id).all()
+    session_id: str, db: Session = Depends(get_db), _: None = Depends(require_auth)
+):
+    messages = (
+        db.query(models.ChatMessage)
+        .filter_by(session_id=session_id)
+        .order_by(models.ChatMessage.id)
+        .all()
+    )
     return {
-        "messages": [{"role": m.role, "content": m.content, "time": m.created_at} for m in messages]
+        "messages": [
+            {"role": m.role, "content": m.content, "time": m.created_at}
+            for m in messages
+        ]
     }
+
 
 # ---------------------------------------------------------------------------
 # Endpoint — Chat
@@ -228,40 +276,53 @@ async def chat_with_agent(
     request: Request,
     body: ChatRequest,
     db: Session = Depends(get_db),
-    _: Any = Depends(require_auth),
-) -> dict[str, str]:
-    """Chat with the AI agent. Falls back to Free AI if Groq is missing/limited."""
-    # Use Groq if available, otherwise fallback to Free AI (DuckDuckGo)
-    selected_client = groq_client if groq_client else free_ai_client
-
-    logger.info(f"[/chat] session={body.session_id} using {'Groq' if groq_client else 'FreeAI'}")
+    _: None = Depends(require_auth),
+):
+    global groq_client
+    # Use Groq client if available, otherwise fall back to FreeAIClient
+    client = groq_client if groq_client else free_ai_client
+    client_type = "Groq" if groq_client else "FreeAI (DuckDuckGo)"
+    
+    logger.info(f"[/chat] session={body.session_id} client={client_type}")
     try:
         # 1. Load history for context
-        history: list[models.ChatMessage] = db.query(models.ChatMessage).filter_by(
-            session_id=body.session_id
-        ).order_by(models.ChatMessage.id).all()
-        
+        history = (
+            db.query(models.ChatMessage)
+            .filter_by(session_id=body.session_id)
+            .order_by(models.ChatMessage.id)
+            .all()
+        )
+
         # 2. Init agent & restore memory
-        agent: Agent = Agent(client=selected_client)
+        agent = Agent(client=client)
         for h in history:
             agent.memory.add(h.role, h.content)
 
         # 3. Get AI Response
         try:
-            agent_response: str = agent.run(body.message)
+            agent_response = agent.run(body.message)
         except Exception as e:
             if groq_client:
                 logger.warning(f"Groq failed: {e}. Falling back to Free AI...")
-                agent = Agent(client=free_ai_client) # Re-init with free client
+                agent = Agent(client=free_ai_client)  # Re-init with free client
                 # Re-add history
-                for h in history: agent.memory.add(h.role, h.content)
+                for h in history:
+                    agent.memory.add(h.role, h.content)
                 agent_response = agent.run(body.message)
             else:
                 raise e
 
         # 4. Save both messages in one transaction
-        db.add(models.ChatMessage(session_id=body.session_id, role="user", content=body.message))
-        db.add(models.ChatMessage(session_id=body.session_id, role="assistant", content=agent_response))
+        db.add(
+            models.ChatMessage(
+                session_id=body.session_id, role="user", content=body.message
+            )
+        )
+        db.add(
+            models.ChatMessage(
+                session_id=body.session_id, role="assistant", content=agent_response
+            )
+        )
         db.commit()
 
         return {"response": agent_response}
@@ -269,8 +330,12 @@ async def chat_with_agent(
     except AuthenticationError:
         db.rollback()
         logger.error("Groq Authentication Error: Invalid API Key.")
-        raise HTTPException(status_code=401, detail="AI authentication failed. Check your API key.")
-    
+        # Disable Groq for subsequent requests and fall back to free mode.
+        groq_client = None
+        raise HTTPException(
+            status_code=401, detail="AI authentication failed. Check your API key."
+        )
+
     except (APIStatusError, APIError) as e:
         db.rollback()
         logger.error(f"Groq API Error: {e}")
@@ -279,7 +344,11 @@ async def chat_with_agent(
     except Exception as e:
         db.rollback()
         logger.error(f"Chat error: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="An internal error occurred while processing your request.")
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred while processing your request.",
+        )
+
 
 # ---------------------------------------------------------------------------
 # Static Files & Fallback
