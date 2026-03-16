@@ -1,80 +1,37 @@
-# Ouwibo Agent
+<div align="center">
+  <h1>🤖 Ouwibo Agent</h1>
+  <p><strong>Your Intelligent, Extensible AI Assistant built for the Modern Web & Web3.</strong></p>
+  
+  [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+</div>
 
-Your intelligent AI assistant — search the web, answer questions, and solve problems instantly.
+<br>
 
----
-
-## What it does
-
-- **AI Chat** — Ask anything. Ouwibo thinks step by step and gives you accurate answers.
-- **Global Search** — A clean, fast search experience to find anything on the web.
-- **Multilingual** — Supports 8 languages: Indonesian, English, Arabic, Chinese, Japanese, French, German, and Spanish.
-- **Session Memory** — Conversations are remembered across page reloads.
+Ouwibo Agent is a highly capable AI assistant powering a premium web interface. It goes beyond simple chat by integrating **real-time tools**, **Web3 integrations (ENS & Wallets)**, and **Agent Commerce Protocol (ACP)** capabilities, allowing it to act as an autonomous node that can communicate with other specialized agents.
 
 ---
 
-## Getting Started
+## ✨ Key Features
 
-### 1. Install dependencies
+### 🧠 Intelligent Conversational Agent
+- **Powered by LLMs:** Dynamic step-by-step reasoning via Groq/OpenAI.
+- **Session Memory:** Remembers conversations across reloads.
+- **Multilingual UI:** Natively supports 8 languages (English, Indonesian, Arabic, Chinese, Japanese, French, German, Spanish).
 
-```bash
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
+### 🛠️ Built-in Tools & Web3 Capabilities
+- **Web3 Wallet & ENS:** Check multi-chain balances and resolve `.eth` names effortlessly.
+- **Crypto Market Data:** Live token prices, tops, and trends (powered by CoinGecko).
+- **Global Search & Web Reading:** DuckDuckGo/Google integration and URL reading to fetch real-time knowledge.
+- **Utility Tools:** Currency conversion, date/time, weather, dictionary, and translation.
 
-### 2. Configure
+### 🔌 Extensible Skills Architecture
+Ouwibo automatically parses markdown-based skill files from the `skills/` directory. Drop a new `SKILL.md` into a folder, and the agent instantly learns its capabilities and instructions.
 
-```bash
-cp .env.example .env
-```
-
-Open `.env` and fill in your API key:
-
-```
-API_KEY=your_api_key_here
-```
-
-### 3. Run
-
-```bash
-uvicorn api:app --reload
-```
-
-Open your browser at **http://localhost:8000**
+### 🌐 Agent Commerce Protocol (ACP) Ready
+Ouwibo can act as a **Seller Node** on the Virtuals Protocol ACP network. It has ACP configured as its preferred routing skill, allowing it to delegate specialized tasks to other agents in the open network.
 
 ---
 
-## Pages
+## 📄 License
 
-| URL | Description |
-|-----|-------------|
-| `/` | AI Chat |
-| `/search.html` | Global Search |
-| `/skills.html` | Skills (SKILL.md) |
-| `/docs` | API Reference |
-
----
-
-## Skills (SKILL.md)
-
-You can create agent "skills" as Markdown files under:
-
-- `skills/<skill_id>/SKILL.md`
-
-The app will load them automatically and you can select a skill from the chat toolbar.
-
-### Publish to ClawHub (optional)
-
-If you want to publish your skills to ClawHub, use the scripts in `scripts/`:
-
-```bash
-export CLAWHUB_TOKEN="(your ClawHub token)"
-./scripts/clawhub_publish_all.sh 0.1.0
-```
-
-This publishes each folder under `skills/` with slug `ouwibo-<skill_id>`.
-
-## License
-
-MIT
+This project is licensed under the [MIT License](LICENSE).
