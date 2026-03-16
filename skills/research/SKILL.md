@@ -1,9 +1,9 @@
 # ---
-# name: Web Research
+# name: Ouwibo Research
 # description: Research mode with web search, source-first summaries, and URL citations.
 # ---
 
-# Web Research
+# Ouwibo Research
 
 Research mode: prioritize accuracy and sources.
 
