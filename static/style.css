@@ -269,6 +269,14 @@ svg   { display: block; width: 16px; height: 16px;
   flex-direction: column;
 }
 
+.sidebar-shell {
+  /* Make body + footer layout stable: footer sticks to bottom via margin-top:auto. */
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 .sidebar-shell__header {
   display: flex;
   align-items: center;
@@ -321,26 +329,29 @@ svg   { display: block; width: 16px; height: 16px;
   border-top: 1px solid var(--sidebar-footer-border); 
   padding: 12px 8px;
   margin-top: auto;
+  flex-shrink: 0;
 }
 
 .sidebar-footer-content {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  align-items: flex-start;
 }
 
 .social-icons { 
   display: flex; 
   gap: 4px; 
   padding: 4px; 
+  justify-content: flex-start;
 }
 .social-btn {
-  flex: 1; 
-  height: 32px; 
-  display: flex; 
-  align-items: center; 
-  justify-content: flex-start;
-  padding-left: 8px;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 6px; 
   color: var(--text-3); 
   transition: background var(--transition), color var(--transition);
@@ -378,13 +389,6 @@ svg   { display: block; width: 16px; height: 16px;
 /* ============================================================
    Components
    ============================================================ */
-.social-icons { display: flex; gap: 4px; padding: 4px; margin-bottom: 4px; }
-.social-btn {
-  flex: 1; height: 32px; display: flex; align-items: center; justify-content: center;
-  border-radius: 6px; color: var(--text-3); transition: background var(--transition), color var(--transition);
-}
-.social-btn:hover { background: var(--bg-3); color: var(--text-1); }
-
 .topbar-search {
   display: flex; align-items: center; gap: 8px; padding: 6px 12px;
   background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px;
