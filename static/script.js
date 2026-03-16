@@ -715,7 +715,45 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isAgent) {
       const bubble = document.createElement('div');
       bubble.className = 'message__bubble chat-prose';
-      bubble.innerHTML = renderMarkdown(text);
+      
+      // Render markdown
+      let rendered = renderMarkdown(text);
+      
+      // Transform specific wallet links into Card Buttons
+      // Pattern: <li>[Name] URL</li>
+      const linkPatterns = [
+        { name: 'DeBank',    icon: '<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>', class: 'debank' },
+        { name: 'Arkham',    icon: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>', class: 'arkham' },
+        { name: 'Blockscan', icon: '<rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>', class: 'blockscan' }
+      ];
+
+      let hasCards = false;
+      let cardHtml = '<div class="link-card-group">';
+      
+      linkPatterns.forEach(p => {
+        const regex = new RegExp(`<li>\\[${p.name}\\]\\s*(https?:\\/\\/[^<]+)<\\/li>`, 'g');
+        if (regex.test(rendered)) {
+          hasCards = true;
+          rendered = rendered.replace(regex, (match, url) => {
+            cardHtml += `
+              <a href="${url.trim()}" target="_blank" rel="noopener noreferrer" class="link-card link-card--${p.class}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">${p.icon}</svg>
+                ${p.name}
+              </a>`;
+            return ''; // Remove from original list
+          });
+        }
+      });
+      
+      cardHtml += '</div>';
+      
+      // If we found any cards, wrap the remaining list (if empty) or clean up
+      if (hasCards) {
+        rendered = rendered.replace(/<ul>\s*<\/ul>/g, '');
+        rendered += cardHtml;
+      }
+
+      bubble.innerHTML = rendered;
       bubble.querySelectorAll('a').forEach(a => { a.target = '_blank'; a.rel = 'noopener noreferrer'; });
 
       const copyBtn = document.createElement('button');

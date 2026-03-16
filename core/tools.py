@@ -1105,9 +1105,9 @@ class Wallet(Tool):
 
         lines.append("")
         lines.append("🔗 **Quick Links:**")
-        lines.append(f"- [DeBank Profile](https://debank.com/profile/{addr})")
-        lines.append(f"- [Arkham Explorer](https://arkhamintelligence.com/explorer/address/{addr})")
-        lines.append(f"- [Blockscan Search](https://blockscan.com/address/{addr})")
+        lines.append(f"- [DeBank] https://debank.com/profile/{addr}")
+        lines.append(f"- [Arkham] https://arkhamintelligence.com/explorer/address/{addr}")
+        lines.append(f"- [Blockscan] https://blockscan.com/address/{addr}")
 
         if errors:
             lines.append("")

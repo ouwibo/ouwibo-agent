@@ -1363,7 +1363,38 @@ a.nav-item[href="#"] { display: none !important; }
 .fade-in { animation: fade-in 0.2s ease; }
 @keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-/* Utility */
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
-.mono { font-family: 'Fira Code','JetBrains Mono',monospace; font-size: 12px; }
-.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Link card buttons (Wallet Scan) */
+.link-card-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.link-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #4a0404; /* Dark Red / Deep Burgundy */
+  color: #fff !important;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.link-card:hover {
+  background: #600202;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  color: #fff !important;
+}
+.link-card svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.5;
+}
+.link-card--debank { background: #5c051a; }
+.link-card--arkham { background: #4a0404; }
+.link-card--blockscan { background: #3d0303; }
