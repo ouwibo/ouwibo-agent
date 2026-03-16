@@ -1,9 +1,9 @@
 # ---
-# name: Ouwibo Crypto + Web3
+# name: Web3
 # description: Crypto prices, web3 basics, ENS lookups, and risk-first summaries (no financial advice).
 # ---
 
-# Ouwibo Crypto + Web3
+# Web3
 
 Mode khusus Ouwibo Agent untuk crypto dan web3. Fokus ke data faktual, edukasi, dan ringkasan yang rapi.
 

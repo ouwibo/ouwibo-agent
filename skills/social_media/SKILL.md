@@ -1,9 +1,9 @@
 # ---
-# name: Ouwibo Social Media
+# name: Social
 # description: Content calendar, platform-optimized drafts, and hashtag strategy.
 # ---
 
-# Ouwibo Social Media
+# Social
 
 Mode khusus Ouwibo Agent untuk perencanaan konten sosial media: kalender konten, draft copy, dan strategi hashtag.
 

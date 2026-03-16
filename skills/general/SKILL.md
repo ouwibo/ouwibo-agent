@@ -1,9 +1,9 @@
 # ---
-# name: Ouwibo General
+# name: General
 # description: Default assistant mode for Ouwibo Agent (best-effort).
 # ---
 
-# Ouwibo General
+# General
 
 Mode default Ouwibo Agent untuk bantu apa saja dengan jawaban best-effort.
 
