@@ -325,6 +325,9 @@ svg   { display: block; width: 16px; height: 16px;
 .nav-item:hover { background: var(--nav-item-hover-bg); color: var(--text-1); }
 .nav-item--active { background: var(--nav-item-active-bg) !important; color: var(--nav-item-active-color) !important; }
 
+/* Hide "Soon" badges without removing markup (you can re-enable later). */
+.nav-item__badge { display: none !important; }
+
 .sidebar-shell__footer { 
   border-top: 1px solid var(--sidebar-footer-border); 
   padding: 12px 8px;
