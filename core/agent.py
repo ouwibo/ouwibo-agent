@@ -13,7 +13,9 @@ from .tools import (
     ENSResolve,
     NewsSearch,
     CryptoMarket,
+    SocialSearch,
     URLReader,
+    Wallet,
     Weather,
     WebSearch,
     Wikipedia,
@@ -38,6 +40,8 @@ class Agent:
             "read_url": URLReader(),
             "crypto": CryptoMarket(),
             "ens": ENSResolve(),
+            "wallet": Wallet(),
+            "social_search": SocialSearch(),
         }
 
     _UNCERTAIN_RE = re.compile(

@@ -173,6 +173,11 @@ class ChatRequest(BaseModel):
     skill: str | None = Field(default=None, min_length=1, max_length=64)
 
 
+class ToolExecuteRequest(BaseModel):
+    tool: str = Field(..., min_length=1, max_length=64)
+    arg: str = Field(default="", max_length=4000)
+
+
 # ---------------------------------------------------------------------------
 # Endpoints — System & Search
 # ---------------------------------------------------------------------------
@@ -225,6 +230,36 @@ async def list_tools(_: Any = Depends(require_auth)) -> dict[str, Any]:
         "count": len(ALL_TOOLS),
         "tools": [{"name": c.name, "description": c.description} for c in ALL_TOOLS],
     }
+
+
+@app.post("/tools/execute", tags=["Tools"])
+@limiter.limit("30/minute")
+async def execute_tool(
+    request: Request,
+    body: ToolExecuteRequest,
+    _: Any = Depends(require_auth),
+) -> dict[str, Any]:
+    """Execute a tool directly (used by the Tools UI 'Run' button)."""
+    from core.tools import ALL_TOOLS
+
+    tool_name = (body.tool or "").strip().lower()
+    if not tool_name:
+        raise HTTPException(status_code=400, detail="Missing tool name.")
+
+    cls_map = {c.name: c for c in ALL_TOOLS if getattr(c, "name", None)}
+    tool_cls = cls_map.get(tool_name)
+    if tool_cls is None:
+        raise HTTPException(status_code=404, detail="Tool not found.")
+
+    try:
+        tool = tool_cls()
+        out = tool.execute(body.arg or "")
+        return {"tool": tool_name, "output": out}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Tool execute error ({tool_name}): {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Tool execution failed.")
 
 
 @app.get("/skills", tags=["Skills"])

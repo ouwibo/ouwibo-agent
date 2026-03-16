@@ -1001,6 +1001,128 @@ class ENSResolve(Tool):
             logger.error(f"ENSResolve error: {e}", exc_info=True)
             return f"ENSResolve error: {e}"
 
+
+# ---------------------------------------------------------------------------
+# Wallet — read-only helpers (no private keys)
+# ---------------------------------------------------------------------------
+class Wallet(Tool):
+    name = "wallet"
+    description = "Wallet utilities (read-only). Supports: balance <address_or_ens> [eth|base]."
+    example = "wallet[balance vitalik.eth eth]"
+
+    _RPC = {
+        "eth": "https://cloudflare-eth.com",
+        "ethereum": "https://cloudflare-eth.com",
+        "base": "https://mainnet.base.org",
+    }
+
+    def _post_json(self, url: str, payload: dict, timeout: int = 12) -> Any:
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            url,
+            data=data,
+            headers={"Content-Type": "application/json", "User-Agent": "OuwiboAgent/1.0"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+
+    def _resolve_address(self, s: str) -> str:
+        q = (s or "").strip()
+        if not q:
+            raise ValueError("Empty address/ENS.")
+        if q.lower().endswith(".eth"):
+            data = ENSResolve().execute(q)
+            # Parse "Address: 0x..."
+            for line in data.splitlines():
+                if line.lower().startswith("address:"):
+                    return line.split(":", 1)[1].strip()
+            raise ValueError("Could not resolve ENS name.")
+        return q
+
+    def execute(self, arg: str) -> str:
+        raw = (arg or "").strip()
+        if not raw:
+            return "Error: Provide a command. Example: wallet[balance vitalik.eth eth]"
+
+        parts = raw.split()
+        sub = parts[0].lower()
+        if sub != "balance":
+            return "Error: Unsupported wallet command. Use: balance <address_or_ens> [eth|base]"
+        if len(parts) < 2:
+            return "Error: Missing address/ENS. Example: wallet[balance vitalik.eth eth]"
+
+        chain = parts[2].lower() if len(parts) >= 3 else "eth"
+        rpc = self._RPC.get(chain)
+        if not rpc:
+            return "Error: Unsupported chain. Use: eth or base"
+
+        try:
+            addr = self._resolve_address(parts[1])
+            payload = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "eth_getBalance",
+                "params": [addr, "latest"],
+            }
+            resp = self._post_json(rpc, payload)
+            bal_hex = (resp.get("result") or "").strip()
+            if not bal_hex.startswith("0x"):
+                return f"Wallet error: unexpected RPC response."
+            wei = int(bal_hex, 16)
+            eth = wei / 1e18
+            return f"Address: {addr}\nChain: {chain}\nBalance: {eth:.8f} ETH"
+        except Exception as e:
+            logger.error(f"Wallet error: {e}", exc_info=True)
+            return f"Wallet error: {e}"
+
+
+# ---------------------------------------------------------------------------
+# Social Search — targeted web search for social platforms
+# ---------------------------------------------------------------------------
+class SocialSearch(Tool):
+    name = "social_search"
+    description = "Search across social platforms (X/Twitter, Instagram, TikTok, LinkedIn) using web search."
+    example = "social_search[ouwibo agent]"
+
+    def execute(self, arg: str) -> str:
+        q = (arg or "").strip()
+        if not q:
+            return "Error: Provide a query. Example: social_search[viral hooks for coffee shop]"
+
+        sites = [
+            "x.com",
+            "twitter.com",
+            "instagram.com",
+            "tiktok.com",
+            "linkedin.com",
+            "facebook.com",
+            "reddit.com",
+            "youtube.com",
+        ]
+        site_query = " OR ".join([f"site:{s}" for s in sites])
+        query = f"{q} ({site_query})"
+
+        try:
+            ws = WebSearch()
+            results = []
+            if hasattr(ws, "search_raw"):
+                results = ws.search_raw(query, max_results=8, kind="text", provider="auto")
+            if not results:
+                # Fallback to human-readable output
+                return ws.execute(query)
+
+            out = ["**Social search results:**"]
+            for r in results[:8]:
+                title = (r.get("title") or "").strip()
+                url = (r.get("url") or "").strip()
+                domain = (r.get("domain") or "").strip()
+                if url:
+                    out.append(f"- {title or domain}\n  {url}")
+            return "\n".join(out)
+        except Exception as e:
+            logger.error(f"SocialSearch error: {e}", exc_info=True)
+            return f"SocialSearch error: {e}"
 # ---------------------------------------------------------------------------
 # CodeSearch — Find scripts, code snippets, and programming tutorials
 # ---------------------------------------------------------------------------
@@ -1051,6 +1173,8 @@ ALL_TOOLS: list[type[Tool]] = [
     StockMarket,
     CryptoMarket,
     ENSResolve,
+    Wallet,
+    SocialSearch,
     CodeSearch,
     PhindSearch,
     URLReader,

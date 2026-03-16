@@ -48,6 +48,8 @@ COMMAND REFERENCE:
 - search[query]              → Web search (use for real-time data like prices).
 - crypto[query]              → Crypto market data (CoinGecko, no API key).
 - ens[name_or_address]       → Resolve ENS name/address (public API).
+- wallet[command]            → Wallet utilities (read-only), e.g. balance.
+- social_search[query]       → Search across social platforms via web search.
 - weather[city]              → Current weather.
 - news[topic]                → Latest news.
 - wikipedia[topic]           → Wikipedia summary.

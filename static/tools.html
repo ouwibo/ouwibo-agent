@@ -681,8 +681,8 @@
                         </div>
                     </div>
 
-                    <!-- Stocks & Crypto -->
-                    <div class="tool-card">
+	                    <!-- Stocks & Crypto -->
+	                    <div class="tool-card">
                         <div class="absolute top-0 right-0 w-24 h-24 rounded-full
                                     bg-emerald-600/5 blur-2xl pointer-events-none"></div>
                         <div class="flex items-start justify-between mb-4">
@@ -706,11 +706,105 @@
                             <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
                             <span class="tag">stocks[BTC-USD]</span>
                         </div>
-                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
-                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Finance</span>
-                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Crypto</span>
-                        </div>
-                    </div>
+	                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Finance</span>
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Crypto</span>
+	                        </div>
+	                    </div>
+
+	                    <!-- Crypto Market (CoinGecko) -->
+	                    <div class="tool-card">
+	                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+	                                    bg-rose-600/5 blur-2xl pointer-events-none"></div>
+	                        <div class="flex items-start justify-between mb-4">
+	                            <div class="w-10 h-10 rounded-xl bg-rose-600/10 border border-rose-600/20
+	                                        flex items-center justify-center shrink-0">
+	                                <i class="fa-solid fa-coins text-rose-400 text-sm"></i>
+	                            </div>
+	                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+	                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+	                                         border border-emerald-500/20 tools-chip tools-chip--active">
+	                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+	                                Active
+	                            </span>
+	                        </div>
+	                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">Crypto Market</h3>
+	                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+	                            Quick crypto prices, top market cap list, and trending coins using CoinGecko.
+	                            No API key required.
+	                        </p>
+	                        <div class="space-y-2">
+	                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+	                            <span class="tag">crypto[btc usd]</span>
+	                        </div>
+	                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Crypto</span>
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">CoinGecko</span>
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">Ready</span>
+	                        </div>
+	                    </div>
+
+	                    <!-- ENS + Wallet -->
+	                    <div class="tool-card">
+	                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+	                                    bg-violet-600/5 blur-2xl pointer-events-none"></div>
+	                        <div class="flex items-start justify-between mb-4">
+	                            <div class="w-10 h-10 rounded-xl bg-violet-600/10 border border-violet-600/20
+	                                        flex items-center justify-center shrink-0">
+	                                <i class="fa-solid fa-wallet text-violet-400 text-sm"></i>
+	                            </div>
+	                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+	                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+	                                         border border-emerald-500/20 tools-chip tools-chip--active">
+	                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+	                                Active
+	                            </span>
+	                        </div>
+	                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">ENS + Wallet</h3>
+	                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+	                            Resolve ENS names and check wallet balances (read-only). No private keys.
+	                        </p>
+	                        <div class="space-y-2">
+	                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+	                            <span class="tag">wallet[balance vitalik.eth eth]</span>
+	                        </div>
+	                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Web3</span>
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">ENS</span>
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">Ready</span>
+	                        </div>
+	                    </div>
+
+	                    <!-- Social Search -->
+	                    <div class="tool-card">
+	                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+	                                    bg-sky-600/5 blur-2xl pointer-events-none"></div>
+	                        <div class="flex items-start justify-between mb-4">
+	                            <div class="w-10 h-10 rounded-xl bg-sky-600/10 border border-sky-600/20
+	                                        flex items-center justify-center shrink-0">
+	                                <i class="fa-solid fa-hashtag text-sky-400 text-sm"></i>
+	                            </div>
+	                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+	                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+	                                         border border-emerald-500/20 tools-chip tools-chip--active">
+	                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+	                                Active
+	                            </span>
+	                        </div>
+	                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">Social Search</h3>
+	                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+	                            Search across X/Twitter, Instagram, TikTok, LinkedIn, Reddit, and YouTube.
+	                        </p>
+	                        <div class="space-y-2">
+	                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+	                            <span class="tag">social_search[coffee shop content ideas]</span>
+	                        </div>
+	                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Search</span>
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Social</span>
+	                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip tools-chip--keyless">Ready</span>
+	                        </div>
+	                    </div>
 
                 </div>
                 <!-- end tools-grid -->
@@ -751,11 +845,35 @@
 
   </div>
 
-  <!-- ================================================================
-       AUTH MODAL
-  ================================================================ -->
-  <div class="auth-overlay auth-overlay--hidden" id="auth-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
-    <div class="auth-modal">
+	  <!-- ================================================================
+	       AUTH MODAL
+	  ================================================================ -->
+	  <!-- Tool runner modal -->
+	  <div class="tool-run-overlay tool-run-overlay--hidden" id="tool-run-overlay" role="dialog" aria-modal="true" aria-labelledby="tool-run-title">
+	    <div class="tool-run-modal">
+	      <div class="tool-run-head">
+	        <div>
+	          <div class="tool-run-title" id="tool-run-title">Run tool</div>
+	          <div class="tool-run-desc" id="tool-run-desc"></div>
+	        </div>
+	        <button type="button" class="tool-run-close" id="tool-run-close" aria-label="Close">
+	          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+	        </button>
+	      </div>
+	      <div class="tool-run-body">
+	        <textarea id="tool-run-input" class="tool-run-field" rows="2" placeholder="Enter tool argument..."></textarea>
+	        <div class="tool-run-actions">
+	          <button type="button" class="tool-run-secondary" id="tool-run-copy">Copy</button>
+	          <button type="button" class="tool-run-primary" id="tool-run-submit">Run</button>
+	        </div>
+	        <div class="tool-run-error" id="tool-run-error" role="alert"></div>
+	        <pre class="tool-run-output" id="tool-run-output"></pre>
+	      </div>
+	    </div>
+	  </div>
+
+	  <div class="auth-overlay auth-overlay--hidden" id="auth-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+	    <div class="auth-modal">
 
       <div class="auth-modal__header">
         <div class="auth-modal__icon">
@@ -821,5 +939,6 @@
 
   <script src="i18n.js"></script>
   <script src="script.js"></script>
+  <script src="tools_run.js"></script>
 </body>
 </html>
