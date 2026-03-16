@@ -170,7 +170,18 @@ document.addEventListener('DOMContentLoaded', () => {
       _authEnabled = healthData.auth === true;
       aiClientStatus = healthData.ai_client || 'ready';
     } catch (_) {
+      // If /health fails, don't pretend keys are "missing" — show ERROR in tools UI.
       _authEnabled = false;
+      healthData = {
+        auth: false,
+        ai_client: 'error',
+        config: {
+          ai_key_configured: false,
+          access_token_configured: false,
+          search_provider: 'auto',
+          missing: [],
+        },
+      };
     }
 
     // Update tools page config status (if present on this page).
@@ -188,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (statAiKey) {
         // If no key but free mode works, show it as FREE (not "missing").
-        statAiKey.textContent = aiSet ? 'SET' : (aiClient === 'free' ? 'FREE' : 'MISSING');
+        statAiKey.textContent = aiSet ? 'SET' : (aiClient === 'free' ? 'FREE' : (aiClient === 'error' ? 'ERROR' : 'MISSING'));
         statAiKey.classList.toggle('text-emerald-400', aiSet);
         statAiKey.classList.toggle('text-accent', !aiSet);
       }
@@ -221,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
       addRow(
         'AI API Key',
         'API_KEY or GROQ_API_KEY',
-        aiSet ? 'SET' : (aiClient === 'free' ? 'FREE' : 'MISSING'),
+        aiSet ? 'SET' : (aiClient === 'free' ? 'FREE' : (aiClient === 'error' ? 'ERROR' : 'MISSING')),
         aiSet ? 'tools-chip tools-chip--active' : 'tools-chip tools-chip--keyless'
       );
       addRow(

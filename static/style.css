@@ -446,6 +446,13 @@ svg   { display: block; width: 16px; height: 16px;
 
   .topbar-theme-mode { padding: 1px; }
   .topbar-theme-mode__btn { width: 26px; height: 26px; }
+
+  /* When topbar wraps to 2 rows, keep sidebar header height visually aligned. */
+  .sidebar-shell__header {
+    height: auto;
+    min-height: var(--topbar-h);
+    padding: 8px 12px;
+  }
 }
 
 /* Chat & Others... (Truncated for brevity, keep existing chat styles) */
