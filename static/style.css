@@ -140,10 +140,13 @@ svg   { display: block; width: 16px; height: 16px;
     --text-2: #a1a1aa;
     --text-3: #52525b;
     --text-4: rgba(82,82,91,0.45);
+
     --surface-1: #111113;
     --surface-2: #18181b;
     --surface-3: #27272a;
     --accent-subtle: rgba(244,63,94,0.12);
+
+    --card-shadow: 0 4px 12px rgba(0,0,0,0.3);
     --chat-user-bg:           var(--accent);
     --chat-user-text:         #ffffff;
     --chat-assistant-bg:      var(--bg-2);
