@@ -839,6 +839,169 @@ class StockMarket(Tool):
 
 
 # ---------------------------------------------------------------------------
+# Crypto — CoinGecko (free, no API key)
+# ---------------------------------------------------------------------------
+class CryptoMarket(Tool):
+    name = "crypto"
+    description = "Get crypto market data via CoinGecko (no API key). Supports: price, top N, trending."
+    example = "crypto[btc usd] or crypto[top 10 usd] or crypto[trending]"
+
+    _BASE = "https://api.coingecko.com/api/v3"
+
+    def _get_json(self, url: str, timeout: int = 12) -> Any:
+        req = urllib.request.Request(url, headers={"User-Agent": "OuwiboAgent/1.0"})
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+
+    def _resolve_coin_id(self, query: str) -> tuple[str, str]:
+        """Return (coin_id, display_name)."""
+        q = (query or "").strip()
+        if not q:
+            raise ValueError("Empty coin query.")
+        url = f"{self._BASE}/search?query={urllib.parse.quote(q)}"
+        data = self._get_json(url)
+        coins = data.get("coins") or []
+        if not coins:
+            raise ValueError(f"No coin found for query: {q}")
+
+        # Prefer exact symbol match if possible.
+        sym = q.lower().replace("-", "").strip()
+        best = None
+        for c in coins[:10]:
+            csym = (c.get("symbol") or "").lower().replace("-", "")
+            if csym == sym and csym:
+                best = c
+                break
+        if best is None:
+            best = coins[0]
+
+        cid = (best.get("id") or "").strip()
+        name = (best.get("name") or cid).strip()
+        if not cid:
+            raise ValueError("CoinGecko search returned an invalid coin id.")
+        return cid, name
+
+    def execute(self, arg: str) -> str:
+        raw = (arg or "").strip()
+        if not raw:
+            return "Error: Provide a coin symbol/name. Example: crypto[btc usd] or crypto[top 10 usd] or crypto[trending]"
+
+        parts = raw.split()
+        cmd = parts[0].lower()
+
+        try:
+            if cmd == "trending":
+                data = self._get_json(f"{self._BASE}/search/trending")
+                coins = data.get("coins") or []
+                if not coins:
+                    return "No trending data found."
+                out = ["**Trending (CoinGecko):**"]
+                for i, wrap in enumerate(coins[:10], 1):
+                    item = wrap.get("item") or {}
+                    name = item.get("name") or "?"
+                    sym = item.get("symbol") or "?"
+                    score = item.get("score")
+                    out.append(f"{i}. {name} ({sym})" + (f" — score {score}" if score is not None else ""))
+                return "\n".join(out)
+
+            if cmd == "top":
+                n = 10
+                vs = "usd"
+                if len(parts) >= 2 and parts[1].isdigit():
+                    n = max(1, min(50, int(parts[1])))
+                if len(parts) >= 3:
+                    vs = parts[2].lower()
+                url = (
+                    f"{self._BASE}/coins/markets?"
+                    f"vs_currency={urllib.parse.quote(vs)}&order=market_cap_desc&per_page={n}&page=1&"
+                    f"sparkline=false&price_change_percentage=24h"
+                )
+                data = self._get_json(url)
+                if not isinstance(data, list) or not data:
+                    return "No market data returned."
+                out = [f"**Top {n} by market cap (vs {vs.upper()}):**"]
+                for i, c in enumerate(data[:n], 1):
+                    name = c.get("name") or "?"
+                    sym = (c.get("symbol") or "?").upper()
+                    price = c.get("current_price")
+                    chg = c.get("price_change_percentage_24h")
+                    out.append(f"{i}. {name} ({sym}) — {price} {vs.upper()}" + (f" ({chg:+.2f}%)" if isinstance(chg, (int, float)) else ""))
+                return "\n".join(out)
+
+            # Default: crypto[<coin> [vs]]
+            coin_query = parts[0]
+            vs = parts[1].lower() if len(parts) >= 2 else "usd"
+            cid, name = self._resolve_coin_id(coin_query)
+            url = (
+                f"{self._BASE}/simple/price?"
+                f"ids={urllib.parse.quote(cid)}&vs_currencies={urllib.parse.quote(vs)}&"
+                f"include_24hr_change=true&include_last_updated_at=true"
+            )
+            data = self._get_json(url)
+            row = data.get(cid) or {}
+            price = row.get(vs)
+            chg = row.get(f"{vs}_24h_change")
+            updated = row.get("last_updated_at")
+            if price is None:
+                return f"No price found for {name} (id={cid})."
+
+            line = f"**{name}** — {price} {vs.upper()}"
+            if isinstance(chg, (int, float)):
+                line += f" ({chg:+.2f}% / 24h)"
+            if isinstance(updated, (int, float)):
+                try:
+                    ts = datetime.fromtimestamp(int(updated), tz=timezone.utc).isoformat()
+                    line += f"\nUpdated: {ts}"
+                except Exception:
+                    pass
+            return line
+
+        except Exception as e:
+            logger.error(f"CryptoMarket error: {e}", exc_info=True)
+            return f"CryptoMarket error: {e}"
+
+
+# ---------------------------------------------------------------------------
+# ENS — Resolve ENS name or address (free, no API key)
+# ---------------------------------------------------------------------------
+class ENSResolve(Tool):
+    name = "ens"
+    description = "Resolve an ENS name to address (or reverse by address) via a public API."
+    example = "ens[vitalik.eth] or ens[0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045]"
+
+    _API = "https://api.ensideas.com/ens/resolve/"
+
+    def execute(self, arg: str) -> str:
+        q = (arg or "").strip()
+        if not q:
+            return "Error: Provide an ENS name or address. Example: ens[vitalik.eth]"
+        try:
+            url = self._API + urllib.parse.quote(q)
+            req = urllib.request.Request(url, headers={"User-Agent": "OuwiboAgent/1.0"})
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            name = (data.get("displayName") or data.get("name") or "").strip()
+            addr = (data.get("address") or "").strip()
+            avatar = (data.get("avatar") or "").strip()
+            if not addr and not name:
+                return "No ENS data found."
+            out = []
+            if name:
+                out.append(f"Name: {name}")
+            if addr:
+                out.append(f"Address: {addr}")
+            if avatar:
+                out.append(f"Avatar: {avatar}")
+            return "\n".join(out)
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                return "ENS not found."
+            return f"ENS error: HTTP {e.code}"
+        except Exception as e:
+            logger.error(f"ENSResolve error: {e}", exc_info=True)
+            return f"ENSResolve error: {e}"
+
+# ---------------------------------------------------------------------------
 # CodeSearch — Find scripts, code snippets, and programming tutorials
 # ---------------------------------------------------------------------------
 class CodeSearch(Tool):
@@ -886,6 +1049,8 @@ ALL_TOOLS: list[type[Tool]] = [
     Translator,
     Dictionary,
     StockMarket,
+    CryptoMarket,
+    ENSResolve,
     CodeSearch,
     PhindSearch,
     URLReader,

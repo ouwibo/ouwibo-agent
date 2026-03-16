@@ -10,7 +10,9 @@ from .tools import (
     Calculator,
     CurrencyConverter,
     DateTime,
+    ENSResolve,
     NewsSearch,
+    CryptoMarket,
     URLReader,
     Weather,
     WebSearch,
@@ -34,6 +36,8 @@ class Agent:
             "news": NewsSearch(),
             "currency": CurrencyConverter(),
             "read_url": URLReader(),
+            "crypto": CryptoMarket(),
+            "ens": ENSResolve(),
         }
 
     _UNCERTAIN_RE = re.compile(

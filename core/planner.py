@@ -46,6 +46,8 @@ COMMAND REFERENCE:
 - think[reasoning]           → Plan your next move.
 - calculate[expression]      → Math evaluation.
 - search[query]              → Web search (use for real-time data like prices).
+- crypto[query]              → Crypto market data (CoinGecko, no API key).
+- ens[name_or_address]       → Resolve ENS name/address (public API).
 - weather[city]              → Current weather.
 - news[topic]                → Latest news.
 - wikipedia[topic]           → Wikipedia summary.
