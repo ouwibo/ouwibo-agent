@@ -699,6 +699,20 @@ svg   { display: block; width: 16px; height: 16px;
   color: var(--text-1);
 }
 
+.search-page {
+  background: var(--bg);
+  color: var(--text-1);
+}
+
+/* Search page uses Tailwind zinc classes; map them to theme tokens for light mode readability. */
+.search-page .text-zinc-100 { color: var(--text-1) !important; }
+.search-page .text-zinc-400 { color: var(--text-2) !important; }
+.search-page .text-zinc-500 { color: var(--text-3) !important; }
+.search-page .text-zinc-600 { color: var(--text-3) !important; }
+
+/* Ensure highlighted query text stays readable in light mode. */
+.search-page mark.text-zinc-100 { color: var(--text-1) !important; }
+
 .tools-page .text-zinc-100 { color: var(--text-1) !important; }
 .tools-page .text-zinc-400 { color: var(--text-2) !important; }
 .tools-page .text-zinc-500 { color: var(--text-3) !important; }
