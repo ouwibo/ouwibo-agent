@@ -382,6 +382,31 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // ── Tools hash navigation (sidebar → tools page cards) ────────────────────
+  function highlightHashTarget() {
+    const hash = (window.location.hash || '').trim();
+    if (!hash) return;
+    const id = hash.replace(/^#/, '');
+    if (!id) return;
+
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    // Scroll inside the tools content area if present; otherwise let the browser handle it.
+    try { el.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (_) {}
+
+    el.classList.add('tool-card--target');
+    window.setTimeout(() => el.classList.remove('tool-card--target'), 1400);
+
+    // Make the corresponding sidebar link active.
+    const href = `/tools.html#${id}`;
+    document.querySelectorAll('a.nav-item[href^="/tools.html#"]').forEach(a => {
+      a.classList.toggle('nav-item--active', a.getAttribute('href') === href);
+    });
+  }
+
+  window.addEventListener('hashchange', highlightHashTarget);
+
   // ── Sidebar collapse / expand ──────────────────────────────────────────────
   const shell       = document.getElementById('shell');
   const sidebar     = document.getElementById('sidebar');
@@ -449,6 +474,9 @@ document.addEventListener('DOMContentLoaded', () => {
       shell.classList.remove('shell--nav-collapsed');
     }
   });
+
+  // Run after layout is stable.
+  window.setTimeout(highlightHashTarget, 0);
 
   // ── Expand / fullscreen ────────────────────────────────────────────────────
   const expandBtn = document.getElementById('expand-btn');

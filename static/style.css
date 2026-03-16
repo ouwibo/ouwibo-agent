@@ -328,6 +328,16 @@ svg   { display: block; width: 16px; height: 16px;
 /* Hide unconfigured sidebar items (href="#") without removing markup. */
 a.nav-item[href="#"] { display: none !important; }
 
+/* Small group label inside a nav section (used for Tools submenus). */
+.nav-subtitle {
+  padding: 10px 12px 4px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
 /* Hide whole sidebar sections that aren't used yet (keeps markup for later edits). */
 .sidebar .nav-section--control,
 .sidebar .nav-section--settings { display: none !important; }
@@ -886,6 +896,14 @@ a.nav-item[href="#"] { display: none !important; }
   flex: 1;
   min-height: 0;
   overflow: auto;
+}
+
+/* Subtle highlight when opening /tools.html#tool-... from sidebar */
+.tool-card--target {
+  outline: 2px solid rgba(244,63,94,0.55);
+  outline-offset: 2px;
+  box-shadow: 0 10px 28px rgba(244,63,94,0.16);
+  transition: outline-color var(--transition), box-shadow var(--transition);
 }
 
 @media (max-width: 900px) {

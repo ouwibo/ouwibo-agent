@@ -147,9 +147,42 @@
                 <span class="nav-section__chevron"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
               </button>
               <div class="nav-section__items">
-                <a href="/tools.html" class="nav-item nav-item--active" title="Tools">
-                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="m8 2 1.88 1.88M14.12 3.88 16 2M9 7.13v-1a3.003 3.003 0 1 1 6 0v1M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6M12 20v-9"/></svg></span>
-                  <span class="nav-item__text">Tools</span>
+                <div class="nav-subtitle">Web3</div>
+                <a href="/tools.html#tool-web3-wallet" class="nav-item" title="Wallet / ENS">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M21 7H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><path d="M16 15h2"/></svg></span>
+                  <span class="nav-item__text">Wallet</span>
+                </a>
+                <a href="/tools.html#tool-crypto-market" class="nav-item" title="Crypto Market">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4.03 3 9 3s9-1.34 9-3v-6"/></svg></span>
+                  <span class="nav-item__text">Market</span>
+                </a>
+
+                <div class="nav-subtitle">Research</div>
+                <a href="/tools.html#tool-web-search" class="nav-item" title="Web Search (DuckDuckGo)">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+                  <span class="nav-item__text">Search</span>
+                </a>
+                <a href="/tools.html#tool-google-search" class="nav-item" title="Google Search">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 12h7"/><path d="M12 5v14"/></svg></span>
+                  <span class="nav-item__text">Google</span>
+                </a>
+                <a href="/tools.html#tool-news" class="nav-item" title="News">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M4 6h16v14H4z"/><path d="M8 10h8"/><path d="M8 14h8"/><path d="M8 18h5"/></svg></span>
+                  <span class="nav-item__text">News</span>
+                </a>
+                <a href="/tools.html#tool-url-reader" class="nav-item" title="Read URL">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 1 0-7l1-1a5 5 0 0 1 7 7l-1 1"/><path d="M14 11a5 5 0 0 1 0 7l-1 1a5 5 0 0 1-7-7l1-1"/></svg></span>
+                  <span class="nav-item__text">Read URL</span>
+                </a>
+                <a href="/tools.html#tool-wikipedia" class="nav-item" title="Wikipedia">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M7 6l5 12 5-12"/><path d="M9 12h6"/></svg></span>
+                  <span class="nav-item__text">Wikipedia</span>
+                </a>
+
+                <div class="nav-subtitle">Social</div>
+                <a href="/tools.html#tool-social-search" class="nav-item" title="Social Search">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M5 9h14"/><path d="M5 15h14"/><path d="M9 4v16"/><path d="M15 4v16"/></svg></span>
+                  <span class="nav-item__text">Social Search</span>
                 </a>
               </div>
             </section>
@@ -270,8 +303,8 @@
 	                <!-- Tools grid -->
 		                <div id="tools-grid" class="grid grid-cols-1 gap-3">
 
-                    <!-- Phind Search -->
-                    <div class="tool-card">
+	                    <!-- Phind Search -->
+	                    <div class="tool-card" id="tool-phind-search">
                         <div class="absolute top-0 right-0 w-24 h-24 rounded-full
                                     bg-emerald-500/5 blur-2xl pointer-events-none"></div>
                         <div class="flex items-start justify-between mb-4">
@@ -301,8 +334,8 @@
                         </div>
                     </div>
 
-                    <!-- Code Search -->
-                    <div class="tool-card">
+	                    <!-- Code Search -->
+	                    <div class="tool-card" id="tool-code-search">
                         <div class="absolute top-0 right-0 w-24 h-24 rounded-full
                                     bg-orange-600/5 blur-2xl pointer-events-none"></div>
                         <div class="flex items-start justify-between mb-4">
@@ -332,8 +365,8 @@
                         </div>
                     </div>
 
-                    <!-- Google Search -->
-                    <div class="tool-card">
+	                    <!-- Google Search -->
+	                    <div class="tool-card" id="tool-google-search">
                         <div class="absolute top-0 right-0 w-24 h-24 rounded-full
                                     bg-blue-600/5 blur-2xl pointer-events-none"></div>
                         <div class="flex items-start justify-between mb-4">
@@ -396,8 +429,8 @@
                         </div>
                     </div>
 
-                    <!-- Web Search -->
-                    <div class="tool-card">
+	                    <!-- Web Search -->
+	                    <div class="tool-card" id="tool-web-search">
                         <div class="absolute top-0 right-0 w-24 h-24 rounded-full
                                     bg-purple-500/5 blur-2xl pointer-events-none"></div>
                         <div class="flex items-start justify-between mb-4">
@@ -460,8 +493,8 @@
                         </div>
                     </div>
 
-                    <!-- Wikipedia -->
-                    <div class="tool-card">
+	                    <!-- Wikipedia -->
+	                    <div class="tool-card" id="tool-wikipedia">
                         <div class="absolute top-0 right-0 w-24 h-24 rounded-full
                                     bg-orange-500/5 blur-2xl pointer-events-none"></div>
                         <div class="flex items-start justify-between mb-4">
@@ -492,8 +525,8 @@
                         </div>
                     </div>
 
-                    <!-- News -->
-                    <div class="tool-card">
+	                    <!-- News -->
+	                    <div class="tool-card" id="tool-news">
                         <div class="absolute top-0 right-0 w-24 h-24 rounded-full
                                     bg-red-500/5 blur-2xl pointer-events-none"></div>
                         <div class="flex items-start justify-between mb-4">
@@ -588,8 +621,8 @@
                         </div>
                     </div>
 
-                    <!-- URL Reader -->
-                    <div class="tool-card">
+	                    <!-- URL Reader -->
+	                    <div class="tool-card" id="tool-url-reader">
                         <div class="absolute top-0 right-0 w-24 h-24 rounded-full
                                     bg-yellow-500/5 blur-2xl pointer-events-none"></div>
                         <div class="flex items-start justify-between mb-4">
@@ -682,8 +715,8 @@
                         </div>
                     </div>
 
-	                    <!-- Stocks & Crypto -->
-	                    <div class="tool-card">
+		                    <!-- Stocks & Crypto -->
+		                    <div class="tool-card" id="tool-stocks-crypto">
                         <div class="absolute top-0 right-0 w-24 h-24 rounded-full
                                     bg-emerald-600/5 blur-2xl pointer-events-none"></div>
                         <div class="flex items-start justify-between mb-4">
@@ -713,8 +746,8 @@
 	                        </div>
 	                    </div>
 
-	                    <!-- Crypto Market (CoinGecko) -->
-	                    <div class="tool-card">
+		                    <!-- Crypto Market (CoinGecko) -->
+		                    <div class="tool-card" id="tool-crypto-market">
 	                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
 	                                    bg-rose-600/5 blur-2xl pointer-events-none"></div>
 	                        <div class="flex items-start justify-between mb-4">
@@ -745,8 +778,8 @@
 	                        </div>
 	                    </div>
 
-	                    <!-- ENS + Wallet -->
-	                    <div class="tool-card">
+		                    <!-- ENS + Wallet -->
+		                    <div class="tool-card" id="tool-web3-wallet">
 	                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
 	                                    bg-violet-600/5 blur-2xl pointer-events-none"></div>
 	                        <div class="flex items-start justify-between mb-4">
@@ -776,8 +809,8 @@
 	                        </div>
 	                    </div>
 
-	                    <!-- Social Search -->
-	                    <div class="tool-card">
+		                    <!-- Social Search -->
+		                    <div class="tool-card" id="tool-social-search">
 	                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
 	                                    bg-sky-600/5 blur-2xl pointer-events-none"></div>
 	                        <div class="flex items-start justify-between mb-4">
