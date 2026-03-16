@@ -33,7 +33,8 @@ Ini informasi umum, bukan nasihat finansial. Crypto sangat volatil dan kamu bisa
 - Top market cap: `crypto[top 10 usd]`
 - Trending: `crypto[trending]`
 - Resolve ENS: `ens[vitalik.eth]`
-- Cek saldo: `wallet[balance vitalik.eth eth]`
+- Cek saldo semua chain (paste saja): `wallet[vitalik.eth]`
+- Cek saldo chain spesifik: `wallet[balance vitalik.eth eth]`
 
 ## Workflow
 

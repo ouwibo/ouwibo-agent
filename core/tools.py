@@ -1007,15 +1007,21 @@ class ENSResolve(Tool):
 # ---------------------------------------------------------------------------
 class Wallet(Tool):
     name = "wallet"
-    description = "Wallet utilities (read-only). Supports: balance <address_or_ens> [eth|base]."
-    example = "wallet[balance vitalik.eth eth]"
+    description = "Wallet utilities (read-only). Paste an address/ENS for multi-chain native balances, or use: balance <address_or_ens> [chain]."
+    example = "wallet[vitalik.eth] or wallet[0xabc...] or wallet[balance vitalik.eth eth]"
 
-    # Public RPCs (no API key). Keep a small fallback list for reliability.
-    _RPCS = {
-        "eth": ["https://ethereum.publicnode.com", "https://cloudflare-eth.com"],
-        "ethereum": ["https://ethereum.publicnode.com", "https://cloudflare-eth.com"],
-        "base": ["https://mainnet.base.org"],
-    }
+    # Public RPCs (no API key). We intentionally keep this list small and reliable.
+    # Balances are native token only (ETH/BNB/MATIC/AVAX/xDAI).
+    _CHAINS: list[dict[str, Any]] = [
+        {"id": "eth", "label": "Ethereum", "symbol": "ETH", "rpcs": ["https://ethereum.publicnode.com", "https://cloudflare-eth.com"]},
+        {"id": "base", "label": "Base", "symbol": "ETH", "rpcs": ["https://mainnet.base.org"]},
+        {"id": "arb", "label": "Arbitrum", "symbol": "ETH", "rpcs": ["https://arb1.arbitrum.io/rpc"]},
+        {"id": "op", "label": "Optimism", "symbol": "ETH", "rpcs": ["https://mainnet.optimism.io"]},
+        {"id": "polygon", "label": "Polygon", "symbol": "MATIC", "rpcs": ["https://polygon-rpc.com"]},
+        {"id": "bsc", "label": "BSC", "symbol": "BNB", "rpcs": ["https://bsc-dataseed.binance.org"]},
+        {"id": "avax", "label": "Avalanche C-Chain", "symbol": "AVAX", "rpcs": ["https://api.avax.network/ext/bc/C/rpc"]},
+        {"id": "gnosis", "label": "Gnosis", "symbol": "xDAI", "rpcs": ["https://rpc.gnosischain.com"]},
+    ]
 
     def _post_json(self, url: str, payload: dict, timeout: int = 12) -> Any:
         data = json.dumps(payload).encode("utf-8")
@@ -1041,56 +1047,115 @@ class Wallet(Tool):
             raise ValueError("Could not resolve ENS name.")
         return q
 
+    def _get_native_balance_wei(self, rpc: str, addr: str) -> int:
+        payload = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "eth_getBalance",
+            "params": [addr, "latest"],
+        }
+        resp = self._post_json(rpc, payload)
+        if not isinstance(resp, dict):
+            raise RuntimeError("Invalid RPC response.")
+        if resp.get("error"):
+            raise RuntimeError(str(resp.get("error")))
+        bal_hex = resp.get("result")
+        if not isinstance(bal_hex, str) or not bal_hex.startswith("0x"):
+            raise RuntimeError("Missing balance result.")
+        return int(bal_hex, 16)
+
+    def _multi_chain_summary(self, addr: str) -> str:
+        # Query several chains in parallel (small pool) to keep UX snappy.
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        results: list[tuple[str, str, str, float]] = []  # (chain_id, label, symbol, amount)
+        errors: list[str] = []
+
+        def task(chain: dict[str, Any]) -> tuple[str, str, str, float]:
+            last_err = None
+            for rpc in chain["rpcs"]:
+                try:
+                    wei = self._get_native_balance_wei(rpc, addr)
+                    return (chain["id"], chain["label"], chain["symbol"], wei / 1e18)
+                except Exception as e:
+                    last_err = e
+                    continue
+            raise RuntimeError(f"{chain['id']}: {last_err}")
+
+        with ThreadPoolExecutor(max_workers=6) as ex:
+            futs = [ex.submit(task, c) for c in self._CHAINS]
+            for fut in as_completed(futs, timeout=18):
+                try:
+                    results.append(fut.result())
+                except Exception as e:
+                    errors.append(str(e))
+
+        # Keep only non-trivial balances.
+        nonzero = [(cid, label, sym, amt) for (cid, label, sym, amt) in results if isinstance(amt, (int, float)) and amt > 0.000001]
+        nonzero.sort(key=lambda x: x[3], reverse=True)
+
+        lines = [f"Address: {addr}", "", "**Multi-chain native balances (read-only):**"]
+        if nonzero:
+            for (_, label, sym, amt) in nonzero:
+                lines.append(f"- {label}: {amt:.8f} {sym}")
+        else:
+            lines.append("- (No native balances detected on the default chains list.)")
+
+        lines.append("")
+        lines.append("Links:")
+        lines.append(f"- DeBank: https://debank.com/profile/{addr}")
+        lines.append(f"- Arkham: https://arkhamintelligence.com/explorer/address/{addr}")
+        lines.append(f"- Blockscan: https://blockscan.com/address/{addr}")
+
+        if errors:
+            # Don't spam; just give a hint.
+            lines.append("")
+            lines.append(f"Note: Some chains may have temporary RPC errors ({min(len(errors), 3)}/{len(self._CHAINS)}). Try again if needed.")
+
+        return "\n".join(lines)
+
     def execute(self, arg: str) -> str:
         raw = (arg or "").strip()
         if not raw:
-            return "Error: Provide a command. Example: wallet[balance vitalik.eth eth]"
+            return "Error: Paste a wallet address/ENS. Example: wallet[vitalik.eth] or wallet[0xabc...]"
 
         parts = raw.split()
         sub = parts[0].lower()
-        if sub != "balance":
-            return "Error: Unsupported wallet command. Use: balance <address_or_ens> [eth|base]"
-        if len(parts) < 2:
-            return "Error: Missing address/ENS. Example: wallet[balance vitalik.eth eth]"
-
-        chain = parts[2].lower() if len(parts) >= 3 else "eth"
-        rpcs = self._RPCS.get(chain)
-        if not rpcs:
-            return "Error: Unsupported chain. Use: eth or base"
-
         try:
+            # Default behavior: wallet[<address_or_ens>] -> multi-chain summary
+            if sub != "balance":
+                addr = self._resolve_address(raw)
+                return self._multi_chain_summary(addr)
+
+            # Explicit: wallet[balance <address_or_ens> [chain]]
+            if len(parts) < 2:
+                return "Error: Missing address/ENS. Example: wallet[balance vitalik.eth eth]"
+
+            chain = parts[2].lower() if len(parts) >= 3 else "eth"
+            # Map chain id to rpcs/symbol (reuse _CHAINS)
+            chain_entry = None
+            for c in self._CHAINS:
+                if c["id"] == chain or c["label"].lower() == chain:
+                    chain_entry = c
+                    break
+            if chain_entry is None:
+                return "Error: Unsupported chain. Try: eth, base, arb, op, polygon, bsc, avax, gnosis"
+
             addr = self._resolve_address(parts[1])
-            payload = {
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "eth_getBalance",
-                "params": [addr, "latest"],
-            }
             last_err = None
-            resp = None
-            for rpc in rpcs:
+            wei = None
+            for rpc in chain_entry["rpcs"]:
                 try:
-                    resp = self._post_json(rpc, payload)
-                    if isinstance(resp, dict) and resp.get("result"):
-                        break
-                    if isinstance(resp, dict) and resp.get("error"):
-                        last_err = resp.get("error")
-                        continue
+                    wei = self._get_native_balance_wei(rpc, addr)
+                    break
                 except Exception as e:
-                    last_err = str(e)
+                    last_err = e
                     continue
-
-            if not isinstance(resp, dict):
-                return "Wallet error: RPC request failed."
-            if resp.get("error"):
-                return f"Wallet error: {resp.get('error')}"
-
-            bal_hex = (resp.get("result") or "").strip()
-            if not isinstance(bal_hex, str) or not bal_hex.startswith("0x"):
-                return f"Wallet error: unexpected RPC response."
-            wei = int(bal_hex, 16)
-            eth = wei / 1e18
-            return f"Address: {addr}\nChain: {chain}\nBalance: {eth:.8f} ETH"
+            if wei is None:
+                return f"Wallet error: {last_err}"
+            amt = wei / 1e18
+            sym = chain_entry["symbol"]
+            return f"Address: {addr}\nChain: {chain_entry['id']}\nBalance: {amt:.8f} {sym}"
         except Exception as e:
             logger.error(f"Wallet error: {e}", exc_info=True)
             return f"Wallet error: {e}"
