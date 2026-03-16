@@ -183,9 +183,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const aiSet = cfg.ai_key_configured === true;
       const accessSet = cfg.access_token_configured === true;
       const provider = (cfg.search_provider || 'auto').toString();
+      const aiClient = (data && data.ai_client) ? String(data.ai_client) : 'ready';
+      const authEnabled = (data && data.auth) === true;
 
       if (statAiKey) {
-        statAiKey.textContent = aiSet ? 'SET' : 'MISSING';
+        // If no key but free mode works, show it as FREE (not "missing").
+        statAiKey.textContent = aiSet ? 'SET' : (aiClient === 'free' ? 'FREE' : 'MISSING');
         statAiKey.classList.toggle('text-emerald-400', aiSet);
         statAiKey.classList.toggle('text-accent', !aiSet);
       }
@@ -218,14 +221,14 @@ document.addEventListener('DOMContentLoaded', () => {
       addRow(
         'AI API Key',
         'API_KEY or GROQ_API_KEY',
-        aiSet ? 'SET' : 'MISSING',
+        aiSet ? 'SET' : (aiClient === 'free' ? 'FREE' : 'MISSING'),
         aiSet ? 'tools-chip tools-chip--active' : 'tools-chip tools-chip--keyless'
       );
       addRow(
         'Access Token',
         'ACCESS_TOKEN (optional)',
-        accessSet ? 'SET' : 'MISSING',
-        accessSet ? 'tools-chip tools-chip--active' : 'tools-chip'
+        authEnabled ? (accessSet ? 'SET' : 'MISSING') : 'OFF',
+        authEnabled ? (accessSet ? 'tools-chip tools-chip--active' : 'tools-chip') : 'tools-chip'
       );
       addRow(
         'Search Provider',
