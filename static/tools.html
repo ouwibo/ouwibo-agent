@@ -187,11 +187,14 @@
                 </a>
                 -->
 
+                <!-- Social tools are part of agent base (auto), not a standalone Tools menu item. -->
+                <!--
                 <div class="nav-subtitle">Social</div>
                 <a href="/tool.html?tool=social_search" class="nav-item" data-tool="social_search" title="Social Search">
                   <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M5 9h14"/><path d="M5 15h14"/><path d="M9 4v16"/><path d="M15 4v16"/></svg></span>
                   <span class="nav-item__text">Social Search</span>
                 </a>
+                -->
               </div>
             </section>
 
@@ -827,15 +830,17 @@
 	                        </div>
 	                    </div>
 
-		                    <!-- Social Search -->
-		                    <div class="tool-card" id="tool-social-search">
+			                    <!-- Core social tool (hidden from Tools page; handled automatically by agent) -->
+			                    <!--
+			                    <div class="tool-card" id="tool-social-search">
 	                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
 	                                    bg-sky-600/5 blur-2xl pointer-events-none"></div>
 	                        <div class="flex items-start justify-between mb-4">
 	                            <div class="w-10 h-10 rounded-xl bg-sky-600/10 border border-sky-600/20
 	                                        flex items-center justify-center shrink-0">
 	                                <i class="fa-solid fa-hashtag text-sky-400 text-sm"></i>
-	                            </div>
+		                    </div>
+			                    -->
 	                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
 	                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
 	                                         border border-emerald-500/20 tools-chip tools-chip--active">
