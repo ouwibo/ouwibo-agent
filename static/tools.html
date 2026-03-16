@@ -148,9 +148,9 @@
               </button>
               <div class="nav-section__items">
                 <div class="nav-subtitle">Web3</div>
-                <a href="/tool.html?tool=wallet" class="nav-item" data-tool="wallet" title="Wallet / ENS">
+                <a href="/tool.html?tool=wallet" class="nav-item" data-tool="wallet" title="Wallet Scan">
                   <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M21 7H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><path d="M16 15h2"/></svg></span>
-                  <span class="nav-item__text">Wallet & ENS</span>
+                  <span class="nav-item__text">Wallet Scan</span>
                 </a>
                 <a href="/tool.html?tool=crypto" class="nav-item" data-tool="crypto" title="Crypto Market">
                   <span class="nav-item__icon"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4.03 3 9 3s9-1.34 9-3v-6"/></svg></span>
@@ -338,6 +338,37 @@
                         <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
                             <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Coding</span>
                             <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Pro Dev</span>
+                        </div>
+                    </div>
+
+	                    <!-- Wallet Scan -->
+	                    <div class="tool-card" id="tool-wallet-scan">
+                        <div class="absolute top-0 right-0 w-24 h-24 rounded-full
+                                    bg-orange-600/5 blur-2xl pointer-events-none"></div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-orange-600/10 border border-orange-600/20
+                                        flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-wallet text-orange-400 text-sm"></i>
+                            </div>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+                                         text-[10px] font-medium bg-emerald-500/10 text-emerald-400
+                                         border border-emerald-500/20 tools-chip tools-chip--active">
+                                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+                                Active
+                            </span>
+                        </div>
+                        <h3 class="text-[15px] font-semibold text-zinc-100 mb-1">Wallet Scan</h3>
+                        <p class="text-[13px] text-zinc-400 leading-relaxed mb-4">
+                            Scan any EVM wallet address to get its balance, transaction history,
+                            and ENS name.
+                        </p>
+                        <div class="space-y-2">
+                            <div class="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Command</div>
+                            <span class="tag">wallet_scan[0x123...]</span>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-zinc-800/50 flex gap-2 flex-wrap">
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">Web3</span>
+                            <span class="text-[11px] text-zinc-600 bg-zinc-800/50 px-2 py-0.5 rounded-lg tools-chip">EVM</span>
                         </div>
                     </div>
 

@@ -7,7 +7,7 @@
 
 <br>
 
-Ouwibo Agent is a highly capable AI assistant powering a premium web interface. It goes beyond simple chat by integrating **real-time tools**, **Web3 integrations (ENS & Wallets)**, and **Agent Commerce Protocol (ACP)** capabilities, allowing it to act as an autonomous node that can communicate with other specialized agents.
+Ouwibo Agent is a highly capable AI assistant powering a premium web interface. It goes beyond simple chat by integrating **real-time tools**, **Web3 integrations (Wallet Scan & ENS)**, and **Agent Commerce Protocol (ACP)** capabilities, allowing it to act as an autonomous node that can communicate with other specialized agents.
 
 ---
 
@@ -19,7 +19,7 @@ Ouwibo Agent is a highly capable AI assistant powering a premium web interface. 
 - **Multilingual UI:** Natively supports 8 languages (English, Indonesian, Arabic, Chinese, Japanese, French, German, Spanish).
 
 ### 🛠️ Built-in Tools & Web3 Capabilities
-- **Web3 Wallet & ENS:** Check multi-chain balances and resolve `.eth` names effortlessly.
+- **Wallet Scan:** Check multi-chain balances and resolve `.eth` names effortlessly.
 - **Crypto Market Data:** Live token prices, tops, and trends (powered by CoinGecko).
 - **Global Search & Web Reading:** DuckDuckGo/Google integration and URL reading to fetch real-time knowledge.
 - **Utility Tools:** Currency conversion, date/time, weather, dictionary, and translation.

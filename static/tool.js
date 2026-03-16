@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     wallet: {
       title: 'Wallet',
       desc: 'Paste a wallet address or ENS name. Returns multi-chain balances + explorer links.',
-      label: 'Wallet / ENS',
+      label: 'Wallet Scan',
       placeholder: '0x… or vitalik.eth',
       hint: 'Example: wallet[0xabc…] or wallet[vitalik.eth]',
       normalize: (v) => v.trim(),
