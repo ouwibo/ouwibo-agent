@@ -238,6 +238,28 @@ document.addEventListener('DOMContentLoaded', () => {
       );
     })(healthData);
 
+    // Update tools page counts (total/active) from /tools.
+    (async function updateToolsCounts() {
+      const statTotal = document.getElementById('stat-total');
+      const statActive = document.getElementById('stat-active');
+      if (!statTotal && !statActive) return;
+
+      try {
+        const res = await fetch('/tools', { headers: authHeaders() });
+        if (res.status === 401) {
+          clearStoredToken();
+          setAuthBadge(false);
+          showAuthModal('Access required. Please enter your access token.');
+          return;
+        }
+        if (!res.ok) return;
+        const data = await res.json().catch(() => ({}));
+        const count = Number(data.count || 0);
+        if (statTotal) statTotal.textContent = String(count || '0');
+        if (statActive) statActive.textContent = String(count || '0');
+      } catch (_) {}
+    })();
+
     // Show AI status notification if not using Groq
     if (aiClientStatus === 'free') {
       showAiStatusNotification('Using free AI mode (DuckDuckGo). Set API_KEY for better performance.');

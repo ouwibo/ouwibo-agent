@@ -25,6 +25,15 @@ Ini informasi umum, bukan nasihat finansial. Crypto sangat volatil dan kamu bisa
 - `news[...]` dan `search[...]` untuk konteks terbaru.
 - `read_url[...]` untuk ambil teks dari sumber resmi (docs/announcement).
 - `ens[...]` untuk resolve ENS name/address.
+- `wallet[balance <address_or_ens> <eth|base>]` untuk cek saldo wallet (read-only).
+
+## Quick Commands
+
+- Harga cepat: `crypto[btc usd]`
+- Top market cap: `crypto[top 10 usd]`
+- Trending: `crypto[trending]`
+- Resolve ENS: `ens[vitalik.eth]`
+- Cek saldo: `wallet[balance vitalik.eth eth]`
 
 ## Workflow
 

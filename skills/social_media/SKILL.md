@@ -33,7 +33,18 @@ Mode khusus Ouwibo Agent untuk perencanaan konten sosial media: kalender konten,
 
 5. Hashtag strategy
 - 3 tiers: high-volume, medium, niche
-- If the user wants real-time trend hashtags, use `search[...]` and summarize.
+- If the user wants real-time trend hashtags or examples from real accounts, use `social_search[...]` then summarize.
+
+## Tools (Ouwibo)
+
+- `social_search[query]` untuk cari referensi post/ide di X, Instagram, TikTok, LinkedIn, Reddit, YouTube.
+- `search[query]` untuk web umum.
+- `read_url[url]` untuk ambil teks artikel (kalau perlu riset cepat).
+
+## Quick Commands
+
+- Cari contoh konten: `social_search[konten coffee shop viral]`
+- Cari hashtag trend: `social_search[hashtag kopi indonesia]`
 
 ## Output Format
 
