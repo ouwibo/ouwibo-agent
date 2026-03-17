@@ -8,6 +8,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="icon.png">
   <link rel="stylesheet" href="style.css?v=20260316">
+  <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -245,7 +247,7 @@
             <button id="tool-copy" type="button" class="tool-copy-btn">Copy</button>
           </div>
           <div class="tool-error" id="tool-error" role="alert"></div>
-          <pre class="tool-output" id="tool-output"></pre>
+          <div class="tool-output chat-prose" id="tool-output"></div>
         </div>
       </div>
     </div>

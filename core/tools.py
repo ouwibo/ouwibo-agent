@@ -521,10 +521,10 @@ class NewsSearch(Tool):
                     url = r.get("url", "").strip()
                     date = r.get("date", "").strip()
                     articles.append(
-                        f"📰 {title}\n"
-                        f"   {body[:200]}{'…' if len(body) > 200 else ''}\n"
-                        f"   {source}  {date}\n"
-                        f"   {url}"
+                        f"📰 **{title}**\n"
+                        f"   {body[:300]}{'…' if len(body) > 300 else ''}\n"
+                        f"   _{source}_ — {date}\n"
+                        f"   [Read Article]({url})"
                     )
             if not articles:
                 return f"No news found for: '{query}'"

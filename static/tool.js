@@ -122,7 +122,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function setOutput(text) {
-    if (outEl) outEl.textContent = text || '';
+    if (!outEl) return;
+    if (!text) {
+      outEl.innerHTML = '';
+      return;
+    }
+    // Render markdown and sanitize
+    const rawHtml = marked.parse(text);
+    outEl.innerHTML = DOMPurify.sanitize(rawHtml);
   }
 
   async function run() {
