@@ -2,15 +2,22 @@
 import sys
 import os
 import asyncio
+from groq import Groq
+from dotenv import load_dotenv
 
 # Ensure the root repo directory is in the path
 repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, repo_root)
 
 from core.agent import Agent
-from core.config import setup_openai
 
 def main():
+    load_dotenv()
+    api_key = os.getenv("API_KEY") or os.getenv("GROQ_API_KEY")
+    if not api_key:
+        print("Error: No API_KEY found in environment", file=sys.stderr)
+        sys.exit(1)
+
     if len(sys.argv) < 2:
         print("Error: query required", file=sys.stderr)
         sys.exit(1)
