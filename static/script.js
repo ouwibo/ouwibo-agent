@@ -457,7 +457,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // Run after layout is stable.
-  window.setTimeout(highlightHashTarget, 0);
   window.setTimeout(highlightToolPageNav, 0);
 
   // ── Expand / fullscreen ────────────────────────────────────────────────────
