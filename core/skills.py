@@ -4,6 +4,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from typing import cast, Any
 
 
 @dataclass(frozen=True)
@@ -41,15 +42,20 @@ def _humanize_slug(slug: str) -> str:
 
 def _simplify_title(title: str, slug: str) -> str:
     t = (title or "").strip()
+    if not isinstance(t, str):
+        t = str(t)
     if not t:
         return _humanize_slug(slug)
 
     # Remove branding prefix in UI
     for prefix in ("Ouwibo Agent ", "Ouwibo "):
-        if t.lower().startswith(prefix.lower()):
-            t = t[len(prefix) :].strip()
+        low_prefix: str = prefix.lower()
+        t_current: str = str(t)
+        if t_current.lower().startswith(low_prefix):
+            t = t_current[len(prefix) :].strip()  # type: ignore
 
-    low = t.lower()
+    t_final: str = str(t)
+    low: str = t_final.lower()
     if "web3" in low and "crypto" in low:
         return "Web3"
     if "web3" in low:
@@ -61,7 +67,7 @@ def _simplify_title(title: str, slug: str) -> str:
     if "research" in low:
         return "Research"
     if "general" in low:
-        return "General"
+        return "Base"
     return t
 
 
@@ -102,7 +108,8 @@ def _split_frontmatter(md: str) -> tuple[dict[str, str], str]:
                 meta[key] = val
         i += 1
 
-    body = "\n".join(lines[i:]).strip()
+    all_lines: list[str] = list(lines)
+    body: str = "\n".join(all_lines[i:]).strip()  # type: ignore
     return meta, body
 
 
@@ -145,7 +152,8 @@ def _parse_title_and_description(md_body: str, fallback_title: str, meta: dict[s
     title = _simplify_title(title, fallback_title)
     desc = (desc or "").strip()
     if len(desc) > 160:
-        desc = desc[:157].rstrip() + "..."
+        desc_str: str = cast(str, desc)
+        desc = desc_str[:157].rstrip() + "..."  # type: ignore
     return title, desc
 
 

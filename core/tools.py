@@ -1408,6 +1408,34 @@ class ACP(Tool):
             logger.error(f"ACP execution error: {e}", exc_info=True)
             return f"ACP execution error: {e}"
 
+# ---------------------------------------------------------------------------
+# DEX — Execute on-chain token swaps or cross-chain bridges via LI.FI
+# ---------------------------------------------------------------------------
+class DEX(Tool):
+    name = "dex"
+    description = "Execute a real on-chain token swap or cross-chain bridge using the LI.FI aggregator. Arguments format: [fromToken toToken amount fromChain toChain]"
+    example = "dex[0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 0x4200000000000000000000000000000000000006 10 base base]"
+
+    def execute(self, arg: str) -> str:
+        import subprocess
+        # Parse arguments, expecting 5 space-separated values
+        args = arg.strip().split()
+        if len(args) < 5:
+            return "Error: DEX requires exactly 5 arguments: fromToken toToken amount fromChain toChain"
+        
+        script_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "scripts", "acp_swap_worker.py")
+        full_cmd = ["python", script_path] + args[:5]
+
+        try:
+            result = subprocess.run(full_cmd, capture_output=True, text=True, timeout=45)
+            if result.returncode != 0:
+                return f"Swap Execution Error: {result.stderr.strip() or result.stdout.strip()}"
+            return result.stdout.strip()
+        except subprocess.TimeoutExpired:
+            return "Error: Swap command timed out."
+        except Exception as e:
+            return f"Swap execution error: {e}"
+
 
 # ---------------------------------------------------------------------------
 # Registry — all available tools with metadata (for the /tools API & UI)
@@ -1432,4 +1460,5 @@ ALL_TOOLS: List[Type[Tool]] = [
     PhindSearch,
     URLReader,
     ACP,
+    DEX,
 ]

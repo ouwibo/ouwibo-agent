@@ -1,5 +1,5 @@
 # ---
-# name: General
+# name: Base
 # description: Default assistant mode for Ouwibo Agent (best-effort).
 # ---
 

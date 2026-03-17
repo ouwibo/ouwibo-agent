@@ -26,6 +26,7 @@ from .tools import (
     Weather,
     WebSearch,
     Wikipedia,
+    DEX,
 )
 
 logger = logging.getLogger(__name__)
@@ -55,6 +56,7 @@ class Agent:
             "find_script": CodeSearch(),
             "phind": PhindSearch(),
             "acp": ACP(),
+            "dex": DEX(),
         }
 
     _UNCERTAIN_RE = re.compile(

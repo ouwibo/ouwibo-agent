@@ -430,11 +430,15 @@ a.nav-item[href="#"] { display: none !important; }
 @media (max-width: 768px) {
   .shell { grid-template-columns: 0 1fr; }
   
-  /* Fix: prevent shell-nav from clipping the fixed sidebar on mobile */
+  /* Fix: prevent shell-nav from clipping fixed sidebar on mobile */
+  /* Also prevent it from creating a stacking context that traps sidebar under backdrop */
   .shell-nav {
     position: static;
     overflow: visible;
     border-right: none;
+    background: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 
   .sidebar {
@@ -443,12 +447,13 @@ a.nav-item[href="#"] { display: none !important; }
     top: 0;
     width: var(--sidebar-w);
     height: 100%;
-    z-index: 100; /* Ensure it stays above backdrop and topbar */
+    z-index: 1001; /* Must be higher than backdrop (40) and topbar (30) */
     transform: translateX(-100%);
     transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
-    background: var(--sidebar-bg);
-    border-right: 1px solid var(--sidebar-border);
+    background: var(--bg); /* Use solid background for mobile */
+    border-right: 1px solid var(--border);
     will-change: transform;
+    box-shadow: 10px 0 30px rgba(0,0,0,0.25);
   }
   .shell--nav-open .sidebar { transform: translateX(0); }
   .shell--nav-open .shell-nav-backdrop { display: block; }
@@ -1640,4 +1645,79 @@ body {
 
 .minicard-label {
   line-height: 1;
+}
+/* ============================================================
+   LI.FI Widget Modal
+   ============================================================ */
+.lifi-widget-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 2000;
+  transition: opacity 300ms ease, visibility 300ms ease;
+}
+
+.lifi-widget-overlay--hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.lifi-widget-container {
+  width: min(480px, 100%);
+  max-height: 90vh;
+  background: var(--surface-1);
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  transform: translateY(0);
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lifi-widget-overlay--hidden .lifi-widget-container {
+  transform: translateY(20px);
+}
+
+.lifi-widget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-2);
+}
+
+.lifi-widget-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+#lifi-widget-root {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 500px;
+  background: transparent;
+}
+
+/* Adjustments for mobile */
+@media (max-width: 480px) {
+  .lifi-widget-overlay {
+    padding: 0;
+  }
+  .lifi-widget-container {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    border-radius: 0;
+  }
 }

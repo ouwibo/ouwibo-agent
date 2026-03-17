@@ -92,6 +92,12 @@ document.addEventListener('DOMContentLoaded', () => {
       hint: 'Example: social_search[coffee shop content ideas]',
       normalize: (v) => v.trim(),
     },
+    dex: {
+      title: 'DEX (Swap & Bridge)',
+      desc: 'Cross-chain swaps and bridging powered by LI.FI.',
+      label: 'DEX',
+      isWidget: true,
+    },
   };
 
   const meta = TOOL_META[tool] || {
@@ -114,6 +120,68 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('a.nav-item[data-tool]').forEach(a => {
     a.classList.toggle('nav-item--active', a.dataset.tool === tool);
   });
+
+  // ── LI.FI Widget Integration ──────────────────────────────────────────────
+  if (tool === 'dex') {
+    // Hide standard tool runner UI
+    const toolPanel = document.querySelector('.tool-panel');
+    const toolOutputWrap = document.querySelector('.tool-output-wrap');
+    const dexContainer = document.getElementById('lifi-dex-container');
+    
+    if (toolPanel) toolPanel.classList.add('hidden');
+    if (toolOutputWrap) toolOutputWrap.classList.add('hidden');
+    if (dexContainer) dexContainer.classList.remove('hidden');
+
+    initDexWidget();
+  }
+
+  function initDexWidget() {
+    const Widget = window.LiFiWidget || window.LiFi;
+    if (!Widget) {
+      console.error('LiFiWidget not found. CDN might be slow or blocked.');
+      setError('Failed to load LI.FI Widget library from CDN.');
+      return;
+    }
+
+    try {
+      const config = {
+        containerId: 'lifi-widget-root',
+        integrator: 'OuwiboAgent',
+        fee: 0.01,
+        appearance: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light',
+        containerStyle: {
+          border: '1px solid var(--border-subtle, rgba(255,255,255,0.05))',
+          borderRadius: '16px',
+          display: 'flex',
+          height: '600px',
+          width: '100%',
+          maxWidth: '480px',
+          margin: '0 auto',
+        },
+        theme: {
+          palette: {
+            primary: { main: '#f43f5e' }, // Ouwibo accent
+          },
+          shape: {
+            borderRadius: 12,
+            borderRadiusSecondary: 8,
+          },
+        }
+      };
+      
+      // Handle both new LiFiWidget() and new LiFiWidget.LiFiWidget()
+      if (typeof Widget.LiFiWidget === 'function') {
+        new Widget.LiFiWidget(config);
+      } else if (typeof Widget === 'function') {
+        new Widget(config);
+      } else {
+        throw new Error('LiFiWidget is not a constructor');
+      }
+    } catch (err) {
+      console.error('Failed to init LiFiWidget:', err);
+      setError('LI.FI Widget initialization failed.');
+    }
+  }
 
   function setError(msg) {
     if (!errEl) return;

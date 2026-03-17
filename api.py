@@ -111,7 +111,7 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
 # ---------------------------------------------------------------------------
 app = FastAPI(
     title="Ouwibo AI Agent",
-    description="API for Ouwibo AI Agent — powered by Groq + LLaMA.",
+    description="API for Ouwibo AI Agent.",
     version="1.0.1",
     docs_url="/docs",
     redoc_url="/redoc",

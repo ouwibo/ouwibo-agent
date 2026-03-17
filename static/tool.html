@@ -11,6 +11,10 @@
   <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- LI.FI Widget Dependencies -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/@lifi/widget@latest/dist/index.js" crossorigin></script>
 </head>
 
 <body>
@@ -140,6 +144,10 @@
                   <span class="nav-item__icon"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4.03 3 9 3s9-1.34 9-3v-6"/></svg></span>
                   <span class="nav-item__text">Market</span>
                 </a>
+                <a href="/tool.html?tool=dex" class="nav-item" data-tool="dex" title="DEX (Swap & Bridge)">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg></span>
+                  <span class="nav-item__text">DEX</span>
+                </a>
 
 	                <!-- Core research tools (Search/Google/News/Read URL/Wikipedia) are part of agent base.
 	                     Keep markup commented for later, but hide from Tools menu to reduce clutter. -->
@@ -248,6 +256,11 @@
           </div>
           <div class="tool-error" id="tool-error" role="alert"></div>
           <div class="tool-output chat-prose" id="tool-output"></div>
+        </div>
+
+        <!-- LI.FI Widget Mount Point -->
+        <div id="lifi-dex-container" class="mt-6 hidden">
+          <div id="lifi-widget-root" style="min-height: 600px;"></div>
         </div>
       </div>
     </div>

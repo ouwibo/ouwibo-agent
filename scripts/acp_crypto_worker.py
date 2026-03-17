@@ -2,19 +2,20 @@
 import sys
 import os
 import asyncio
-from groq import Groq
-from dotenv import load_dotenv
+from openai import OpenAI  # type: ignore
+from dotenv import load_dotenv  # type: ignore
 
 repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, repo_root)
 
-from core.agent import Agent
+from core.agent import Agent  # type: ignore
+from core.config import DASHSCOPE_BASE_URL  # type: ignore
 
 def main():
     load_dotenv()
-    api_key = os.getenv("API_KEY") or os.getenv("GROQ_API_KEY")
+    api_key = os.getenv("DASHSCOPE_API_KEY")
     if not api_key:
-        print("Error: No API_KEY found in environment", file=sys.stderr)
+        print("Error: No DASHSCOPE_API_KEY found", file=sys.stderr)
         sys.exit(1)
         
     if len(sys.argv) < 2:
@@ -25,7 +26,7 @@ def main():
     analysis_type = sys.argv[2] if len(sys.argv) > 2 else "snapshot"
     
     try:
-        client = Groq(api_key=api_key)
+        client = OpenAI(api_key=api_key, base_url=DASHSCOPE_BASE_URL)
         agent = Agent(client)
         
         task = f"As a crypto analyst, perform a {analysis_type} analysis on '{token}'. Use your crypto_market, wallet, or other technical tools if necessary. Provide a structured and highly technical summary."

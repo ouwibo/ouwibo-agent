@@ -24,42 +24,42 @@ def build_client() -> OpenAI:
     api_key = os.getenv("DASHSCOPE_API_KEY")
     if not api_key:
         logging.error(
-            "DASHSCOPE_API_KEY belum di-set. "
-            "Tambahkan ke file .env atau set sebagai environment variable."
+            "DASHSCOPE_API_KEY is not set. "
+            "Please add it to your .env file or set it as an environment variable."
         )
         sys.exit(1)
     return OpenAI(api_key=api_key, base_url=DASHSCOPE_BASE_URL)
 
 
 def run_single_task(agent: Agent, task: str) -> None:
-    logging.info(f"Menjalankan task: {task!r}")
+    logging.info(f"Running task: {task!r}")
     result = agent.run(task)
     print(f"\n{'=' * 60}")
-    print(f"Hasil Akhir:\n{result}")
+    print(f"Final Result:\n{result}")
     print(f"{'=' * 60}\n")
 
 
 def run_interactive(agent: Agent) -> None:
-    print("\nMasuk ke mode interaktif. Ketik 'exit' atau 'quit' untuk keluar.")
-    print("Ketik 'clear' untuk mereset memori sesi.\n")
+    print("\nEntering interactive mode. Type 'exit' or 'quit' to close.")
+    print("Type 'clear' to reset the session memory.\n")
 
     while True:
         try:
             task = input("Anda > ").strip()
         except (KeyboardInterrupt, EOFError):
-            print("\nKeluar dari mode interaktif.")
+            print("\nExiting interactive mode.")
             break
 
         if not task:
             continue
 
         if task.lower() in {"exit", "quit"}:
-            print("Sampai jumpa!")
+            print("Goodbye!")
             break
 
         if task.lower() == "clear":
             agent.memory.clear()
-            print("[Memori sesi direset.]\n")
+            print("[Session memory reset.]\n")
             continue
 
         result = agent.run(task)
@@ -70,11 +70,11 @@ def main() -> None:
     load_dotenv()
 
     parser = argparse.ArgumentParser(
-        description="Ouwibo Agent — AI agent berbasis Groq + LLaMA.",
+        description="Ouwibo Agent — AI agent.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
-            "Contoh penggunaan:\n"
-            "  python main.py --task 'Siapa presiden Indonesia?'\n"
+            "Usage examples:\n"
+            "  python main.py --task 'Who is the president of Indonesia?'\n"
             "  python main.py --interactive\n"
             "  python main.py --interactive --verbose\n"
         ),
@@ -82,17 +82,17 @@ def main() -> None:
     parser.add_argument(
         "--task",
         type=str,
-        help="Task yang akan dijalankan oleh agent (mode single-run).",
+        help="The task to be executed by the agent (single-run mode).",
     )
     parser.add_argument(
         "--interactive",
         action="store_true",
-        help="Jalankan dalam mode percakapan interaktif.",
+        help="Run the agent in an interactive conversation session.",
     )
     parser.add_argument(
         "--verbose",
         action="store_true",
-        help="Tampilkan log level DEBUG untuk debugging.",
+        help="Enable DEBUG level logging.",
     )
     args = parser.parse_args()
 

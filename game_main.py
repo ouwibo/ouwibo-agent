@@ -1,10 +1,13 @@
-from game_sdk.game.custom_types import FunctionArgument
-from game_sdk.game.api import GAMEClient
-from core.agent import Agent
-from core.config import setup_openai
+from game_sdk.game.custom_types import FunctionArgument  # type: ignore
+from game_sdk.game.api import GAMEClient  # type: ignore
+from core.agent import Agent  # type: ignore
+from core.config import DASHSCOPE_BASE_URL  # type: ignore
+import os
+from openai import OpenAI  # type: ignore
 
 # Initialize Ouwibo core logic
-client = setup_openai()
+api_key = os.getenv("DASHSCOPE_API_KEY")
+client = OpenAI(api_key=api_key, base_url=DASHSCOPE_BASE_URL)
 agent = Agent(client)
 
 # Define the GAME actions (Job Offerings)
@@ -22,7 +25,7 @@ def deep_research(query: str, depth: str = "comprehensive") -> str:
 
 # We wrap the functions if 'game' is available. The platform's crawler just looks for @game.action
 try:
-    import game
+    import game  # type: ignore
     
     @game.action(
         name="analyze_token",
@@ -55,7 +58,7 @@ except ImportError:
     
     @game.action(
         name="analyze_token",
-        description="Menganalisis potensi token berdasarkan alamat kontrak atau simbol di jaringan Base/lainnya",
+        description="Analyze token potential based on contract address or symbol on Base and other networks",
         args=[{"name":"token_address", "type":"string"}]
     )
     def game_analyze_token(token_address: str):
@@ -63,7 +66,7 @@ except ImportError:
     
     @game.action(
         name="deep_research",
-        description="Melakukan web search dan sintesis data untuk berbagai macam topik",
+        description="Perform web search and data synthesis for a wide range of topics",
         args=[{"name":"query", "type":"string"}, {"name":"depth", "type":"string"}]
     )
     def game_deep_research(query: str, depth: str):
