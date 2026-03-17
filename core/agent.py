@@ -238,6 +238,18 @@ class Agent:
                     continue
 
                 # --- tool call ---
+                if command == "auto_search":
+                    try:
+                        result = self._search_read_and_summarize(arg, skill_context=skill_context)
+                        preview = result[:200] + "..." if len(result) > 200 else result
+                        logger.info(f"[Agent] 'auto_search' selesai. Hasil: {preview}")
+                        self.memory.add("assistant", f"[auto_search result] {result}")
+                        progressed = True
+                    except Exception as e:
+                        logger.error(f"[Agent] 'auto_search' error: {e}")
+                        self.memory.add("assistant", f"[auto_search error] {e}")
+                    continue
+
                 if command in self.tools:
                     try:
                         result = self.tools[command].execute(arg)
