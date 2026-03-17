@@ -27,7 +27,12 @@ def main():
     
     # Initialize the client and agent
     try:
-        client = setup_openai()
+        api_key = os.getenv("API_KEY") or os.getenv("GROQ_API_KEY")
+        if not api_key:
+            print("Error: No API_KEY found in environment", file=sys.stderr)
+            sys.exit(1)
+            
+        client = Groq(api_key=api_key)
         agent = Agent(client)
         
         # Format task
