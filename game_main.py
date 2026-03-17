@@ -9,13 +9,13 @@ agent = Agent(client)
 
 # Define the GAME actions (Job Offerings)
 def analyze_token(token_address: str) -> str:
-    """Menganalisis potensi token berdasarkan alamat kontrak atau simbol."""
-    task = f"Lakukan crypto snapshot dan teknikal analisis untuk token/proyek: {token_address}. Buat ringkas namun mendalam."
+    """Analyze token potential based on contract address or symbol."""
+    task = f"Perform a crypto snapshot and technical analysis for token/project: {token_address}. Keep it concise yet deep."
     result = agent.run(task)
     return result
 
 def deep_research(query: str, depth: str = "comprehensive") -> str:
-    """Melakukan riset mendalam pada topik apa saja menggunakan Ouwibo."""
+    """Perform deep research on any topic using Ouwibo's tools."""
     task = f"Perform {depth} research on: {query}. Summarize the findings comprehensively."
     result = agent.run(task)
     return result
@@ -26,18 +26,18 @@ try:
     
     @game.action(
         name="analyze_token",
-        description="Menganalisis potensi token berdasarkan alamat kontrak atau simbol di jaringan Base/lainnya",
-        args=[FunctionArgument(name="token_address", type="string", description="Simbol token atau kontrak address")]
+        description="Analyze token potential based on contract address or symbol on Base and other chains",
+        args=[FunctionArgument(name="token_address", type="string", description="Token symbol or contract address")]
     )
     def game_analyze_token(token_address: str):
         return analyze_token(token_address)
 
     @game.action(
         name="deep_research",
-        description="Melakukan web search dan sintesis data untuk berbagai macam topik",
+        description="Perform web search and data synthesis for a wide range of topics",
         args=[
-            FunctionArgument(name="query", type="string", description="Topik riset"),
-            FunctionArgument(name="depth", type="string", description="summary atau comprehensive")
+            FunctionArgument(name="query", type="string", description="Research topic"),
+            FunctionArgument(name="depth", type="string", description="summary or comprehensive")
         ]
     )
     def game_deep_research(query: str, depth: str):
