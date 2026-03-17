@@ -10,7 +10,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request, Response  # type: 
 from fastapi import Query as QueryParam  # type: ignore[import-untyped]
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore[import-untyped]
 from fastapi.staticfiles import StaticFiles  # type: ignore[import-untyped]
-from groq import APIError, APIStatusError, AuthenticationError, Groq  # type: ignore[import-untyped]
+from openai import OpenAI, APIError, AuthenticationError  # type: ignore[import-untyped]
 from pydantic import BaseModel, Field  # type: ignore[import-untyped]
 from slowapi import Limiter  # type: ignore[import-untyped]
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-untyped]
@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session  # type: ignore[import-untyped]
 import models  # type: ignore[import-untyped]
 from core.agent import Agent  # type: ignore[import-untyped]
 from core.auth import auth_enabled, require_auth  # type: ignore[import-untyped]
-from core.config import MAX_MESSAGE_LENGTH, MAX_SESSION_ID_LENGTH  # type: ignore[import-untyped]
+from core.config import MAX_MESSAGE_LENGTH, MAX_SESSION_ID_LENGTH, DASHSCOPE_BASE_URL  # type: ignore[import-untyped]
 from core.tools import WebSearch  # type: ignore[import-untyped]
 from database import SessionLocal, engine  # type: ignore[import-untyped]
 
@@ -44,22 +44,22 @@ models.Base.metadata.create_all(bind=engine)
 # ---------------------------------------------------------------------------
 
 class KeyRotator:
-    """Manages multiple API keys and provides automatic failover."""
+    """Manages Alibaba Cloud DashScope API keys."""
     def __init__(self):
         self.keys = []
-        # Support various env var names for flexibility
-        for env_name in ["API_KEY", "GROQ_API_KEY", "GROQ_API_KEY2"]:
+        # Gunakan DASHSCOPE_API_KEY sebagai kunci utama
+        for env_name in ["DASHSCOPE_API_KEY"]:
             val = (os.getenv(env_name) or "").strip()
             if val and val not in self.keys:
                 self.keys.append(val)
         
         self.idx = 0
-        self.clients = [Groq(api_key=k, timeout=55.0) for k in self.keys]
+        self.clients = [OpenAI(api_key=k, base_url=DASHSCOPE_BASE_URL, timeout=60.0) for k in self.keys]
         
         if self.clients:
-            logger.info(f"KeyRotator initialized with {len(self.clients)} keys.")
+            logger.info(f"KeyRotator (Alibaba Cloud) initialized with {len(self.clients)} keys.")
         else:
-            logger.warning("No API keys found. Agent will run in FREE mode (DDGS).")
+            logger.warning("No DashScope API key found. Agent will run in FREE mode (DDGS).")
 
     def get_current_client(self) -> Any:
         if not self.clients:
@@ -390,7 +390,9 @@ async def chat_with_agent(
             agent.memory.add(h.role, h.content)
 
         # 3. Get AI Response
-        skill_id = (body.skill or "").strip().lower() or "general"
+        # Auto mode: if no skill specified (null), agent uses its full capabilities
+        # without being constrained to any specific skill context.
+        skill_id = (body.skill or "").strip().lower()
         skill_context = ""
         if skill_id:
             try:
@@ -431,14 +433,17 @@ async def chat_with_agent(
 
     except AuthenticationError as e:
         db.rollback()
-        logger.error(f"Groq Authentication Error: {e}")
-        # If we failed auth, rotate and suggest retry or just fail for this request
+        logger.error(f"AI Authentication Error: {e}")
+        # If we failed auth, rotate and suggest retry
         rotator.rotate()
         raise HTTPException(status_code=401, detail="AI authentication failed. We've rotated the key, please try again.")
 
-    except (APIStatusError, APIError) as e:
+    except APIError as e:
         db.rollback()
-        logger.error(f"Groq API Error: {e}")
+        logger.error(f"AI API Error: {e}")
+        # Handle Rate Limit specifically if needed (though Agent handles it via MODELS fallback)
+        if "rate limit" in str(e).lower():
+            raise HTTPException(status_code=429, detail="AI rate limit reached. Please try again in a moment.")
         raise HTTPException(status_code=502, detail="AI provider returned an error.")
 
     except Exception as e:

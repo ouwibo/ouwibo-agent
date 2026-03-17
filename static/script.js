@@ -525,60 +525,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let sessionId = getSessionId();
 
-  // ── Skill selection ─────────────────────────────────────────────────────────
-  const SKILL_KEY = 'ouwibo_skill_id';
-  const skillSelect = document.getElementById('skill-select');
+  // ── Skill — AUTO mode (no UI selector, agent picks the right approach) ──────
+  // In auto mode, no skill context is forced. The agent uses its full capabilities.
+  const skillSelect = null; // removed from UI
 
-  function getStoredSkill() {
-    return (localStorage.getItem(SKILL_KEY) || '').trim();
-  }
-
-  function setStoredSkill(skillId) {
-    const v = (skillId || '').trim();
-    if (v) localStorage.setItem(SKILL_KEY, v);
-    else localStorage.removeItem(SKILL_KEY);
-  }
+  function getStoredSkill() { return null; } // null = auto mode
 
   async function initSkills() {
-    if (!skillSelect) return;
-
-    // Set initial value early for better UX; will be validated after fetch.
-    const initial = getStoredSkill() || 'general';
-    skillSelect.value = initial;
-    skillSelect.addEventListener('change', () => {
-      setStoredSkill(skillSelect.value);
-      showAiStatusNotification(`Skill: ${skillSelect.options[skillSelect.selectedIndex]?.textContent || skillSelect.value}`);
-    });
-
-    try {
-      const res = await fetch('/api/skills', { headers: authHeaders() });
-      if (res.status === 401) {
-        clearStoredToken();
-        setAuthBadge(false);
-        showAuthModal('Access required. Please enter your access token.');
-        return;
-      }
-      if (!res.ok) return;
-
-      const data = await res.json().catch(() => ({}));
-      const skills = Array.isArray(data.skills) ? data.skills : [];
-      if (!skills.length) return;
-
-      const current = getStoredSkill() || initial;
-      skillSelect.innerHTML = '';
-      for (const s of skills) {
-        const opt = document.createElement('option');
-        opt.value = s.id;
-        opt.textContent = s.title || s.id;
-        skillSelect.appendChild(opt);
-      }
-      // Restore selection if possible.
-      skillSelect.value = current;
-      if (!skillSelect.value && skills[0]) skillSelect.value = skills[0].id;
-      setStoredSkill(skillSelect.value);
-    } catch (e) {
-      // Silent: skills are optional
-    }
+    // No-op: skill selector removed from chat UI. Agent runs in auto mode.
   }
 
   // ── Markdown renderer ──────────────────────────────────────────────────────
@@ -880,7 +834,7 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({
           message: text,
           session_id: sessionId,
-          skill: (skillSelect && skillSelect.value) ? skillSelect.value : (getStoredSkill() || 'general'),
+          skill: null, // auto: agent decides what approach to use
         }),
       });
 

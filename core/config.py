@@ -4,9 +4,15 @@
 # LLM Models (fallback chain — pertama dicoba dulu, kalau gagal lanjut ke berikutnya)
 # ---------------------------------------------------------------------------
 MODELS = [
-    "llama-3.3-70b-versatile",
-    "llama-3.1-8b-instant",
+    "qvq-max-2025-03-25",  # Terkuat untuk reasoning
+    "qwen-max",            # Terkuat untuk general task
+    "qwen-plus",           # Keseimbangan kecepatan & kualitas
+    "qwen-turbo"           # Kecepatan tinggi (fallback)
 ]
+
+# Alibaba Cloud DashScope base URL (OpenAI compatible)
+# Dashboard: https://dashscope.console.aliyun.com
+DASHSCOPE_BASE_URL = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
 
 LLM_TEMPERATURE = 0.1  # Rendah agar output planning deterministik
 LLM_MAX_TOKENS = 1024  # Batas token output dari planner

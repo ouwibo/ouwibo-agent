@@ -5,9 +5,10 @@ import os
 import sys
 
 from dotenv import load_dotenv
-from groq import Groq  # type: ignore[import-untyped]
+from openai import OpenAI  # type: ignore[import-untyped]
 
 from core.agent import Agent
+from core.config import DASHSCOPE_BASE_URL
 
 
 def setup_logging(verbose: bool = False) -> None:
@@ -19,15 +20,15 @@ def setup_logging(verbose: bool = False) -> None:
     )
 
 
-def build_client() -> Groq:
-    api_key = os.getenv("API_KEY") or os.getenv("GROQ_API_KEY") or os.getenv("GROQ_API_KEY2")
+def build_client() -> OpenAI:
+    api_key = os.getenv("DASHSCOPE_API_KEY")
     if not api_key:
         logging.error(
-            "API_KEY belum di-set. "
+            "DASHSCOPE_API_KEY belum di-set. "
             "Tambahkan ke file .env atau set sebagai environment variable."
         )
         sys.exit(1)
-    return Groq(api_key=api_key)
+    return OpenAI(api_key=api_key, base_url=DASHSCOPE_BASE_URL)
 
 
 def run_single_task(agent: Agent, task: str) -> None:
