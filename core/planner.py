@@ -96,7 +96,8 @@ TASK: {task}
                 continue
 
         if last_error is not None:
-            raise last_error
+            from typing import cast
+            raise cast(BaseException, last_error)
         raise RuntimeError("No LLM models available.")
 
     def _parse_steps(self, raw: str) -> list[str]:

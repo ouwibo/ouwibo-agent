@@ -242,7 +242,7 @@ class Agent:
                 if command == "auto_search":
                     try:
                         result = self._search_read_and_summarize(arg, skill_context=skill_context)
-                        preview = result[:200] + "..." if len(result) > 200 else result
+                        preview = "".join(islice(result, 200)) + "..." if len(result) > 200 else result
                         logger.info(f"[Agent] 'auto_search' selesai. Hasil: {preview}")
                         self.memory.add("assistant", f"[auto_search result] {result}")
                         progressed = True
@@ -254,7 +254,7 @@ class Agent:
                 if command in self.tools:
                     try:
                         result = self.tools[command].execute(arg)
-                        preview = result[:200] + "..." if len(result) > 200 else result
+                        preview = "".join(islice(result, 200)) + "..." if len(result) > 200 else result
                         logger.info(f"[Agent] Tool '{command}' selesai. Hasil: {preview}")
                         # Simpan hasil tool ke memori agar Planner melihatnya di iterasi berikutnya
                         self.memory.add("assistant", f"[{command} result] {result}")
