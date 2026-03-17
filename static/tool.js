@@ -136,19 +136,27 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function initDexWidget() {
-    const Widget = window.LiFiWidget || window.LiFi;
+    const Widget = window.LiFiWidget;
     if (!Widget) {
-      console.error('LiFiWidget not found. CDN might be slow or blocked.');
-      setError('Failed to load LI.FI Widget library from CDN.');
+      console.error('LiFiWidget not found. Official CDN might be slow.');
+      // Wait a bit if it's still loading
+      if (!window._lifi_retry) {
+        window._lifi_retry = true;
+        setTimeout(initDexWidget, 1000);
+        return;
+      }
+      setError('Failed to load LI.FI Widget library. Please refresh the page.');
       return;
     }
 
     try {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      
       const config = {
         containerId: 'lifi-widget-root',
         integrator: 'OuwiboAgent',
         fee: 0.01,
-        appearance: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light',
+        appearance: isDark ? 'dark' : 'light',
         containerStyle: {
           border: '1px solid var(--border-subtle, rgba(255,255,255,0.05))',
           borderRadius: '16px',
@@ -169,13 +177,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       };
       
-      // Handle both new LiFiWidget() and new LiFiWidget.LiFiWidget()
-      if (typeof Widget.LiFiWidget === 'function') {
-        new Widget.LiFiWidget(config);
-      } else if (typeof Widget === 'function') {
+      // Standard initialization for cdn.li.quest script
+      if (typeof Widget === 'function') {
         new Widget(config);
+      } else if (Widget.LiFiWidget && typeof Widget.LiFiWidget === 'function') {
+        new Widget.LiFiWidget(config);
       } else {
-        throw new Error('LiFiWidget is not a constructor');
+        // Some versions might use a 'create' method or similar
+        console.warn('LiFiWidget constructor not found, attempting fallback...');
+        if (Widget.init) Widget.init(config);
       }
     } catch (err) {
       console.error('Failed to init LiFiWidget:', err);

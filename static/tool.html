@@ -11,10 +11,9 @@
   <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- LI.FI Widget Dependencies -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://cdn.jsdelivr.net/npm/@lifi/widget@latest/dist/index.js" crossorigin></script>
+  <!-- LI.FI Widget (Modern ESM via esm.sh) -->
+  <!-- LI.FI Widget (Official Standalone Script) -->
+  <script src="https://cdn.li.quest/widget/latest/index.min.js"></script>
 </head>
 
 <body>
@@ -135,7 +134,7 @@
                 <span class="nav-section__chevron"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
               </button>
               <div class="nav-section__items">
-                <div class="nav-subtitle">Web3</div>
+                    <!-- Direct links without Web3 title if requested -->
                 <a href="/tool.html?tool=wallet" class="nav-item" data-tool="wallet" title="Wallet Scan">
                   <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M21 7H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><path d="M16 15h2"/></svg></span>
                   <span class="nav-item__text">Wallet Scan</span>
