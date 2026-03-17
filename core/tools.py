@@ -1152,6 +1152,30 @@ class Wallet(Tool):
             lines.append("")
             lines.append(f"⚠️ **Note:** Some chains may have temporary RPC issues ({len(errors)}/{len(self._CHAINS)}).")
 
+        # ACP Specialist Integration
+        try:
+            acp_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "virtuals-protocol-acp")
+            # Quick browse for related specialists
+            import subprocess
+            res = subprocess.run(
+                ["npx", "tsx", "bin/acp.ts", "browse", "on-chain data analysis", "--json"],
+                cwd=acp_dir, capture_output=True, text=True, timeout=10
+            )
+            if res.returncode == 0:
+                import json
+                agents = json.loads(res.stdout)
+                if agents and isinstance(agents, list):
+                    lines.append("")
+                    lines.append("🛡️ **Suggested ACP Specialists:**")
+                    for a in agents[:3]:
+                        name = a.get("name", "Unknown")
+                        metrics = a.get("metrics", {})
+                        rate = metrics.get("successRate", 0)
+                        lines.append(f"- **{name}** (Success Rate: {rate}%)")
+                    lines.append("  *Use `acp browse` to find more specialized agents.*")
+        except Exception:
+            pass # Silent fail for ACP secondary info
+
         return "\n".join(lines)
 
     def execute(self, arg: str) -> str:

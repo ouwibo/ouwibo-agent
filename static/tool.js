@@ -22,10 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const TOOL_META = {
     wallet: {
       title: 'Wallet',
-      desc: 'Paste a wallet address or ENS name. Returns multi-chain balances + explorer links.',
+      desc: 'Paste a wallet address or ENS name. Returns multi-chain balances + explorer links + suggested ACP specialists.',
       label: 'Wallet Scan',
       placeholder: '0x… or vitalik.eth',
-      hint: 'Example: wallet[0xabc…] or wallet[vitalik.eth]',
+      hint: 'Example: wallet[0xabc…] — now with Virtual Protocol marketplace integration',
       normalize: (v) => v.trim(),
     },
     crypto: {
