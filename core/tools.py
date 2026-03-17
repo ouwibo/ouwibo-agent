@@ -34,7 +34,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 try:
-    from ddgs import DDGS  # type: ignore
+    from duckduckgo_search import DDGS  # type: ignore
 except Exception:  # pragma: no cover
     DDGS = None
 
@@ -53,7 +53,7 @@ def _urls_to_results(urls: list[str], kind: str, provider: str) -> list[dict]:
         try:
             parsed = urlparse(url)
             domain = str(parsed.netloc).replace("www.", "")
-            path = str(parsed.path)[:60] if parsed.path else "" # type: ignore
+            path = str(parsed.path or "")[:60]
         except Exception:
             domain = ""
             path = ""
@@ -1144,9 +1144,21 @@ class Wallet(Tool):
 
         lines.append("")
         lines.append("🔗 **Quick Links:**")
-        lines.append(f"- [DeBank] https://debank.com/profile/{addr}")
-        lines.append(f"- [Arkham] https://arkhamintelligence.com/explorer/address/{addr}")
-        lines.append(f"- [Blockscan] https://blockscan.com/address/{addr}")
+        lines.append('<div class="quick-links-grid">')
+        
+        links = [
+            ("DeBank", f"https://debank.com/profile/{addr}", "📊"),
+            ("Arkham", f"https://arkhamintelligence.com/explorer/address/{addr}", "🔍"),
+            ("Blockscan", f"https://blockscan.com/address/{addr}", "🌐")
+        ]
+        
+        for name, url, icon in links:
+            lines.append(f'  <a href="{url}" target="_blank" class="minicard">')
+            lines.append(f'    <div class="minicard-icon">{icon}</div>')
+            lines.append(f'    <div class="minicard-label">{name}</div>')
+            lines.append('  </a>')
+            
+        lines.append('</div>')
 
         if errors:
             lines.append("")

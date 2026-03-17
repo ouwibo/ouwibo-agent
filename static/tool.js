@@ -129,7 +129,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // Render markdown and sanitize
     const rawHtml = marked.parse(text);
-    outEl.innerHTML = DOMPurify.sanitize(rawHtml);
+    outEl.innerHTML = DOMPurify.sanitize(rawHtml, {
+      ADD_ATTR: ['target', 'class', 'style'],
+      ALLOWED_TAGS: ['a', 'div', 'span', 'i', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'strong', 'em', 'code', 'pre', 'br', 'hr', 'blockquote', 'table', 'thead', 'tbody', 'tr', 'th', 'td']
+    });
   }
 
   async function run() {
