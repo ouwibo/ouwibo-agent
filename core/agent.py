@@ -4,9 +4,11 @@ import re
 from itertools import islice
 from typing import Any
 
+from .config import MAX_MESSAGE_LENGTH, MAX_SESSION_ID_LENGTH
 from .memory import Memory
 from .planner import Planner
 from .config import MODELS
+from .rate_limit import RateLimiter, get_limiter, RateLimitConfig
 from .tools import (
     ACP,
     Calculator,
@@ -37,6 +39,11 @@ class Agent:
         self.client = client
         self.memory = Memory()
         self.planner = Planner(client)
+        self.limiter = get_limiter(RateLimitConfig(
+            requests_per_minute=60,
+            requests_per_hour=1000,
+            burst_limit=10
+        ))
         self.tools = {
             "calculate": Calculator(),
             "search": WebSearch(),
@@ -188,7 +195,19 @@ class Agent:
 
         return self._best_effort_answer(task, skill_context=skill_context)
 
-    def run(self, task: str, skill_context: str = "") -> str:
+    def run(self, task: str, skill_context: str = "", session_id: str = "default") -> str:
+        # Rate limiting check
+        limited, reason = self.limiter.check(session_id)
+        if limited:
+            logger.warning(f"[Agent] Rate limited: {reason}")
+            return f"Maaf, terlalu banyak permintaan. Silakan tunggu sebentar. ({reason})"
+
+        if len(task) > MAX_MESSAGE_LENGTH:
+            return f"Pesan terlalu panjang (maksimal {MAX_MESSAGE_LENGTH} karakter)."
+
+        if len(session_id) > MAX_SESSION_ID_LENGTH:
+            session_id = session_id[:MAX_SESSION_ID_LENGTH]
+
         logger.info(f"[Agent] Task diterima: {task!r}")
         self.memory.add("user", task)
 
@@ -204,11 +223,14 @@ class Agent:
                 logger.error(f"[Agent] Planner gagal di iterasi {i + 1}: {e}", exc_info=True)
                 prefix = f"Maaf, saya tidak dapat membuat rencana langkah. Saya akan coba jawab langsung. Error: {e}"
                 direct = self._search_read_and_summarize(task, skill_context=skill_context)
+                self.limiter.record(session_id)
                 return f"{prefix}\n\n{direct}"
 
             if not plan:
                 logger.warning("[Agent] Planner mengembalikan rencana kosong.")
-                return self._search_read_and_summarize(task, skill_context=skill_context)
+                result = self._search_read_and_summarize(task, skill_context=skill_context)
+                self.limiter.record(session_id)
+                return result
 
             # 2. Eksekusi semua langkah dalam rencana (biasanya satu atau dua per iterasi)
             progressed = False
@@ -232,6 +254,7 @@ class Agent:
                     if self._looks_uncertain(final):
                         final = self._search_read_and_summarize(task, skill_context=skill_context)
                     self.memory.add("assistant", final)
+                    self.limiter.record(session_id)
                     return final
 
                 # --- think ---
@@ -271,7 +294,11 @@ class Agent:
             if not progressed:
                 # Planner output didn't produce a usable tool call or finish step.
                 logger.warning("[Agent] No progress from planner steps; using direct fallback.")
-                return self._search_read_and_summarize(task, skill_context=skill_context)
+                result = self._search_read_and_summarize(task, skill_context=skill_context)
+                self.limiter.record(session_id)
+                return result
 
         logger.warning("[Agent] Mencapai batas iterasi maksimal tanpa 'finish'.")
-        return self._search_read_and_summarize(task, skill_context=skill_context)
+        result = self._search_read_and_summarize(task, skill_context=skill_context)
+        self.limiter.record(session_id)
+        return result

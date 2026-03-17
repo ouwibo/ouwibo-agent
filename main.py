@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from openai import OpenAI  # type: ignore[import-untyped]
 
 from core.agent import Agent
-from core.config import DASHSCOPE_BASE_URL
+from core.config import DASHSCOPE_BASE_URL, get_env, EnvValidationError
 
 
 def setup_logging(verbose: bool = False) -> None:
@@ -18,6 +18,15 @@ def setup_logging(verbose: bool = False) -> None:
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
+
+
+def validate_environment() -> None:
+    """Validate required environment variables at startup."""
+    try:
+        get_env()
+    except EnvValidationError as e:
+        logging.error(f"Environment validation failed: {e}")
+        sys.exit(1)
 
 
 def build_client() -> OpenAI:
@@ -68,6 +77,7 @@ def run_interactive(agent: Agent) -> None:
 
 def main() -> None:
     load_dotenv()
+    validate_environment()
 
     parser = argparse.ArgumentParser(
         description="Ouwibo Agent — AI agent.",
