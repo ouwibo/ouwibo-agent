@@ -1,6 +1,7 @@
 # core/agent.py
 import logging
 import re
+from itertools import islice
 from typing import Any
 
 from .memory import Memory
@@ -100,7 +101,7 @@ class Agent:
         sc = (skill_context or "").strip()
         if sc:
             if len(sc) > 3500:
-                sc = sc[:3500].rstrip() + "\n[skill truncated]"
+                sc = "".join(islice(sc, 3500)).rstrip() + "\n[skill truncated]"
             sys = sys + "\n\nSKILL INSTRUCTIONS (follow unless they conflict with the user request):\n" + sc
         user = task if not context else f"{task}\n\nCONTEXT:\n{context}"
         messages = [{"role": "system", "content": sys}]
@@ -154,7 +155,7 @@ class Agent:
             url = (r.get("url") or "").strip()
             if url:
                 urls.append(url)
-        urls = urls[:2]
+        urls = list(islice(urls, 2))
 
         reads = []
         if rr and urls:
@@ -167,7 +168,7 @@ class Agent:
         context_parts = []
         if results:
             context_parts.append("SEARCH RESULTS:")
-            for r in results[:8]:
+            for r in islice(results, 8):
                 title = (r.get("title") or "").strip()
                 url = (r.get("url") or "").strip()
                 snip = (r.get("snippet") or "").strip()
@@ -180,7 +181,7 @@ class Agent:
         context = "\n".join(context_parts).strip()
         if context:
             # Keep tool results in memory so future turns can reuse them.
-            self.memory.add("assistant", f"[auto-search context]\n{context[:3500]}")
+            self.memory.add("assistant", f"[auto_search context]\n{''.join(islice(context, 3500))}")
             return self._best_effort_answer(task, context=context, skill_context=skill_context)
 
         return self._best_effort_answer(task, skill_context=skill_context)

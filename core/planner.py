@@ -1,6 +1,9 @@
 # core/planner.py
 import logging
 import re
+import urllib.error
+from itertools import islice
+import urllib.parse
 from typing import Any
 
 from .config import LLM_MAX_TOKENS, LLM_TEMPERATURE, MODELS
@@ -30,7 +33,7 @@ class Planner:
         sc = (skill_context or "").strip()
         if sc:
             if len(sc) > 2500:
-                sc = sc[:2500].rstrip() + "\n[skill truncated]"
+                sc = "".join(islice(sc, 2500)).rstrip() + "\n[skill truncated]"
             skill_block = f"\nSKILL INSTRUCTIONS:\n{sc}\n"
 
         prompt = f"""You are Ouwibo Agent's Iterative Planner. Your goal is to solve the user's task efficiently.
@@ -92,7 +95,9 @@ TASK: {task}
                 last_error = e
                 continue
 
-        raise last_error if last_error else RuntimeError("No LLM models available.")
+        if last_error is not None:
+            raise last_error
+        raise RuntimeError("No LLM models available.")
 
     def _parse_steps(self, raw: str) -> list[str]:
         steps = []
