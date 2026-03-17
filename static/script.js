@@ -431,8 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function openSidebar() {
     if (isMobile()) {
-      sidebar.style.transform = 'translateX(0)';
-      backdrop.style.display = 'block';
+      shell.classList.add('shell--nav-open');
       document.body.style.overflow = 'hidden';
     } else {
       shell.classList.remove('shell--nav-collapsed');
@@ -442,8 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function closeSidebar() {
     if (isMobile()) {
-      sidebar.style.transform = 'translateX(-100%)';
-      backdrop.style.display = 'none';
+      shell.classList.remove('shell--nav-open');
       document.body.style.overflow = '';
     } else {
       shell.classList.add('shell--nav-collapsed');
@@ -452,23 +450,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function toggleSidebar() {
-    const isCollapsed = isMobile() 
-      ? sidebar.style.transform === 'translateX(-100%)' 
-      : shell.classList.contains('shell--nav-collapsed');
-    
     if (isMobile()) {
-      const isOpen = sidebar.style.transform === 'translateX(0px)' || sidebar.style.transform === 'translateX(0)';
+      const isOpen = shell.classList.contains('shell--nav-open');
       isOpen ? closeSidebar() : openSidebar();
     } else {
+      const isCollapsed = shell.classList.contains('shell--nav-collapsed');
       isCollapsed ? openSidebar() : closeSidebar();
     }
   }
 
   // Init sidebar state
-  if (isMobile()) {
-    sidebar.style.transform = 'translateX(-100%)';
-    sidebar.style.transition = 'transform 0.3s ease';
-  } else {
+  if (!isMobile()) {
     const saved = localStorage.getItem(SIDEBAR_KEY);
     if (saved === 'closed') shell.classList.add('shell--nav-collapsed');
   }
@@ -479,13 +471,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('resize', () => {
     if (!isMobile()) {
-      sidebar.style.transform = '';
-      backdrop.style.display = 'none';
+      shell.classList.remove('shell--nav-open');
       document.body.style.overflow = '';
     } else {
       shell.classList.remove('shell--nav-collapsed');
     }
   });
+
 
   // Run after layout is stable.
   window.setTimeout(highlightHashTarget, 0);
