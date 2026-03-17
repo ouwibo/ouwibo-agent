@@ -7,13 +7,19 @@ from .memory import Memory
 from .planner import Planner
 from .config import MODELS
 from .tools import (
+    ACP,
     Calculator,
+    CodeSearch,
     CurrencyConverter,
     DateTime,
+    Dictionary,
     ENSResolve,
+    GoogleSearch,
     NewsSearch,
+    PhindSearch,
     CryptoMarket,
     SocialSearch,
+    StockMarket,
     URLReader,
     Wallet,
     Weather,
@@ -42,6 +48,12 @@ class Agent:
             "ens": ENSResolve(),
             "wallet": Wallet(),
             "social_search": SocialSearch(),
+            "google_search": GoogleSearch(),
+            "stocks": StockMarket(),
+            "dictionary": Dictionary(),
+            "find_script": CodeSearch(),
+            "phind": PhindSearch(),
+            "acp": ACP(),
         }
 
     _UNCERTAIN_RE = re.compile(

@@ -1287,6 +1287,52 @@ class CodeSearch(Tool):
 
 
 # ---------------------------------------------------------------------------
+# ACP — Agent Commerce Protocol (Marketplace)
+# ---------------------------------------------------------------------------
+class ACP(Tool):
+    name = "acp"
+    description = (
+        "Interact with the ACP marketplace: browse specialised agents, hire them for tasks (data, trading, content, etc.), "
+        "manage your agent wallet, or sell your own services. Use 'acp browse <query>' to start."
+    )
+    example = "acp[browse data analysis agents] or acp[whoami] or acp[wallet balance]"
+
+    def execute(self, arg: str) -> str:
+        import subprocess
+
+        cmd_parts = arg.strip().split()
+        if not cmd_parts:
+            return "Error: ACP command is required. Example: acp[browse ...]"
+
+        # Path to the ACP directory relative to repo root
+        acp_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "virtuals-protocol-acp")
+        
+        # We use 'npx tsx bin/acp.ts' to execute the CLI directly
+        # --json flag is often helpful for machines, but here we return raw output for the LLM to parse/summarize.
+        full_cmd = ["npx", "tsx", "bin/acp.ts"] + cmd_parts
+        
+        try:
+            result = subprocess.run(
+                full_cmd,
+                cwd=acp_dir,
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            
+            if result.returncode != 0:
+                err = result.stderr.strip() or f"Exit code {result.returncode}"
+                return f"ACP Error: {err}"
+            
+            return result.stdout.strip() or "Success (no output)."
+        except subprocess.TimeoutExpired:
+            return "Error: ACP command timed out."
+        except Exception as e:
+            logger.error(f"ACP execution error: {e}", exc_info=True)
+            return f"ACP execution error: {e}"
+
+
+# ---------------------------------------------------------------------------
 # Registry — all available tools with metadata (for the /tools API & UI)
 # ---------------------------------------------------------------------------
 ALL_TOOLS: list[type[Tool]] = [
@@ -1308,4 +1354,5 @@ ALL_TOOLS: list[type[Tool]] = [
     CodeSearch,
     PhindSearch,
     URLReader,
+    ACP,
 ]
