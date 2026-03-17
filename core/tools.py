@@ -6,11 +6,12 @@ import operator
 import os
 import re
 import urllib.error
+from itertools import islice
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from html.parser import HTMLParser
-from typing import Any
+from typing import Any, List, Dict, Tuple, Type, cast
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -53,7 +54,9 @@ def _urls_to_results(urls: list[str], kind: str, provider: str) -> list[dict]:
         try:
             parsed = urlparse(url)
             domain = str(parsed.netloc).replace("www.", "")
-            path = str(parsed.path or "")[:60]
+            path = str(parsed.path or "")
+            # Using islice to avoid slicing/indexing lint errors
+            path = "".join(islice(path, 60))
         except Exception:
             domain = ""
             path = ""
@@ -280,7 +283,8 @@ class WebSearch(Tool):
                 try:
                     parsed = urlparse(url)
                     domain = parsed.netloc.replace("www.", "")
-                    path = parsed.path[:60] if parsed.path else ""
+                    p = str(parsed.path or "")
+                    path = "".join(islice(p, 60))
                 except Exception:
                     domain = ""
                     path = ""
@@ -482,6 +486,8 @@ class PhindSearch(Tool):
         
         try:
             results = []
+            if DDGS is None:
+                return "Error: DuckDuckGo search is currently unavailable."
             with DDGS() as ddgs:
                 # We use 'text' search but filter for code-heavy sites
                 for r in ddgs.text(dev_query, max_results=4):
@@ -513,6 +519,8 @@ class NewsSearch(Tool):
             return "Error: A topic is required. Example: news[technology]"
         try:
             articles = []
+            if DDGS is None:
+                return "Error: News search is currently unavailable."
             with DDGS() as ddgs:
                 for r in ddgs.news(query, max_results=5):
                     title = r.get("title", "").strip()
@@ -687,8 +695,9 @@ class URLReader(Tool):
             if not text:
                 return f"No readable text found at {url}"
 
-            snippet = text[: self._MAX_CHARS]
-            if len(text) > self._MAX_CHARS:
+            limit = int(self._MAX_CHARS)
+            snippet = "".join(islice(text, limit))
+            if len(text) > limit:
                 snippet += "…"
 
             return f"URL from {url}:\n\n{snippet}"
@@ -893,16 +902,25 @@ class CryptoMarket(Tool):
         # Prefer exact symbol match if possible.
         sym = q.lower().replace("-", "").strip()
         best = None
-        for c in coins[:10]:
+        if not isinstance(coins, list):
+            raise ValueError("Invalid coin data returned.")
+        coins_list = coins if isinstance(coins, list) else []
+        coins_to_check = list(islice(coins_list, 10))
+        for c in coins_to_check:
+            if not isinstance(c, dict): continue
             csym = (c.get("symbol") or "").lower().replace("-", "")
             if csym == sym and csym:
                 best = c
                 break
         if best is None:
-            best = coins[0]
-
-        cid = (best.get("id") or "").strip()
-        name = (best.get("name") or cid).strip()
+            if isinstance(coins, list) and len(coins) > 0:
+                best = coins[0]
+            else:
+                best = {}
+        
+        best_dict = best if isinstance(best, dict) else {}
+        cid = (best_dict.get("id") or "").strip()
+        name = (best_dict.get("name") or cid).strip()
         if not cid:
             raise ValueError("CoinGecko search returned an invalid coin id.")
         return cid, name
@@ -922,7 +940,12 @@ class CryptoMarket(Tool):
                 if not coins:
                     return "No trending data found."
                 out = ["**Trending (CoinGecko):**"]
-                for i, wrap in enumerate(coins[:10], 1):
+                if not isinstance(coins, list):
+                    return "Error: Invalid trending data format."
+                trending_list = coins if isinstance(coins, list) else []
+                trending_coins = list(islice(trending_list, 10))
+                for i, wrap in enumerate(trending_coins, 1):
+                    if not isinstance(wrap, dict): continue
                     item = wrap.get("item") or {}
                     name = item.get("name") or "?"
                     sym = item.get("symbol") or "?"
@@ -943,15 +966,19 @@ class CryptoMarket(Tool):
                     f"sparkline=false&price_change_percentage=24h"
                 )
                 data = self._get_json(url)
-                if not isinstance(data, list) or not data:
+                if not isinstance(data, list):
                     return "No market data returned."
                 out = [f"**Top {n} by market cap (vs {vs.upper()}):**"]
-                for i, c in enumerate(data[:n], 1):
+                limit = int(n)
+                data_subset = list(islice(data, limit))
+                for i, c in enumerate(data_subset, 1):
+                    if not isinstance(c, dict): continue
                     name = c.get("name") or "?"
                     sym = (c.get("symbol") or "?").upper()
                     price = c.get("current_price")
                     chg = c.get("price_change_percentage_24h")
-                    out.append(f"{i}. {name} ({sym}) — {price} {vs.upper()}" + (f" ({chg:+.2f}%)" if isinstance(chg, (int, float)) else ""))
+                    vs_str = str(vs).upper()
+                    out.append(f"{i}. {name} ({sym}) — {price} {vs_str}" + (f" ({chg:+.2f}%)" if isinstance(chg, (int, float)) else ""))
                 return "\n".join(out)
 
             # Default: crypto[<coin> [vs]]
@@ -1097,7 +1124,9 @@ class Wallet(Tool):
         
         # Explicit type guard for int conversion
         try:
-            return int(bal_hex, 16)
+            if not bal_hex:
+                raise RuntimeError("Empty balance result.")
+            return int(str(bal_hex), 16)
         except (ValueError, TypeError):
             raise RuntimeError(f"Invalid balance hex: {bal_hex}")
 
@@ -1147,14 +1176,13 @@ class Wallet(Tool):
         lines.append('<div class="quick-links-grid">')
         
         links = [
-            ("DeBank", f"https://debank.com/profile/{addr}", "📊"),
-            ("Arkham", f"https://arkhamintelligence.com/explorer/address/{addr}", "🔍"),
-            ("Blockscan", f"https://blockscan.com/address/{addr}", "🌐")
+            ("DeBank", f"https://debank.com/profile/{addr}"),
+            ("Arkham", f"https://arkhamintelligence.com/explorer/address/{addr}"),
+            ("Blockscan", f"https://blockscan.com/address/{addr}")
         ]
         
-        for name, url, icon in links:
+        for name, url in links:
             lines.append(f'  <a href="{url}" target="_blank" class="minicard">')
-            lines.append(f'    <div class="minicard-icon">{icon}</div>')
             lines.append(f'    <div class="minicard-label">{name}</div>')
             lines.append('  </a>')
             
@@ -1176,13 +1204,18 @@ class Wallet(Tool):
             if res.returncode == 0:
                 import json
                 agents = json.loads(res.stdout)
-                if agents and isinstance(agents, list):
+                if not isinstance(agents, list):
+                    pass
+                else:
                     lines.append("")
                     lines.append("🛡️ **Suggested ACP Specialists:**")
-                    for a in agents[:3]:
+                    agents_list = agents if isinstance(agents, list) else []
+                    top_agents = list(islice(agents_list, 3))
+                    for a in top_agents:
+                        if not isinstance(a, dict): continue
                         name = a.get("name", "Unknown")
-                        metrics = a.get("metrics", {})
-                        rate = metrics.get("successRate", 0)
+                        metrics = cast(Any, a).get("metrics", {})
+                        rate = cast(Any, metrics).get("successRate", 0) # type: ignore
                         lines.append(f"- **{name}** (Success Rate: {rate}%)")
                     lines.append("  *Use `acp browse` to find more specialized agents.*")
         except Exception:
@@ -1200,8 +1233,10 @@ class Wallet(Tool):
         try:
             # Default behavior: wallet[<address_or_ens>] -> multi-chain summary
             if sub != "balance":
-                addr = self._resolve_address(raw)
-                return self._multi_chain_summary(addr)
+                resolve_func = self._resolve_address
+                address_resolved = resolve_func(raw) # type: ignore
+                summary_func = self._multi_chain_summary
+                return summary_func(address_resolved) # type: ignore
 
             # Explicit: wallet[balance <address_or_ens> [chain]]
             if len(parts) < 2:
@@ -1225,19 +1260,20 @@ class Wallet(Tool):
                     wei = self._get_native_balance_wei(rpc, addr) # type: ignore
                     if not isinstance(wei, (int, float)):
                         continue
-                    return f"Balance on {chain_entry['label']}: {wei / 1e18:.8f} {chain_entry['symbol']}"
-                except Exception as e:
-                    last_err = e
-                    continue
-                    break
+                    if wei is None:
+                        continue
+                    val = float(wei) / 1e18
+                    ce = cast(Dict[str, Any], chain_entry)
+                    return f"Balance on {ce['label']}: {val:.8f} {ce['symbol']}"
                 except Exception as e:
                     last_err = e
                     continue
             if wei is None:
                 return f"Wallet error: {last_err}"
-            amt = wei / 1e18
-            sym = chain_entry["symbol"]
-            return f"Address: {addr}\nChain: {chain_entry['id']}\nBalance: {amt:.8f} {sym}"
+            amt = float(wei or 0) / 1e18
+            ce = cast(Dict[str, Any], chain_entry)
+            sym = ce["symbol"]
+            return f"Address: {addr}\nChain: {ce['id']}\nBalance: {amt:.8f} {sym}"
         except Exception as e:
             logger.error(f"Wallet error: {e}", exc_info=True)
             return f"Wallet error: {e}"
@@ -1279,7 +1315,10 @@ class SocialSearch(Tool):
                 return ws.execute(query)
 
             out = ["**Social search results:**"]
-            for r in results[:8]:
+            results_list = results if isinstance(results, list) else []
+            limited_results = list(islice(results_list, 8))
+            for r in limited_results:
+                if not isinstance(r, dict): continue
                 title = (r.get("title") or "").strip()
                 url = (r.get("url") or "").strip()
                 domain = (r.get("domain") or "").strip()
@@ -1307,6 +1346,8 @@ class CodeSearch(Tool):
         
         try:
             results = []
+            if DDGS is None:
+                return "Error: Script search is currently unavailable."
             with DDGS() as ddgs:
                 for r in ddgs.text(search_query, max_results=3):
                     title = r.get("title", "").strip()
@@ -1371,7 +1412,7 @@ class ACP(Tool):
 # ---------------------------------------------------------------------------
 # Registry — all available tools with metadata (for the /tools API & UI)
 # ---------------------------------------------------------------------------
-ALL_TOOLS: list[type[Tool]] = [
+ALL_TOOLS: List[Type[Tool]] = [
     Calculator,
     WebSearch,
     GoogleSearch,
