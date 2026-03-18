@@ -1,0 +1,28 @@
+{
+  "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
+  "name": "Ouwibo Agent",
+  "description": "Cross-Chain Dex Swapping and Institutional Crypto Deep Research Autonomous Agent.",
+  "image": "https://raw.githubusercontent.com/ouwibo/ouwibo-agent/refs/heads/main/static/favicon.ico",
+  "services": [
+    {
+      "name": "web",
+      "endpoint": "https://github.com/ouwibo/ouwibo-agent"
+    },
+    {
+      "name": "A2A",
+      "endpoint": "https://github.com/ouwibo/ouwibo-agent/tree/main/virtuals-protocol-acp",
+      "version": "0.3.0"
+    }
+  ],
+  "registrations": [
+    {
+      "agentId": null,
+      "agentRegistry": "eip155:8453:0x8004a6090Cd10A7288092483047B097295Fb8847"
+    }
+  ],
+  "supportedTrust": [
+    "reputation",
+    "crypto-economic"
+  ],
+  "active": true
+}
