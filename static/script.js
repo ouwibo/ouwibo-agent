@@ -659,76 +659,69 @@
 
   // ── Append message ─────────────────────────────────────────────────────────
   function appendMessage(role, text) {
+    console.log(`[Ouwibo] Appending ${role} message:`, text.substring(0, 50) + "...");
     const isAgent = role === 'assistant';
     const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
 
     const wrapper = document.createElement('div');
     wrapper.className = `message message--${isAgent ? 'agent' : 'user'} fade-in`;
     wrapper.setAttribute('role', 'article');
-    wrapper.style.opacity = '0';
-    wrapper.style.transform = 'translateY(5px)';
-    wrapper.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
 
     if (isAgent) {
       const bubble = document.createElement('div');
       bubble.className = 'message__bubble chat-prose';
       
-      // Render markdown
-      let rendered = renderMarkdown(text);
-      
-      // Transform specific wallet links into Card Buttons
-      // Pattern: <li>[Name] URL</li>
-      const linkPatterns = [
-        { name: 'DeBank',    icon: '<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>', class: 'debank' },
-        { name: 'Arkham',    icon: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>', class: 'arkham' },
-        { name: 'Blockscan', icon: '<rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>', class: 'blockscan' }
-      ];
-
-      let hasCards = false;
-      let cardHtml = '<div class="link-card-group">';
-      
-      linkPatterns.forEach(p => {
-        const regex = new RegExp(`<li>\\[${p.name}\\]\\s*(https?:\\/\\/[^<]+)<\\/li>`, 'g');
-        if (regex.test(rendered)) {
-          hasCards = true;
-          rendered = rendered.replace(regex, (match, url) => {
-            cardHtml += `
-              <a href="${url.trim()}" target="_blank" rel="noopener noreferrer" class="link-card link-card--${p.class}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">${p.icon}</svg>
-                ${p.name}
-              </a>`;
-            return ''; // Remove from original list
-          });
-        }
-      });
-      
-      cardHtml += '</div>';
-      
-      // If we found any cards, wrap the remaining list (if empty) or clean up
-      if (hasCards) {
-        rendered = rendered.replace(/<ul>\s*<\/ul>/g, '');
-        rendered += cardHtml;
+      try {
+        // Render markdown with fallback
+        bubble.innerHTML = renderMarkdown(text);
+      } catch (err) {
+        console.error("[Ouwibo] Rendering error:", err);
+        bubble.textContent = text; // Safe fallback
       }
+      
+      // Transform specific wallet links into Card Buttons (Wrapped in try-catch)
+      try {
+        const linkPatterns = [
+          { name: 'DeBank',    icon: '<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>', class: 'debank' },
+          { name: 'Arkham',    icon: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>', class: 'arkham' },
+          { name: 'Blockscan', icon: '<rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>', class: 'blockscan' }
+        ];
 
-      bubble.innerHTML = rendered;
+        let hasCards = false;
+        let cardHtml = '<div class="link-card-group">';
+        let rendered = bubble.innerHTML;
+        
+        linkPatterns.forEach(p => {
+          const regex = new RegExp(`<li>\\[${p.name}\\]\\s*(https?:\\/\\/[^<]+)<\\/li>`, 'g');
+          if (regex.test(rendered)) {
+            hasCards = true;
+            rendered = rendered.replace(regex, (match, url) => {
+              cardHtml += `<a href="${url.trim()}" target="_blank" rel="noopener noreferrer" class="link-card link-card--${p.class}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor">${p.icon}</svg>${p.name}</a>`;
+              return '';
+            });
+          }
+        });
+        
+        if (hasCards) {
+          cardHtml += '</div>';
+          bubble.innerHTML = rendered.replace(/<ul>\s*<\/ul>/g, '') + cardHtml;
+        }
+      } catch (e) { console.warn("[Ouwibo] Card transformation failed"); }
+
       bubble.querySelectorAll('a').forEach(a => { a.target = '_blank'; a.rel = 'noopener noreferrer'; });
 
       const copyBtn = document.createElement('button');
       copyBtn.type = 'button';
       copyBtn.className = 'message__copy-btn';
-      copyBtn.setAttribute('aria-label', 'Copy message');
       copyBtn.innerHTML = '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
       copyBtn.addEventListener('click', () => copyText(text, copyBtn));
 
       const meta = document.createElement('div');
       meta.className = 'message__meta';
-      meta.setAttribute('aria-hidden', 'true');
       meta.innerHTML = `<span>Assistant</span><span>·</span><span>${time}</span><span class="model-badge" style="padding:1px 7px;font-size:10px;"><span class="model-badge__dot"></span>AUTO</span>`;
       meta.appendChild(copyBtn);
 
-      wrapper.innerHTML = `<div class="message__avatar message__avatar--agent" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:14px;height:14px"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 4a3 3 0 1 1-3 3 3 3 0 0 1 3-3zm0 14a8 8 0 0 1-6.4-3.2C5.6 14.8 9.6 14 12 14s6.4.8 6.4 2.8A8 8 0 0 1 12 20z"/></svg>
-      </div>`;
+      wrapper.innerHTML = `<div class="message__avatar message__avatar--agent"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:14px;height:14px"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 4a3 3 0 1 1-3 3 3 3 0 0 1 3-3zm0 14a8 8 0 0 1-6.4-3.2C5.6 14.8 9.6 14 12 14s6.4.8 6.4 2.8A8 8 0 0 1 12 20z"/></svg></div>`;
       const body = document.createElement('div');
       body.className = 'message__body';
       body.appendChild(bubble);
@@ -738,20 +731,11 @@
     } else {
       const bubble = document.createElement('div');
       bubble.className = 'message__bubble';
-      bubble.textContent = text; // safe — no innerHTML for user input
-
-      const copyBtn = document.createElement('button');
-      copyBtn.type = 'button';
-      copyBtn.className = 'message__copy-btn';
-      copyBtn.setAttribute('aria-label', 'Copy message');
-      copyBtn.innerHTML = '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
-      copyBtn.addEventListener('click', () => copyText(text, copyBtn));
+      bubble.textContent = text;
 
       const meta = document.createElement('div');
       meta.className = 'message__meta';
-      meta.setAttribute('aria-hidden', 'true');
       meta.innerHTML = `<span>You</span><span>·</span><span>${time}</span>`;
-      meta.appendChild(copyBtn);
 
       const body = document.createElement('div');
       body.className = 'message__body';
@@ -760,7 +744,6 @@
 
       const avatar = document.createElement('div');
       avatar.className = 'message__avatar message__avatar--user';
-      avatar.setAttribute('aria-hidden', 'true');
       avatar.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:12px;height:12px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
       wrapper.appendChild(body);
       wrapper.appendChild(avatar);
@@ -768,12 +751,6 @@
 
     chatMessages.appendChild(wrapper);
     scrollToBottom();
-
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      wrapper.style.opacity = '1';
-      wrapper.style.transform = 'translateY(0)';
-    }));
-
     return wrapper;
   }
 
