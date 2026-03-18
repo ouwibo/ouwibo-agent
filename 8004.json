@@ -63,7 +63,7 @@
   ],
   "registrations": [
     {
-      "agentId": null,
+      "agentId": 32270,
       "agentRegistry": "eip155:8453:0x8004a169fb4a3325136eb29fa0ceb6d2e539a432"
     }
   ],
@@ -72,5 +72,6 @@
     "crypto-economic",
     "tee-attestation"
   ],
+  "x402Support": true,
   "active": true
 }
