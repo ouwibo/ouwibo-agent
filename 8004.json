@@ -17,8 +17,21 @@
       "name": "OASF",
       "endpoint": "https://github.com/ouwibo/ouwibo-agent/tree/main/skills",
       "version": "0.8",
-      "skills": ["crypto_deep_research", "dex"],
-      "domains": ["DeFi", "Web3", "Blockchain"]
+      "skills": [
+        "crypto_deep_research",
+        "dex_swap",
+        "cross_chain_bridge",
+        "smart_contract_audit",
+        "vc_funding_analysis",
+        "developer_footprint_analytics",
+        "real_time_web_search",
+        "website_scraping",
+        "token_price_tracking",
+        "evm_wallet_scanning",
+        "filesystem_management",
+        "conversational_ai"
+      ],
+      "domains": ["DeFi", "Web3", "Blockchain", "OSINT Data Extraction", "Generative AI"]
     },
     {
       "name": "agentWallet",
