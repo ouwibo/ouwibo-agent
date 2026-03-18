@@ -1443,6 +1443,49 @@ class DEX(Tool):
 
 
 # ---------------------------------------------------------------------------
+# Tempo — Tempo CLI Wallet (Machine Payments Protocol)
+# ---------------------------------------------------------------------------
+class Tempo(Tool):
+    name = "tempo"
+    description = (
+        "Interact with the Tempo CLI wallet: authenticate, check balances, manage access keys, "
+        "and handle machine payments. Use 'tempo wallet whoami' to check state."
+    )
+    example = "tempo[wallet whoami] or tempo[wallet balance] or tempo[request ...]"
+
+    def execute(self, arg: str) -> str:
+        import subprocess
+
+        cmd_parts = arg.strip().split()
+        if not cmd_parts:
+            return "Error: Tempo command is required. Example: tempo[wallet whoami]"
+
+        # Full path to the tempo binary installed by tempoup
+        tempo_bin = "/Users/rhmnhsim/.tempo/bin/tempo"
+        
+        full_cmd = [tempo_bin] + cmd_parts
+        
+        try:
+            result = subprocess.run(
+                full_cmd,
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            
+            if result.returncode != 0:
+                err = result.stderr.strip() or f"Exit code {result.returncode}"
+                return f"Tempo Error: {err}"
+            
+            return result.stdout.strip() or "Success (no output)."
+        except subprocess.TimeoutExpired:
+            return "Error: Tempo command timed out."
+        except Exception as e:
+            logger.error(f"Tempo execution error: {e}", exc_info=True)
+            return f"Tempo execution error: {e}"
+
+
+# ---------------------------------------------------------------------------
 # Registry — all available tools with metadata (for the /tools API & UI)
 # ---------------------------------------------------------------------------
 ALL_TOOLS: List[Type[Tool]] = [
@@ -1466,4 +1509,5 @@ ALL_TOOLS: List[Type[Tool]] = [
     URLReader,
     ACP,
     DEX,
+    Tempo,
 ]
