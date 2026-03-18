@@ -669,6 +669,11 @@ class URLReader(Tool):
         if not url.startswith(("http://", "https://")):
             url = "https://" + url
         try:
+            # Handle non-ASCII characters in URLs
+            parsed = urlparse(url)
+            url = f"{parsed.scheme}://{parsed.netloc}{urllib.parse.quote(parsed.path)}"
+            if parsed.query: url += f"?{parsed.query}"
+            
             req = urllib.request.Request(
                 url,
                 headers={

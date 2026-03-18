@@ -44,11 +44,12 @@ models.Base.metadata.create_all(bind=engine)
 # ---------------------------------------------------------------------------
 
 class KeyRotator:
-    """Manages Alibaba Cloud DashScope API keys."""
+    """Manages Alibaba Cloud DashScope API keys with auto-rotation."""
     def __init__(self):
         self.keys = []
-        # Gunakan DASHSCOPE_API_KEY sebagai kunci utama
-        for env_name in ["DASHSCOPE_API_KEY"]:
+        # Support multiple keys: DASHSCOPE_API_KEY, DASHSCOPE_API_KEY_2, DASHSCOPE_API_KEY_3, etc.
+        env_names = ["DASHSCOPE_API_KEY"] + [f"DASHSCOPE_API_KEY_{i}" for i in range(2, 6)]
+        for env_name in env_names:
             val = (os.getenv(env_name) or "").strip()
             if val and val not in self.keys:
                 self.keys.append(val)
@@ -57,9 +58,9 @@ class KeyRotator:
         self.clients = [OpenAI(api_key=k, base_url=DASHSCOPE_BASE_URL, timeout=60.0) for k in self.keys]
         
         if self.clients:
-            logger.info(f"KeyRotator (Alibaba Cloud) initialized with {len(self.clients)} keys.")
+            logger.info(f"KeyRotator initialized with {len(self.clients)} DashScope keys.")
         else:
-            logger.warning("No DashScope API key found. Agent will run in FREE mode (DDGS).")
+            logger.warning("No DashScope API keys found. Agent will run in FREE mode (DDGS).")
 
     def get_current_client(self) -> Any:
         if not self.clients:
@@ -370,9 +371,9 @@ async def chat_with_agent(
     db: Session = Depends(get_db),
     _: None = Depends(require_auth),
 ):
-    # Use Groq client if available, otherwise fall back to FreeAIClient
+    # Use DashScope client if available, otherwise fall back to FreeAIClient
     client = rotator.get_current_client() or free_ai_client
-    client_type = "Groq" if rotator.clients else "FreeAI (DuckDuckGo)"
+    client_type = "DashScope" if rotator.clients else "FreeAI (DuckDuckGo)"
     
     logger.info(f"[/chat] session={body.session_id} client={client_type}")
     try:

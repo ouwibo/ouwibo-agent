@@ -20,43 +20,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /** Show a temporary notification about AI status */
   function showAiStatusNotification(message) {
-    // Add keyframes if not already present
-    if (!document.getElementById('ai-notification-styles')) {
-      const style = document.createElement('style');
-      style.id = 'ai-notification-styles';
-      style.textContent = `
-        @keyframes ai-notification-in { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
-        @keyframes ai-notification-out { from { opacity: 1; transform: translateX(-50%) translateY(0); } to { opacity: 0; transform: translateX(-50%) translateY(10px); } }
-      `;
-      document.head.appendChild(style);
-    }
+    // Remove existing if any
+    const existing = document.querySelector('.ai-status-notification');
+    if (existing) existing.remove();
     
     // Create notification element
     const notification = document.createElement('div');
     notification.className = 'ai-status-notification';
-    notification.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--accent, #f43f5e);
-      color: white;
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-size: 13px;
-      z-index: 10000;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      animation: ai-notification-in 0.3s ease;
-    `;
     notification.textContent = message;
     document.body.appendChild(notification);
     
     // Auto-remove after 5 seconds
     setTimeout(() => {
-      notification.style.animation = 'ai-notification-out 0.3s ease';
-      setTimeout(() => notification.remove(), 300);
+      if (!notification.parentElement) return;
+      notification.style.animation = 'ai-notification-out 0.4s ease forwards';
+      setTimeout(() => notification.remove(), 400);
     }, 5000);
   }
+
+  // ── Helpers for inactive features ──────────────────────────────────────────
+  function showComingSoon(feature) {
+    showAiStatusNotification(`${feature} feature coming soon!`);
+  }
+
+  // Connect inactive sidebar items
+  document.querySelectorAll('.nav-section--control .nav-item, .nav-section--settings .nav-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      if (item.getAttribute('href') === '#') {
+        e.preventDefault();
+        const text = item.querySelector('.nav-item__text')?.textContent || 'This';
+        showComingSoon(text);
+      }
+    });
+  });
+
+  // Connect inactive chat input buttons
+  document.querySelectorAll('.chat-input-btn-extra').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const title = btn.getAttribute('title') || 'This';
+      showComingSoon(title);
+    });
+  });
 
   /** Build headers object — includes Authorization if token present */
   function authHeaders(extra = {}) {
@@ -162,91 +166,97 @@ document.addEventListener('DOMContentLoaded', () => {
   /** Check /health to know if auth is required, then conditionally show modal */
   async function initAuth() {
     let aiClientStatus = 'ready';
-    let healthData = null;
+    let healthData = {
+      auth: false,
+      ai_client: 'ready',
+      config: {
+        ai_key_configured: false,
+        access_token_configured: false,
+        search_provider: 'auto',
+        missing: [],
+      },
+    };
     
     try {
       const res = await fetch('/api/health');
-      healthData = await res.json();
-      _authEnabled = healthData.auth === true;
-      aiClientStatus = healthData.ai_client || 'ready';
-    } catch (_) {
-      // If /health fails, don't pretend keys are "missing" — show ERROR in tools UI.
+      if (res.ok) {
+        const data = await res.json();
+        healthData = { ...healthData, ...data };
+        _authEnabled = healthData.auth === true;
+        aiClientStatus = healthData.ai_client || 'ready';
+      }
+    } catch (err) {
+      console.warn('[Ouwibo] Health check failed:', err);
       _authEnabled = false;
-      healthData = {
-        auth: false,
-        ai_client: 'error',
-        config: {
-          ai_key_configured: false,
-          access_token_configured: false,
-          search_provider: 'auto',
-          missing: [],
-        },
-      };
     }
 
     // Update tools page config status (if present on this page).
     (function updateToolsConfigUI(data) {
-      const list = document.getElementById('tools-config-list');
-      const statAiKey = document.getElementById('stat-ai-key');
-      if (!list && !statAiKey) return;
+      try {
+        const list = document.getElementById('tools-config-list');
+        const statAiKey = document.getElementById('stat-ai-key');
+        if (!list && !statAiKey) return;
 
-      const cfg = (data && data.config) ? data.config : {};
-      const aiSet = cfg.ai_key_configured === true;
-      const accessSet = cfg.access_token_configured === true;
-      const provider = (cfg.search_provider || 'auto').toString();
-      const aiClient = (data && data.ai_client) ? String(data.ai_client) : 'ready';
-      const authEnabled = (data && data.auth) === true;
+        const cfg = (data && data.config) ? data.config : {};
+        const aiSet = cfg.ai_key_configured === true;
+        const accessSet = cfg.access_token_configured === true;
+        const provider = (cfg.search_provider || 'auto').toString();
+        const aiClient = (data && data.ai_client) ? String(data.ai_client) : 'ready';
+        const authEnabled = (data && data.auth) === true;
 
-      if (statAiKey) {
-        // If no key but free mode works, show it as FREE (not "missing").
-        statAiKey.textContent = aiSet ? 'SET' : (aiClient === 'free' ? 'FREE' : (aiClient === 'error' ? 'ERROR' : 'MISSING'));
-        statAiKey.classList.toggle('text-emerald-400', aiSet);
-        statAiKey.classList.toggle('text-accent', !aiSet);
+        if (statAiKey) {
+          // If no key but free mode works, show it as FREE (not "missing").
+          statAiKey.textContent = aiSet ? 'SET' : (aiClient === 'free' ? 'FREE' : (aiClient === 'error' ? 'ERROR' : 'MISSING'));
+          statAiKey.classList.toggle('text-emerald-400', aiSet);
+          statAiKey.classList.toggle('text-accent', !aiSet);
+        }
+
+        if (!list) return;
+        list.innerHTML = '';
+
+        function addRow(title, subtitle, chipText, chipClasses) {
+          const row = document.createElement('div');
+          row.className = 'tools-config-row';
+
+          const key = document.createElement('div');
+          key.className = 'tools-config-key';
+          const strong = document.createElement('strong');
+          strong.textContent = title;
+          const sub = document.createElement('span');
+          sub.textContent = subtitle;
+          key.appendChild(strong);
+          key.appendChild(sub);
+
+          const chip = document.createElement('span');
+          chip.className = chipClasses;
+          chip.textContent = chipText;
+
+          row.appendChild(key);
+          row.appendChild(chip);
+          list.appendChild(row);
+        }
+
+        addRow(
+          'AI API Key',
+          'API_KEY or GROQ_API_KEY',
+          aiSet ? 'SET' : (aiClient === 'free' ? 'FREE' : (aiClient === 'error' ? 'ERROR' : 'MISSING')),
+          aiSet ? 'tools-chip tools-chip--active' : 'tools-chip tools-chip--keyless'
+        );
+        addRow(
+          'Access Token',
+          'ACCESS_TOKEN (optional)',
+          authEnabled ? (accessSet ? 'SET' : 'MISSING') : 'OFF',
+          authEnabled ? (accessSet ? 'tools-chip tools-chip--active' : 'tools-chip') : 'tools-chip'
+        );
+        addRow(
+          'Search Provider',
+          'SEARCH_PROVIDER',
+          provider.toUpperCase(),
+          'tools-chip'
+        );
+      } catch (err) {
+        console.error('[Ouwibo] Error updating Tools UI:', err);
       }
-
-      if (!list) return;
-      list.innerHTML = '';
-
-      function addRow(title, subtitle, chipText, chipClasses) {
-        const row = document.createElement('div');
-        row.className = 'tools-config-row';
-
-        const key = document.createElement('div');
-        key.className = 'tools-config-key';
-        const strong = document.createElement('strong');
-        strong.textContent = title;
-        const sub = document.createElement('span');
-        sub.textContent = subtitle;
-        key.appendChild(strong);
-        key.appendChild(sub);
-
-        const chip = document.createElement('span');
-        chip.className = chipClasses;
-        chip.textContent = chipText;
-
-        row.appendChild(key);
-        row.appendChild(chip);
-        list.appendChild(row);
-      }
-
-      addRow(
-        'AI API Key',
-        'API_KEY or GROQ_API_KEY',
-        aiSet ? 'SET' : (aiClient === 'free' ? 'FREE' : (aiClient === 'error' ? 'ERROR' : 'MISSING')),
-        aiSet ? 'tools-chip tools-chip--active' : 'tools-chip tools-chip--keyless'
-      );
-      addRow(
-        'Access Token',
-        'ACCESS_TOKEN (optional)',
-        authEnabled ? (accessSet ? 'SET' : 'MISSING') : 'OFF',
-        authEnabled ? (accessSet ? 'tools-chip tools-chip--active' : 'tools-chip') : 'tools-chip'
-      );
-      addRow(
-        'Search Provider',
-        'SEARCH_PROVIDER',
-        provider.toUpperCase(),
-        'tools-chip'
-      );
     })(healthData);
 
     // Update tools page counts (total/active) from /tools.

@@ -4,8 +4,7 @@
 # LLM Models (fallback chain — attempted in order; fails over to the next)
 # ---------------------------------------------------------------------------
 MODELS = [
-    "qvq-max-2025-03-25",  # Strongest for reasoning
-    "qwen-max",            # Strongest for general tasks
+    "qwen-max",            # Strongest for general tasks & reasoning
     "qwen-plus",           # Good balance of speed & quality
     "qwen-turbo"           # High speed (fallback)
 ]
