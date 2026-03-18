@@ -1,6 +1,7 @@
 // static/script.js — Ouwibo Agent
 
-document.addEventListener('DOMContentLoaded', () => {
+(function() {
+  console.log("[Ouwibo] Script initializing...");
 
   // ── Auth ───────────────────────────────────────────────────────────────────
   const AUTH_TOKEN_KEY = 'ouwibo_access_token';
@@ -893,10 +894,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Init ───────────────────────────────────────────────────────────────────
   (async () => {
-    await initAuth();
-    await initSkills();
-    if (hasChat && userInput) userInput.focus();
-    if (hasChat) scrollToBottom(false);
+    try {
+      console.log("[Ouwibo] Starting services...");
+      await initAuth();
+      await initSkills();
+      if (hasChat && userInput) userInput.focus();
+      if (hasChat) scrollToBottom(false);
+      console.log("[Ouwibo] Initialization complete.");
+    } catch (err) {
+      console.error("[Ouwibo] Fatal initialization error:", err);
+    }
   })();
 
-});
+})();
