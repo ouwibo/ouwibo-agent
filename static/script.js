@@ -1,6 +1,19 @@
 // static/script.js — Ouwibo Agent
 
 (function() {
+  // Safety catch for Wallet conflicts (MetaMask/Brave/etc)
+  try {
+    if (!window.ethereum) {
+      Object.defineProperty(window, 'ethereum', {
+        value: undefined,
+        writable: true,
+        configurable: true
+      });
+    }
+  } catch (e) {
+    console.warn("[Ouwibo] Wallet conflict handled.");
+  }
+
   console.log("[Ouwibo] Script initializing...");
 
   // ── Auth ───────────────────────────────────────────────────────────────────
@@ -456,6 +469,7 @@
       shell.classList.add('shell--nav-collapsed');
     } else {
       shell.classList.remove('shell--nav-collapsed');
+      shell.style.gridTemplateColumns = "var(--sidebar-w) 1fr"; // Forced fix
     }
   } else {
     // On mobile, start closed
