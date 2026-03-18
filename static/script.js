@@ -252,7 +252,7 @@
 
         addRow(
           'AI API Key',
-          'API_KEY or GROQ_API_KEY',
+          'DASHSCOPE_API_KEY',
           aiSet ? 'SET' : (aiClient === 'free' ? 'FREE' : (aiClient === 'error' ? 'ERROR' : 'MISSING')),
           aiSet ? 'tools-chip tools-chip--active' : 'tools-chip tools-chip--keyless'
         );
@@ -295,9 +295,9 @@
       } catch (_) {}
     })();
 
-    // Show AI status notification if not using Groq
+    // Show AI status notification if not using Alibaba DashScope
     if (aiClientStatus === 'free') {
-      showAiStatusNotification('Using free AI mode (DuckDuckGo). Set API_KEY for better performance.');
+      showAiStatusNotification('Using free AI mode (DuckDuckGo). Set DASHSCOPE_API_KEY for better performance.');
     }
 
     if (!_authEnabled) {

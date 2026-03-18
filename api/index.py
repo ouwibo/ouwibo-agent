@@ -93,7 +93,7 @@ rotator = KeyRotator()
 
 # Free AI Wrapper for DuckDuckGo
 class FreeAIClient:
-    """A client that mimics the Groq/OpenAI interface using DuckDuckGo AI (Free)."""
+    """A client that mimics the Alibaba/OpenAI interface using DuckDuckGo AI (Free)."""
     class Chat:
         class Completions:
             def create(self, messages, model="gpt-4o-mini", **kwargs):

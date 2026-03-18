@@ -186,7 +186,8 @@ svg   { display: block; width: 16px; height: 16px;
 }
 
 .shell--nav-collapsed .shell-nav {
-  width: 68px;
+  width: 0;
+  border-right: none;
 }
 
 .shell--nav-collapsed .sidebar-brand__copy,
