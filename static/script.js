@@ -428,12 +428,12 @@
   const mobileBtn   = document.getElementById('nav-toggle-mobile');
   const SIDEBAR_KEY = 'ouwibo_sidebar';
 
-  function isMobile() { return window.innerWidth < 1024; } // Updated breakpoint for better tablet/mobile support
+  function isMobile() { return window.innerWidth < 1024; }
 
   function openSidebar() {
     if (isMobile()) {
       shell.classList.add('shell--nav-open');
-      shell.classList.remove('shell--nav-collapsed'); // Ensure collapsed is off on mobile
+      shell.classList.remove('shell--nav-collapsed');
       document.body.style.overflow = 'hidden';
     } else {
       shell.classList.remove('shell--nav-collapsed');
@@ -452,41 +452,41 @@
   }
 
   function toggleSidebar() {
-    const isCollapsed = shell.classList.contains('shell--nav-collapsed');
-    const isOpenMobile = shell.classList.contains('shell--nav-open');
-    
     if (isMobile()) {
-      isOpenMobile ? closeSidebar() : openSidebar();
+      const isOpen = shell.classList.contains('shell--nav-open');
+      isOpen ? closeSidebar() : openSidebar();
     } else {
+      const isCollapsed = shell.classList.contains('shell--nav-collapsed');
       isCollapsed ? openSidebar() : closeSidebar();
     }
   }
 
-  // Init sidebar state — Default to OPEN if no saved state exists
-  if (!isMobile()) {
-    const saved = localStorage.getItem(SIDEBAR_KEY);
-    if (saved === 'closed') {
-      shell.classList.add('shell--nav-collapsed');
-    } else {
+  // Init sidebar state — Strict priority: isMobile > localStorage > Default(Open)
+  function initSidebar() {
+    if (isMobile()) {
       shell.classList.remove('shell--nav-collapsed');
-      shell.style.gridTemplateColumns = "var(--sidebar-w) 1fr"; // Forced fix
+      shell.classList.remove('shell--nav-open');
+    } else {
+      const saved = localStorage.getItem(SIDEBAR_KEY);
+      if (saved === 'closed') {
+        shell.classList.add('shell--nav-collapsed');
+      } else {
+        shell.classList.remove('shell--nav-collapsed');
+      }
     }
-  } else {
-    // On mobile, start closed
-    shell.classList.remove('shell--nav-collapsed');
-    shell.classList.remove('shell--nav-open');
   }
+
+  initSidebar();
 
   if (collapseBtn) collapseBtn.addEventListener('click', toggleSidebar);
   if (mobileBtn)   mobileBtn.addEventListener('click', toggleSidebar);
   if (backdrop)    backdrop.addEventListener('click', closeSidebar);
 
   window.addEventListener('resize', () => {
-    if (!isMobile()) {
-      shell.classList.remove('shell--nav-open');
-      document.body.style.overflow = '';
-    } else {
-      shell.classList.remove('shell--nav-collapsed');
+    // Only auto-adjust if transitioning between mobile/desktop breakpoints
+    const mobile = isMobile();
+    if (!mobile && shell.classList.contains('shell--nav-open')) {
+      closeSidebar();
     }
   });
 
