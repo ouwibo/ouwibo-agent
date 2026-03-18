@@ -158,10 +158,11 @@ svg   { display: block; width: 16px; height: 16px;
    Shell Layout
    ============================================================ */
 /* ============================================================
-   Layout Shell (Flexbox Upgrade)
+   Stable Layout Shell (Flexbox)
    ============================================================ */
 .shell {
   display: flex;
+  flex-direction: row; /* Sidebar Left, Content Right */
   height: 100vh;
   height: 100dvh;
   width: 100vw;
@@ -169,6 +170,7 @@ svg   { display: block; width: 16px; height: 16px;
   background: var(--bg-1);
 }
 
+/* Sidebar: Fixed on the Left */
 .shell-nav {
   width: var(--sidebar-w);
   flex-shrink: 0;
@@ -178,20 +180,30 @@ svg   { display: block; width: 16px; height: 16px;
   border-right: 1px solid var(--sidebar-border);
   z-index: 100;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
+  height: 100%;
 }
 
 .shell--nav-collapsed .shell-nav {
   width: 68px;
 }
 
-.shell--nav-collapsed .nav-item__text,
-.shell--nav-collapsed .sidebar-brand__copy,
-.shell--nav-collapsed .nav-collapse-toggle,
-.shell--nav-collapsed .sidebar-version,
-.shell--nav-collapsed .social-icons {
-  opacity: 0;
-  pointer-events: none;
+/* Right Side: Topbar + Chat Content */
+.main-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+}
+
+.topbar {
+  height: var(--topbar-h);
+  background: var(--topbar-bg);
+  border-bottom: 1px solid var(--topbar-border);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  z-index: 30;
 }
 
 .content {
@@ -199,9 +211,9 @@ svg   { display: block; width: 16px; height: 16px;
   display: flex;
   flex-direction: column;
   min-width: 0;
-  height: 100%;
   background: var(--bg);
   position: relative;
+  overflow: hidden;
 }
 
 @media (max-width: 1023px) {
@@ -213,7 +225,6 @@ svg   { display: block; width: 16px; height: 16px;
     width: var(--sidebar-w);
     transform: translateX(-100%);
     z-index: 2000;
-    transition: transform 0.3s ease;
   }
   .shell--nav-open .shell-nav {
     transform: translateX(0);
@@ -221,26 +232,6 @@ svg   { display: block; width: 16px; height: 16px;
   .shell--nav-collapsed .shell-nav {
     width: var(--sidebar-w);
   }
-}
-
-.topbar {
-  width: 100%;
-  height: var(--topbar-h);
-  background: var(--topbar-bg);
-  border-bottom: 1px solid var(--topbar-border);
-  display: flex;
-  align-items: center;
-  z-index: 30;
-}
-
-  grid-area: topbar;
-  background: var(--topbar-bg);
-  border-bottom: 1px solid var(--topbar-border);
-  display: flex;
-  align-items: center;
-  min-height: var(--topbar-h);
-  z-index: 30;
-  transition: background var(--transition), border-color var(--transition);
 }
 
 .topnav-shell {
