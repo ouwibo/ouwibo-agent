@@ -1,4 +1,47 @@
 # ouwibo_agent/config.py
+import os
+from dataclasses import dataclass
+from typing import Optional
+
+# ---------------------------------------------------------------------------
+# Environment Validation
+# ---------------------------------------------------------------------------
+REQUIRED_ENV_VARS: list[str] = ["DASHSCOPE_API_KEY"]
+OPTIONAL_ENV_VARS: dict[str, str] = {
+    "SEARCH_PROVIDER": "auto",
+    "LOG_LEVEL": "INFO",
+    "SESSION_SECRET": "",
+}
+
+class EnvValidationError(Exception):
+    pass
+
+@dataclass
+class EnvConfig:
+    DASHSCOPE_API_KEY: str
+    SEARCH_PROVIDER: str
+    LOG_LEVEL: str
+    SESSION_SECRET: str
+
+def load_env() -> EnvConfig:
+    missing = [v for v in REQUIRED_ENV_VARS if not os.getenv(v)]
+    if missing:
+        raise EnvValidationError(f"Missing required environment variables: {', '.join(missing)}")
+
+    return EnvConfig(
+        DASHSCOPE_API_KEY=os.environ["DASHSCOPE_API_KEY"],
+        SEARCH_PROVIDER=os.getenv("SEARCH_PROVIDER", OPTIONAL_ENV_VARS["SEARCH_PROVIDER"]),
+        LOG_LEVEL=os.getenv("LOG_LEVEL", OPTIONAL_ENV_VARS["LOG_LEVEL"]),
+        SESSION_SECRET=os.getenv("SESSION_SECRET", ""),
+    )
+
+_env_config: Optional[EnvConfig] = None
+
+def get_env() -> EnvConfig:
+    global _env_config
+    if _env_config is None:
+        _env_config = load_env()
+    return _env_config
 
 # ---------------------------------------------------------------------------
 # LLM Models (fallback chain — attempted in order; fails over to the next)

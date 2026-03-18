@@ -21,7 +21,13 @@ from sqlalchemy.orm import Session  # type: ignore[import-untyped]
 import models  # type: ignore[import-untyped]
 from core.agent import Agent  # type: ignore[import-untyped]
 from core.auth import auth_enabled, require_auth  # type: ignore[import-untyped]
-from core.config import MAX_MESSAGE_LENGTH, MAX_SESSION_ID_LENGTH, DASHSCOPE_BASE_URL  # type: ignore[import-untyped]
+from core.config import (
+    MAX_MESSAGE_LENGTH,
+    MAX_SESSION_ID_LENGTH,
+    DASHSCOPE_BASE_URL,
+    get_env,
+    EnvValidationError,
+)  # type: ignore[import-untyped]
 from core.tools import WebSearch  # type: ignore[import-untyped]
 from database import SessionLocal, engine  # type: ignore[import-untyped]
 
@@ -35,6 +41,14 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+# Validate required environment variables at startup
+try:
+    env_config = get_env()
+    logger.info("Environment variables validated successfully")
+except EnvValidationError as e:
+    logger.error(f"Environment validation failed: {e}")
+    raise RuntimeError(f"Missing required environment variables: {e}")
 
 # Ensure tables are created
 models.Base.metadata.create_all(bind=engine)
