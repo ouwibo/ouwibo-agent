@@ -181,10 +181,36 @@ svg   { display: block; width: 16px; height: 16px;
   z-index: 100;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   height: 100%;
+  overflow-x: hidden;
+  white-space: nowrap;
 }
 
 .shell--nav-collapsed .shell-nav {
   width: 68px;
+}
+
+.shell--nav-collapsed .sidebar-brand__copy,
+.shell--nav-collapsed .nav-item__text,
+.shell--nav-collapsed .nav-item__badge,
+.shell--nav-collapsed .nav-section__chevron,
+.shell--nav-collapsed .sidebar-version__text,
+.shell--nav-collapsed .sidebar-version__label,
+.shell--nav-collapsed .social-icons {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s;
+}
+
+.sidebar-brand__copy,
+.nav-item__text,
+.nav-item__badge,
+.nav-section__chevron,
+.sidebar-version__text,
+.sidebar-version__label,
+.social-icons {
+  transition: opacity 0.3s ease, visibility 0.3s;
+  opacity: 1;
+  visibility: visible;
 }
 
 /* Right Side: Topbar + Chat Content */
@@ -214,24 +240,6 @@ svg   { display: block; width: 16px; height: 16px;
   background: var(--bg);
   position: relative;
   overflow: hidden;
-}
-
-@media (max-width: 1023px) {
-  .shell-nav {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: var(--sidebar-w);
-    transform: translateX(-100%);
-    z-index: 2000;
-  }
-  .shell--nav-open .shell-nav {
-    transform: translateX(0);
-  }
-  .shell--nav-collapsed .shell-nav {
-    width: var(--sidebar-w);
-  }
 }
 
 .topnav-shell {
@@ -349,6 +357,32 @@ svg   { display: block; width: 16px; height: 16px;
 .nav-item:hover { background: var(--nav-item-hover-bg); color: var(--text-1); }
 .nav-item--active { background: var(--nav-item-active-bg) !important; color: var(--nav-item-active-color) !important; }
 
+/* Nav item sub-elements */
+.nav-item__icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; flex-shrink: 0;
+}
+.nav-item__icon svg { width: 16px; height: 16px; }
+.nav-item__text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav-item__badge {
+  display: inline-flex; align-items: center; padding: 1px 6px;
+  border-radius: 4px; font-size: 9px; font-weight: 700;
+  background: var(--bg-3); color: var(--text-3);
+  letter-spacing: 0.04em; text-transform: uppercase; flex-shrink: 0;
+}
+.nav-item__external-icon { display: flex; align-items: center; justify-content: center; flex-shrink: 0; opacity: 0.5; }
+.nav-item__external-icon svg { width: 12px; height: 12px; }
+
+/* Nav section label text (used in collapsible button sections) */
+.nav-section__label-text { flex: 1; }
+
+/* Sidebar connection status dot */
+.sidebar-version__status {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--text-3); flex-shrink: 0;
+}
+.sidebar-connection-status--online { background: var(--success) !important; }
+.sidebar-version__label { color: var(--text-3); }
+
 /* Hide unconfigured sidebar items (href="#") without removing markup. */
 a.nav-item[href="#"] { display: none !important; }
 
@@ -446,13 +480,13 @@ a.nav-item[href="#"] { display: none !important; }
 /* ============================================================
    Responsive
    ============================================================ */
-@media (max-width: 768px) {
-  .shell { grid-template-columns: 0 1fr; }
+@media (max-width: 1024px) {
   
   /* Fix: prevent shell-nav from clipping fixed sidebar on mobile */
   /* Also prevent it from creating a stacking context that traps sidebar under backdrop */
   .shell-nav {
-    position: static;
+    width: 0;
+    position: absolute;
     overflow: visible;
     border-right: none;
     background: none !important;
@@ -479,7 +513,7 @@ a.nav-item[href="#"] { display: none !important; }
 }
 
 
-@media (min-width: 769px) {
+@media (min-width: 1025px) {
   .topbar-nav-toggle { display: none; }
   .shell--nav-collapsed .topbar-nav-toggle { display: flex; }
 }

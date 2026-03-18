@@ -18,56 +18,6 @@
   <button type="button" class="shell-nav-backdrop" id="nav-backdrop" aria-label="Close sidebar"></button>
 
   <!-- ================================================================
-       TOPBAR
-  ================================================================ -->
-  <header class="topbar">
-    <div class="topnav-shell">
-      <button type="button" class="topbar-nav-toggle" id="nav-toggle-mobile" aria-label="Open sidebar">
-        <span class="nav-collapse-toggle__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><line x1="4" x2="20" y1="6"  y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-        </span>
-      </button>
-
-      <div class="topnav-shell__content"></div>
-
-      <div class="topnav-shell__actions">
-        <button class="topbar-search" onclick="window.location.href='/search.html'" title="Search (⌘K)" aria-label="Open search">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <span class="topbar-search__label">Search</span>
-          <kbd class="topbar-search__kbd">⌘K</kbd>
-        </button>
-
-        <!-- Auth badge -->
-        <button type="button" class="topbar-auth-badge" id="topbar-auth-badge" title="Authentication status" aria-label="Authentication status" style="display:none">
-          <svg id="topbar-auth-icon-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-          </svg>
-          <svg id="topbar-auth-icon-unlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
-            <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
-            <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
-          </svg>
-          <span id="topbar-auth-label">Locked</span>
-        </button>
-
-        <div class="topbar-status">
-          <div class="topbar-theme-mode" role="group" aria-label="Color mode" id="theme-switcher">
-            <button type="button" class="topbar-theme-mode__btn topbar-theme-mode__btn--active" data-theme-val="system" title="Auto" aria-label="Auto theme">
-              <svg viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
-            </button>
-            <button type="button" class="topbar-theme-mode__btn" data-theme-val="light" title="Light" aria-label="Light theme">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
-            </button>
-            <button type="button" class="topbar-theme-mode__btn" data-theme-val="dark" title="Dark" aria-label="Dark theme">
-              <svg viewBox="0 0 24 24"><path d="M12 3a6.5 6.5 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- ================================================================
        SIDEBAR
   ================================================================ -->
   <div class="shell-nav">
@@ -95,6 +45,7 @@
         <!-- Nav body -->
         <div class="sidebar-shell__body">
           <nav class="sidebar-nav">
+
             <!-- CHAT section -->
             <section class="nav-section">
               <button class="nav-section__label" type="button" aria-expanded="true">
@@ -147,50 +98,18 @@
                 <span class="nav-section__chevron"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
               </button>
               <div class="nav-section__items">
-                    <!-- Direct links without Web3 title if requested -->
-                <a href="/tool.html?tool=wallet" class="nav-item" data-tool="wallet" title="Wallet Scan">
+                <a href="/tools.html?tool=wallet" class="nav-item" data-tool="wallet" title="Wallet Scan">
                   <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M21 7H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><path d="M16 15h2"/></svg></span>
                   <span class="nav-item__text">Wallet Scan</span>
                 </a>
-                <a href="/tool.html?tool=crypto" class="nav-item" data-tool="crypto" title="Crypto Market">
+                <a href="/tools.html?tool=crypto" class="nav-item" data-tool="crypto" title="Market">
                   <span class="nav-item__icon"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4.03 3 9 3s9-1.34 9-3v-6"/></svg></span>
                   <span class="nav-item__text">Market</span>
                 </a>
-
-                <!-- Core research tools (Search/Google/News/Read URL/Wikipedia) are part of agent base.
-                     Keep markup commented for later, but hide from Tools menu to reduce clutter. -->
-                <!--
-                <div class="nav-subtitle">Research</div>
-                <a href="/tool.html?tool=search" class="nav-item" data-tool="search" title="Web Search (DuckDuckGo)">
-                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
-                  <span class="nav-item__text">Search</span>
+                <a href="/tools.html?tool=dex" class="nav-item" data-tool="dex" title="DEX">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg></span>
+                  <span class="nav-item__text">DEX</span>
                 </a>
-                <a href="/tool.html?tool=google_search" class="nav-item" data-tool="google_search" title="Google Search">
-                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 12h7"/><path d="M12 5v14"/></svg></span>
-                  <span class="nav-item__text">Google</span>
-                </a>
-                <a href="/tool.html?tool=news" class="nav-item" data-tool="news" title="News">
-                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M4 6h16v14H4z"/><path d="M8 10h8"/><path d="M8 14h8"/><path d="M8 18h5"/></svg></span>
-                  <span class="nav-item__text">News</span>
-                </a>
-                <a href="/tool.html?tool=read_url" class="nav-item" data-tool="read_url" title="Read URL">
-                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 1 0-7l1-1a5 5 0 0 1 7 7l-1 1"/><path d="M14 11a5 5 0 0 1 0 7l-1 1a5 5 0 0 1-7-7l1-1"/></svg></span>
-                  <span class="nav-item__text">Read URL</span>
-                </a>
-                <a href="/tool.html?tool=wikipedia" class="nav-item" data-tool="wikipedia" title="Wikipedia">
-                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M7 6l5 12 5-12"/><path d="M9 12h6"/></svg></span>
-                  <span class="nav-item__text">Wikipedia</span>
-                </a>
-                -->
-
-                <!-- Social tools are part of agent base (auto), not a standalone Tools menu item. -->
-                <!--
-                <div class="nav-subtitle">Social</div>
-                <a href="/tool.html?tool=social_search" class="nav-item" data-tool="social_search" title="Social Search">
-                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M5 9h14"/><path d="M5 15h14"/><path d="M9 4v16"/><path d="M15 4v16"/></svg></span>
-                  <span class="nav-item__text">Social Search</span>
-                </a>
-                -->
               </div>
             </section>
 
@@ -208,12 +127,15 @@
                 <a href="#" class="nav-item"><span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="m8 2 1.88 1.88M14.12 3.88 16 2M9 7.13v-1a3.003 3.003 0 1 1 6 0v1M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6M12 20v-9"/></svg></span><span class="nav-item__text">Debug</span><span class="nav-item__badge">Soon</span></a>
               </div>
             </section>
+
           </nav>
         </div>
 
         <!-- Footer -->
         <div class="sidebar-shell__footer">
           <div class="sidebar-footer-content">
+
+            <!-- Social icons -->
             <div class="social-icons">
               <a href="https://x.com/ouwibo" target="_blank" rel="noopener noreferrer" class="social-btn" title="@ouwibo on X (Twitter)">
                 <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
@@ -232,17 +154,20 @@
               </a>
             </div>
 
+            <!-- Docs link -->
             <a class="nav-item nav-item--external sidebar-utility-link" href="https://github.com/ouwibo/ouwibo-agent" target="_blank" rel="noopener noreferrer" title="Docs">
               <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg></span>
               <span class="nav-item__text">Docs</span>
               <span class="nav-item__external-icon"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
             </a>
 
+            <!-- Version + status -->
             <div class="sidebar-version">
               <span class="sidebar-version__label">Version</span>
               <span class="sidebar-version__text">v2026.1.0</span>
               <span id="status-dot" class="sidebar-version__status sidebar-connection-status--online" role="img" aria-label="Online" title="System online"></span>
             </div>
+
           </div>
         </div>
 
@@ -253,6 +178,50 @@
   <!-- ================================================================
        MAIN CONTENT — SKILLS
   ================================================================ -->
+  <div class="main-layout">
+
+    <header class="topbar">
+      <div class="topnav-shell">
+        <button type="button" class="topbar-nav-toggle" id="nav-toggle-mobile" aria-label="Open sidebar">
+          <span class="nav-collapse-toggle__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><line x1="4" x2="20" y1="6"  y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+          </span>
+        </button>
+        <div class="topnav-shell__content"></div>
+        <div class="topnav-shell__actions">
+          <button class="topbar-search" onclick="window.location.href='/search.html'" title="Search (⌘K)" aria-label="Open search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <span class="topbar-search__label">Search</span>
+            <kbd class="topbar-search__kbd">⌘K</kbd>
+          </button>
+          <button type="button" class="topbar-auth-badge" id="topbar-auth-badge" title="Authentication status" aria-label="Authentication status" style="display:none">
+            <svg id="topbar-auth-icon-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <svg id="topbar-auth-icon-unlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+              <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+            </svg>
+            <span id="topbar-auth-label">Locked</span>
+          </button>
+          <div class="topbar-status">
+            <div class="topbar-theme-mode" role="group" aria-label="Color mode" id="theme-switcher">
+              <button type="button" class="topbar-theme-mode__btn topbar-theme-mode__btn--active" data-theme-val="system" title="Auto" aria-label="Auto theme">
+                <svg viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+              </button>
+              <button type="button" class="topbar-theme-mode__btn" data-theme-val="light" title="Light" aria-label="Light theme">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+              </button>
+              <button type="button" class="topbar-theme-mode__btn" data-theme-val="dark" title="Dark" aria-label="Dark theme">
+                <svg viewBox="0 0 24 24"><path d="M12 3a6.5 6.5 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
   <main class="content skills-page">
     <!--
       Use a flex "content area" that fills the shell's remaining height.
@@ -286,6 +255,7 @@
     </div>
   </main>
 
+  </div>
 </div>
 
 <!-- Auth modal -->

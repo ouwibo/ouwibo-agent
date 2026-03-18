@@ -1,4 +1,4 @@
-// static/tool.js — Single-tool page runner
+// static/tools.js — Single-tool page runner
 
 document.addEventListener('DOMContentLoaded', () => {
   const titleEl = document.getElementById('tool-title');
@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function run() {
     setError('');
     if (!tool) {
-      setError('Missing tool. Open this page as /tool.html?tool=wallet (or other tool name).');
+      setError('Missing tool. Open this page as /tools.html?tool=wallet (or other tool name).');
       return;
     }
 

@@ -409,9 +409,9 @@
   // highlightHashTarget removed since tools.html is deleted.
 
   function highlightToolPageNav() {
-    // Activate tool link in sidebar when on /tool.html?tool=...
+    // Activate tool link in sidebar when on /tools.html?tool=...
     const path = (window.location.pathname || '').toLowerCase();
-    if (!path.endsWith('/tool.html') && !path.endsWith('tool.html')) return;
+    if (!path.endsWith('/tools.html') && !path.endsWith('tools.html')) return;
     const params = new URLSearchParams(window.location.search || '');
     const tool = (params.get('tool') || '').trim();
     if (!tool) return;
