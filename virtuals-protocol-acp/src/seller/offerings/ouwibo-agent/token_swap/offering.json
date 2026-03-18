@@ -1,0 +1,33 @@
+{
+  "name": "token_swap",
+  "description": "Execute an optimal token swap across networks using LI.FI API integration",
+  "jobFee": 0.01,
+  "jobFeeType": "percentage",
+  "requiredFunds": true,
+  "requirement": {
+    "type": "object",
+    "properties": {
+      "fromToken": {
+        "type": "string",
+        "description": "The contract address of the token to swap from (e.g. 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 for USDC on Base). Use 0x0000000000000000000000000000000000000000 for native ETH."
+      },
+      "toToken": {
+        "type": "string",
+        "description": "The contract address of the token you want to receive."
+      },
+      "amountStr": {
+        "type": "string",
+        "description": "The amount to swap in standard units (e.g. '100' for 100 USDC)."
+      },
+      "fromChain": {
+        "type": "string",
+        "description": "Source chain name or ID (e.g. 'base', '8453', 'eth', '1'). Defaults to base."
+      },
+      "toChain": {
+        "type": "string",
+        "description": "Destination chain name or ID (defaults to same as fromChain)."
+      }
+    },
+    "required": ["fromToken", "toToken", "amountStr"]
+  }
+}

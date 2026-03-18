@@ -1,0 +1,5 @@
+{
+  "name": "stats",
+  "description": "Returns Ouwibo Agent's current capabilities, uptime, and active tasks statistics.",
+  "url": "http://api.ouwibo.local/stats"
+}

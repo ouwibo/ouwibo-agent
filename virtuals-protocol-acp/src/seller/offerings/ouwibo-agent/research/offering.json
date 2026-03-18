@@ -1,0 +1,17 @@
+{
+  "name": "research",
+  "description": "Performs deep web search and analysis on any given topic using Ouwibo Agent's internal tools.",
+  "jobFee": 0.5,
+  "jobFeeType": "fixed",
+  "requiredFunds": false,
+  "requirement": {
+    "query": {
+      "type": "string",
+      "description": "The topic or question to research"
+    },
+    "depth": {
+      "type": "string",
+      "description": "Level of detail: 'summary' or 'comprehensive'"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "crypto_analysis",
+  "description": "Performs cryptocurrency market analysis, retrieves token snapshot data, and provides trading insights using on-chain and DEX tools.",
+  "jobFee": 0.1,
+  "jobFeeType": "fixed",
+  "processing_time": "3-5 minutes",
+  "requiredFunds": false,
+  "requirement": {
+    "token_or_project": {
+      "type": "string",
+      "description": "Enter token symbol like VIRTUALS or CA address"
+    },
+    "analysis_type": {
+      "type": "string",
+      "description": "Type of analysis: 'snapshot', 'technical', or 'fundamental'"
+    }
+  }
+}
