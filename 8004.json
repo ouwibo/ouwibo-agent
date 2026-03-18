@@ -12,6 +12,10 @@
       "name": "A2A",
       "endpoint": "https://github.com/ouwibo/ouwibo-agent/tree/main/virtuals-protocol-acp",
       "version": "0.3.0"
+    },
+    {
+      "name": "agentWallet",
+      "endpoint": "eip155:8453:0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2"
     }
   ],
   "registrations": [
