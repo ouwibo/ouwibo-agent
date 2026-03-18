@@ -18,7 +18,25 @@ load_dotenv()
 
 LIFI_API_KEY = os.getenv("LIFI_API_KEY")
 PRIVATE_KEY = os.getenv("PRIVATE_KEY")
-WALLET_ADDRESS = os.getenv("AGENT_WALLET_ADDRESS")
+
+def parse_int(val, default=0):
+    if val is None or val == "": return default
+    if isinstance(val, int): return val
+    if isinstance(val, str):
+        if val.startswith("0x"): return int(val, 16)
+        try: return int(val)
+        except ValueError: return default
+    return default
+
+# Derive wallet address from private key automatically
+WALLET_ADDRESS = None
+if PRIVATE_KEY and Web3:
+    try:
+        _w3 = Web3()
+        WALLET_ADDRESS = _w3.eth.account.from_key(PRIVATE_KEY).address
+        logging.info(f"Derived wallet address: {WALLET_ADDRESS}")
+    except Exception as e:
+        logging.warning(f"Could not derive wallet address from private key: {e}")
 
 def main():
     if len(sys.argv) < 6:
@@ -35,19 +53,28 @@ def main():
         print(json.dumps({"error": "LIFI_API_KEY not found in environment."}))
         sys.exit(1)
 
-    # Simplified format converting for Base tokens (LI.FI expects integers like wei)
-    # Since we don't know the exact decimals without a token info call, 
-    # we will assume 18 decimals for this prototype. (USDC is usually 6, so we'll query token first if needed).
-    # For a robust implementation, you should query LI.FI /v1/token to get exact decimals.
-    
-    # Let's hit the quote endpoint directly. Li.Fi handles routing well.
+    # Determine token decimals
+    # Native ETH/BNB/MATIC (zero address or symbol 'ETH') = 18 decimals
+    # USDC/USDT = 6 decimals, WETH = 18 decimals
+    _token_lower = from_token.lower()
+    if _token_lower in ("eth", "bnb", "matic", "avax", "sol", "0x0000000000000000000000000000000000000000"):
+        _decimals = 18
+    elif _token_lower in ("usdc", "usdt", "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                          "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+                          "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+                          "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                          "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"):
+        _decimals = 6
+    else:
+        _decimals = 18  # default to 18 for WETH and unknown tokens
+
     url = "https://li.quest/v1/quote"
     params = {
         "fromChain": from_chain,
         "toChain": to_chain,
         "fromToken": from_token,
         "toToken": to_token,
-        "fromAmount": str(int(float(amount_str) * (10**6))), # assuming USDC (6 decimals)
+        "fromAmount": str(int(float(amount_str) * (10 ** _decimals))),
         "fromAddress": WALLET_ADDRESS or "0x0000000000000000000000000000000000000000"
     }
 
@@ -67,7 +94,7 @@ def main():
         quote = data.get("estimate", {})
         tx_data = data.get("transactionRequest", {})
 
-        output_amount_base = int(quote.get("toAmountMin", 0))
+        output_amount_base = parse_int(quote.get("toAmountMin", 0))
         output_display = quote.get("toAmountMin", "0") # You would divide this by the target token's decimals
 
         # DRY RUN - we are not executing on chain yet
@@ -97,16 +124,16 @@ def main():
         transaction = {
             'to': w3.to_checksum_address(tx_data.get('to')),
             'data': tx_data.get('data'),
-            'value': int(tx_data.get('value', 0)),
-            'gas': int(tx_data.get('gasLimit', 500000)),
-            'gasPrice': int(tx_data.get('gasPrice', w3.eth.gas_price)),
+            'value': parse_int(tx_data.get('value', 0)),
+            'gas': parse_int(tx_data.get('gasLimit', 500000)),
+            'gasPrice': parse_int(tx_data.get('gasPrice', w3.eth.gas_price)),
             'nonce': w3.eth.get_transaction_count(account.address),
-            'chainId': tx_data.get('chainId', 8453) # Default Base
+            'chainId': parse_int(tx_data.get('chainId', 8453)) # Default Base
         }
 
         # Sign and send transaction
         signed_txn = account.sign_transaction(transaction)
-        tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
+        tx_hash = w3.eth.send_raw_transaction(signed_txn.raw_transaction)
         hex_hash = Web3.to_hex(tx_hash)
 
         result = {

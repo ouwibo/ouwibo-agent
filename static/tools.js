@@ -133,6 +133,32 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dexContainer) dexContainer.classList.remove('hidden');
 
     initDexWidget();
+    initWalletConnect();
+  }
+
+  function initWalletConnect() {
+    const connectBtn = document.getElementById('dex-connect-wallet');
+    if (!connectBtn) return;
+
+    connectBtn.addEventListener('click', async () => {
+      if (typeof window.ethereum !== 'undefined') {
+        try {
+          connectBtn.textContent = 'Connecting...';
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          if (accounts && accounts.length > 0) {
+            const addr = accounts[0];
+            connectBtn.textContent = addr.substring(0, 6) + '...' + addr.substring(addr.length - 4);
+            connectBtn.className = 'px-5 py-2.5 bg-[var(--bg-3)] text-[var(--text-1)] border border-[var(--border)] rounded-full text-sm font-medium shadow-sm cursor-default';
+          }
+        } catch (err) {
+          console.error("Wallet connection failed", err);
+          connectBtn.textContent = 'Connect Wallet';
+        }
+      } else {
+        alert("Please install MetaMask or a Web3 wallet browser extension to connect.");
+        connectBtn.textContent = 'Connect Wallet';
+      }
+    });
   }
 
   function initDexWidget() {

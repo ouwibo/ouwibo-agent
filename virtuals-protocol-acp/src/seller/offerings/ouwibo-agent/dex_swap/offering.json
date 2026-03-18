@@ -1,0 +1,14 @@
+{
+  "name": "dex_swap",
+  "description": "Cross-chain crypto swaps powered by LI.FI infrastructure. Give me exact crypto and target chains, and I will securely route and swap your crypto on-chain. Powered by Ouwibo Dex Agent.",
+  "jobFee": 0.1,
+  "jobFeeType": "fixed",
+  "requiredFunds": false,
+  "requirement": {
+    "fromToken": "Symbol or address of the crypto to swap from (e.g. 'ETH')",
+    "toToken": "Symbol or address of the crypto to swap to (e.g. 'USDC')",
+    "amount": "Decimal amount of the fromToken to swap (e.g. '0.00003')",
+    "fromChain": "Chain ID of the source network (e.g. 8453 for Base)",
+    "toChain": "Chain ID of the target network (e.g. 8453 for Base)"
+  }
+}
