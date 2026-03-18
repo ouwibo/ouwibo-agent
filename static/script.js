@@ -658,7 +658,7 @@
   }
 
   // ── Append message ─────────────────────────────────────────────────────────
-  function appendMessage(role, text) {
+  async function appendMessage(role, text) {
     console.log(`[Ouwibo] Appending ${role} message:`, text.substring(0, 50) + "...");
     const isAgent = role === 'assistant';
     const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -671,62 +671,44 @@
       const bubble = document.createElement('div');
       bubble.className = 'message__bubble chat-prose';
       
-      try {
-        // Render markdown with fallback
-        bubble.innerHTML = renderMarkdown(text);
-      } catch (err) {
-        console.error("[Ouwibo] Rendering error:", err);
-        bubble.textContent = text; // Safe fallback
+      // Initial state for typewriter
+      bubble.innerHTML = '';
+      
+      const body = document.createElement('div');
+      body.className = 'message__body';
+      body.appendChild(bubble);
+      
+      // Meta and other elements...
+      const meta = document.createElement('div');
+      meta.className = 'message__meta';
+      meta.innerHTML = `<span>Assistant</span><span>·</span><span>${time}</span><span class="model-badge" style="padding:1px 7px;font-size:10px;"><span class="model-badge__dot"></span>AUTO</span>`;
+      
+      wrapper.innerHTML = `<div class="message__avatar message__avatar--agent"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:14px;height:14px"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 4a3 3 0 1 1-3 3 3 3 0 0 1 3-3zm0 14a8 8 0 0 1-6.4-3.2C5.6 14.8 9.6 14 12 14s6.4.8 6.4 2.8A8 8 0 0 1 12 20z"/></svg></div>`;
+      body.appendChild(meta);
+      wrapper.appendChild(body);
+      chatMessages.appendChild(wrapper);
+      
+      // Typewriter Effect
+      const words = text.split(' ');
+      let currentText = '';
+      for (let i = 0; i < words.length; i++) {
+        currentText += words[i] + ' ';
+        bubble.innerHTML = renderMarkdown(currentText);
+        scrollToBottom();
+        // Speed control: faster for longer messages
+        await new Promise(resolve => setTimeout(resolve, Math.max(10, 50 - (words.length / 5))));
       }
       
-      // Transform specific wallet links into Card Buttons (Wrapped in try-catch)
-      try {
-        const linkPatterns = [
-          { name: 'DeBank',    icon: '<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>', class: 'debank' },
-          { name: 'Arkham',    icon: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>', class: 'arkham' },
-          { name: 'Blockscan', icon: '<rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>', class: 'blockscan' }
-        ];
-
-        let hasCards = false;
-        let cardHtml = '<div class="link-card-group">';
-        let rendered = bubble.innerHTML;
-        
-        linkPatterns.forEach(p => {
-          const regex = new RegExp(`<li>\\[${p.name}\\]\\s*(https?:\\/\\/[^<]+)<\\/li>`, 'g');
-          if (regex.test(rendered)) {
-            hasCards = true;
-            rendered = rendered.replace(regex, (match, url) => {
-              cardHtml += `<a href="${url.trim()}" target="_blank" rel="noopener noreferrer" class="link-card link-card--${p.class}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor">${p.icon}</svg>${p.name}</a>`;
-              return '';
-            });
-          }
-        });
-        
-        if (hasCards) {
-          cardHtml += '</div>';
-          bubble.innerHTML = rendered.replace(/<ul>\s*<\/ul>/g, '') + cardHtml;
-        }
-      } catch (e) { console.warn("[Ouwibo] Card transformation failed"); }
-
-      bubble.querySelectorAll('a').forEach(a => { a.target = '_blank'; a.rel = 'noopener noreferrer'; });
-
+      // Final render to ensure all cards/markdown are correct
+      bubble.innerHTML = renderMarkdown(text);
+      
+      // Add copy button after typing is done
       const copyBtn = document.createElement('button');
       copyBtn.type = 'button';
       copyBtn.className = 'message__copy-btn';
       copyBtn.innerHTML = '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
       copyBtn.addEventListener('click', () => copyText(text, copyBtn));
-
-      const meta = document.createElement('div');
-      meta.className = 'message__meta';
-      meta.innerHTML = `<span>Assistant</span><span>·</span><span>${time}</span><span class="model-badge" style="padding:1px 7px;font-size:10px;"><span class="model-badge__dot"></span>AUTO</span>`;
       meta.appendChild(copyBtn);
-
-      wrapper.innerHTML = `<div class="message__avatar message__avatar--agent"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:14px;height:14px"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 4a3 3 0 1 1-3 3 3 3 0 0 1 3-3zm0 14a8 8 0 0 1-6.4-3.2C5.6 14.8 9.6 14 12 14s6.4.8 6.4 2.8A8 8 0 0 1 12 20z"/></svg></div>`;
-      const body = document.createElement('div');
-      body.className = 'message__body';
-      body.appendChild(bubble);
-      body.appendChild(meta);
-      wrapper.appendChild(body);
 
     } else {
       const bubble = document.createElement('div');
@@ -747,9 +729,9 @@
       avatar.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:12px;height:12px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
       wrapper.appendChild(body);
       wrapper.appendChild(avatar);
+      chatMessages.appendChild(wrapper);
     }
 
-    chatMessages.appendChild(wrapper);
     scrollToBottom();
     return wrapper;
   }
