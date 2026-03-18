@@ -132,8 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (toolOutputWrap) toolOutputWrap.classList.add('hidden');
     if (dexContainer) dexContainer.classList.remove('hidden');
 
-    initDexWidget();
-    initWalletConnect();
+    // iframe loads automatically
   }
 
   function initWalletConnect() {

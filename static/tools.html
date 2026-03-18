@@ -11,8 +11,7 @@
   <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- LI.FI Widget (locally bundled) -->
-  <script src="lifi-bundle.js"></script>
+
 </head>
 
 <body>
@@ -257,18 +256,21 @@
           <div class="tool-output chat-prose" id="tool-output"></div>
         </div>
 
-        <!-- LI.FI Widget Mount Point -->
+        <!-- LI.FI Widget (iframe embed) -->
         <div id="lifi-dex-container" class="mt-6 hidden">
-          <div class="flex justify-between items-center mb-6 px-1">
-             <h2 class="text-xl font-bold text-zinc-100 flex items-center gap-2">
-               <svg class="text-[var(--accent)]" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
-               Cross-Chain Swap
-             </h2>
-             <button id="dex-connect-wallet" class="px-5 py-2.5 bg-[var(--accent)] text-white rounded-full text-sm font-semibold hover:brightness-110 transition-all shadow-[0_0_15px_rgba(244,63,94,0.3)]">
-               Connect Wallet
-             </button>
+          <div class="flex items-center gap-2 mb-4 px-1">
+            <svg class="text-[var(--accent)]" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
+            <h2 class="text-xl font-bold text-zinc-100">Cross-Chain Swap & Bridge</h2>
           </div>
-          <div id="lifi-widget-root" style="min-height: 600px;"></div>
+          <div style="display:flex; justify-content:center;">
+            <iframe
+              id="lifi-widget-root"
+              src="https://playground.li.fi/?appearance=dark"
+              style="border:none; border-radius:16px; width:100%; max-width:500px; height:680px; background:transparent;"
+              allow="clipboard-write; clipboard-read"
+              title="LI.FI Cross-Chain Swap Widget"
+            ></iframe>
+          </div>
         </div>
       </div>
     </div>
