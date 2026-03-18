@@ -414,11 +414,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const mobileBtn   = document.getElementById('nav-toggle-mobile');
   const SIDEBAR_KEY = 'ouwibo_sidebar';
 
-  function isMobile() { return window.innerWidth < 769; }
+  function isMobile() { return window.innerWidth < 1024; } // Updated breakpoint for better tablet/mobile support
 
   function openSidebar() {
     if (isMobile()) {
       shell.classList.add('shell--nav-open');
+      shell.classList.remove('shell--nav-collapsed'); // Ensure collapsed is off on mobile
       document.body.style.overflow = 'hidden';
     } else {
       shell.classList.remove('shell--nav-collapsed');
@@ -437,19 +438,28 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function toggleSidebar() {
+    const isCollapsed = shell.classList.contains('shell--nav-collapsed');
+    const isOpenMobile = shell.classList.contains('shell--nav-open');
+    
     if (isMobile()) {
-      const isOpen = shell.classList.contains('shell--nav-open');
-      isOpen ? closeSidebar() : openSidebar();
+      isOpenMobile ? closeSidebar() : openSidebar();
     } else {
-      const isCollapsed = shell.classList.contains('shell--nav-collapsed');
       isCollapsed ? openSidebar() : closeSidebar();
     }
   }
 
-  // Init sidebar state
+  // Init sidebar state — Default to OPEN if no saved state exists
   if (!isMobile()) {
     const saved = localStorage.getItem(SIDEBAR_KEY);
-    if (saved === 'closed') shell.classList.add('shell--nav-collapsed');
+    if (saved === 'closed') {
+      shell.classList.add('shell--nav-collapsed');
+    } else {
+      shell.classList.remove('shell--nav-collapsed');
+    }
+  } else {
+    // On mobile, start closed
+    shell.classList.remove('shell--nav-collapsed');
+    shell.classList.remove('shell--nav-open');
   }
 
   if (collapseBtn) collapseBtn.addEventListener('click', toggleSidebar);
