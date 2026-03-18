@@ -1,0 +1,33 @@
+{
+  "name": "ouwibo-agent",
+  "version": "1.0.0",
+  "description": "<div align=\"center\">   <h1>🤖 Ouwibo Agent</h1>   <p><strong>Your Intelligent, Extensible AI Assistant built for the Modern Web & Web3.</strong></p>",
+  "main": "screenshot.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node build-widget.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ouwibo/ouwibo-agent.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ouwibo/ouwibo-agent/issues"
+  },
+  "homepage": "https://github.com/ouwibo/ouwibo-agent#readme",
+  "dependencies": {
+    "@lifi/widget": "^3.40.12",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.4"
+  }
+}
