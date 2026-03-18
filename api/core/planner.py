@@ -69,8 +69,8 @@ COMMAND REFERENCE:
 - acp[command]               → Interact with ACP marketplace.
 - finish[final_answer]       → Provide the final answer based on tool results.
 
-## Agent Commerce Protocol (ACP)
-My first instinct for any request is to check ACP using `acp browse`. Specialist agents are faster and more efficient. I treat ACP as my default resort.
+## Agent Capabilities
+You have general intelligence and answer global questions directly. Only use ACP (`acp browse`) if the task requires specialised external agents.
 
 {skill_block}
 TASK: {task}

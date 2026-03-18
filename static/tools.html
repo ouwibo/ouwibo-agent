@@ -11,9 +11,28 @@
   <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- LI.FI Widget (Modern ESM via esm.sh) -->
-  <!-- LI.FI Widget (Official Standalone Script) -->
-  <script src="https://cdn.li.quest/widget/latest/index.min.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "@lifi/widget": "https://esm.sh/@lifi/widget?bundle"
+      }
+    }
+  </script>
+  <script type="module">
+    import React from 'react';
+    import { createRoot } from 'react-dom/client';
+    import { LiFiWidget } from '@lifi/widget';
+    
+    window.renderLiFiWidget = function(containerId, config) {
+      const container = document.getElementById(containerId);
+      if (container) {
+        const root = createRoot(container);
+        root.render(React.createElement(LiFiWidget, { integrator: config.integrator, config: config }));
+      }
+    };
+  </script>
 </head>
 
 <body>

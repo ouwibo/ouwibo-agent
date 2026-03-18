@@ -162,12 +162,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function initDexWidget() {
-    const Widget = window.LiFiWidget;
-    if (!Widget) {
-      console.error('LiFiWidget not found. Official CDN might be slow.');
-      // Wait a bit if it's still loading
+    if (!window.renderLiFiWidget) {
+      console.error('renderLiFiWidget not found. ESM module might be loading.');
       if (!window._lifi_retry) {
-        window._lifi_retry = true;
+        window._lifi_retry = 0;
+      }
+      if (window._lifi_retry < 5) {
+        window._lifi_retry++;
         setTimeout(initDexWidget, 1000);
         return;
       }
@@ -179,7 +180,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
       
       const config = {
-        containerId: 'lifi-widget-root',
         integrator: 'OuwiboAgent',
         fee: 0.01,
         appearance: isDark ? 'dark' : 'light',
@@ -203,16 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       };
       
-      // Standard initialization for cdn.li.quest script
-      if (typeof Widget === 'function') {
-        new Widget(config);
-      } else if (Widget.LiFiWidget && typeof Widget.LiFiWidget === 'function') {
-        new Widget.LiFiWidget(config);
-      } else {
-        // Some versions might use a 'create' method or similar
-        console.warn('LiFiWidget constructor not found, attempting fallback...');
-        if (Widget.init) Widget.init(config);
-      }
+      window.renderLiFiWidget('lifi-widget-root', config);
     } catch (err) {
       console.error('Failed to init LiFiWidget:', err);
       setError('LI.FI Widget initialization failed.');
