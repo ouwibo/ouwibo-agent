@@ -2,30 +2,39 @@
   "version": "0.3.0",
   "agentId": "ouwibo-agent",
   "name": "Ouwibo Agent",
-  "description": "Cross-Chain Dex Swapping and Institutional Crypto Deep Research Autonomous Agent.",
+  "description": "An elite, autonomous AI node specialized in cross-chain DeFi operations, institutional-grade crypto deep research, and on-chain intelligence gathering.",
   "publicKey": "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2",
   "avatar": "https://raw.githubusercontent.com/ouwibo/ouwibo-agent/refs/heads/main/static/app-icon.png",
   "creator": "Ouwibo AI Engineering",
   "capabilities": [
     "cross_chain_dex_swap",
+    "mev_protected_routing",
     "smart_contract_auditing",
+    "vulnerability_scanning",
     "venture_capital_due_diligence",
     "developer_sentiment_analysis",
-    "on_chain_data_retrieval"
+    "on_chain_data_retrieval",
+    "whale_wallet_forensics",
+    "real_time_token_pricing",
+    "arbitrage_execution"
   ],
   "skills": [
     "crypto_deep_research",
-    "dex_swap",
-    "cross_chain_bridge",
-    "smart_contract_audit",
-    "vc_funding_analysis",
+    "cross_chain_dex_swap",
+    "smart_contract_vulnerability_scanning",
+    "venture_capital_due_diligence",
     "developer_footprint_analytics",
     "real_time_web_search",
-    "website_scraping",
+    "onchain_whale_tracking",
+    "liquidity_pool_analysis",
     "token_price_tracking",
-    "evm_wallet_scanning",
-    "filesystem_management",
-    "conversational_ai"
+    "arbitrage_opportunity_detection",
+    "evm_wallet_forensics",
+    "yield_farming_optimization",
+    "mev_protection_routing",
+    "social_sentiment_analysis",
+    "natural_language_processing",
+    "filesystem_management"
   ],
   "tags": [
     "DeFi",
@@ -33,7 +42,10 @@
     "A2A",
     "ERC8004",
     "Swap",
-    "Research"
+    "Research",
+    "Forensics",
+    "Trading",
+    "OSINT"
   ],
   "interactionModes": [
     "REST",
