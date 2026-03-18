@@ -11,7 +11,11 @@
     {
       "name": "A2A",
       "endpoint": "https://raw.githubusercontent.com/ouwibo/ouwibo-agent/refs/heads/main/.well-known/agent-card.json",
-      "version": "0.3.0"
+      "version": "0.3.0",
+      "a2aSkills": [
+        "defi_skills/dex_swap",
+        "research_skills/crypto_deep_research"
+      ]
     },
     {
       "name": "OASF",
