@@ -1,0 +1,10 @@
+{
+  "name": "crypto_deep_research",
+  "description": "Institutional-grade Crypto Deep Research. I will perform due diligence on any crypto token including smart contract security, VC funding history, and developer Twitter footprint.",
+  "jobFee": 1,
+  "jobFeeType": "fixed",
+  "requiredFunds": false,
+  "requirement": {
+    "tokenName": "The name or symbol of the crypto token/project to research. Examples: Ethereum, Base, Virtuals Protocol, Sui."
+  }
+}
