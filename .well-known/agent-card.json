@@ -1,0 +1,8 @@
+{
+  "version": "0.3.0",
+  "agentId": "ouwibo-agent",
+  "name": "Ouwibo Agent",
+  "description": "Cross-Chain Dex Swapping and Institutional Crypto Deep Research Autonomous Agent.",
+  "publicKey": "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2",
+  "skills": ["swap", "crypto_deep_research"]
+}

@@ -10,8 +10,15 @@
     },
     {
       "name": "A2A",
-      "endpoint": "https://github.com/ouwibo/ouwibo-agent/tree/main/virtuals-protocol-acp",
+      "endpoint": "https://raw.githubusercontent.com/ouwibo/ouwibo-agent/refs/heads/main/.well-known/agent-card.json",
       "version": "0.3.0"
+    },
+    {
+      "name": "OASF",
+      "endpoint": "https://github.com/ouwibo/ouwibo-agent/tree/main/skills",
+      "version": "0.8",
+      "skills": ["crypto_deep_research", "dex"],
+      "domains": ["DeFi", "Web3", "Blockchain"]
     },
     {
       "name": "agentWallet",
