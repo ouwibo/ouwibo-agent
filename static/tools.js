@@ -162,8 +162,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function initDexWidget() {
-    if (!window.renderLiFiWidget) {
-      console.error('renderLiFiWidget not found. ESM module might be loading.');
+    const lib = window.LiFiWidgetLib;
+    if (!lib || !lib.renderLiFiWidget) {
+      console.error('LiFiWidgetLib not found. Bundle might not be loaded yet.');
       if (!window._lifi_retry) {
         window._lifi_retry = 0;
       }
@@ -194,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         theme: {
           palette: {
-            primary: { main: '#f43f5e' }, // Ouwibo accent
+            primary: { main: '#f43f5e' },
           },
           shape: {
             borderRadius: 12,
@@ -203,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       };
       
-      window.renderLiFiWidget('lifi-widget-root', config);
+      lib.renderLiFiWidget('lifi-widget-root', config);
     } catch (err) {
       console.error('Failed to init LiFiWidget:', err);
       setError('LI.FI Widget initialization failed.');
