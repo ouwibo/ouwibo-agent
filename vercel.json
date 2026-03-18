@@ -3,17 +3,29 @@
   "builds": [
     {
       "src": "api.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "50mb",
-        "includeFiles": "skills/**"
-      }
+      "use": "@vercel/python"
     }
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "api.py"
+    },
+    {
+      "src": "/auth/(.*)",
+      "dest": "api.py"
+    },
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/(.*).(js|css|png|jpg|svg|html)",
+      "dest": "/static/$1.$2"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/api.py"
+      "dest": "/static/index.html"
     }
   ]
 }
