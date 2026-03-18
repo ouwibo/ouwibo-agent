@@ -6,7 +6,7 @@
   "services": [
     {
       "name": "web",
-      "endpoint": "https://github.com/ouwibo/ouwibo-agent"
+      "endpoint": "https://ouwibo-agent.vercel.app/"
     },
     {
       "name": "A2A",
