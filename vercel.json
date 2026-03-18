@@ -6,26 +6,18 @@
       "use": "@vercel/python"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "api.py"
+      "source": "/api/(.*)",
+      "destination": "/api.py"
     },
     {
-      "src": "/auth/(.*)",
-      "dest": "api.py"
+      "source": "/auth/(.*)",
+      "destination": "/api.py"
     },
     {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
-    },
-    {
-      "src": "/(.*).(js|css|png|jpg|svg|html)",
-      "dest": "/static/$1.$2"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/static/index.html"
+      "source": "/(.*)",
+      "destination": "/static/$1"
     }
   ]
 }
