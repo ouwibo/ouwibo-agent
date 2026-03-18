@@ -2,7 +2,7 @@
   "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
   "name": "Ouwibo Agent",
   "description": "An elite, autonomous AI node specialized in cross-chain DeFi operations, institutional-grade crypto deep research, and on-chain intelligence gathering. Built for the modern decentralised economy, Ouwibo Agent leverages decentralized infrastructure to execute automated token swaps, perform in-depth smart contract security audits, track venture capital funding flows, and analyze developer social sentiment across Web3 ecosystems.",
-  "image": "https://raw.githubusercontent.com/ouwibo/ouwibo-agent/refs/heads/main/static/favicon.ico",
+  "image": "https://raw.githubusercontent.com/ouwibo/ouwibo-agent/refs/heads/main/static/icon.png",
   "services": [
     {
       "name": "web",

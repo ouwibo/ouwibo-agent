@@ -77,5 +77,5 @@ MAX_SEARCH_RESULTS = 8  # Number of web search results returned
 # ---------------------------------------------------------------------------
 # API / Validation
 # ---------------------------------------------------------------------------
-MAX_MESSAGE_LENGTH = 4000  # Maximum user message length (characters)
+MAX_MESSAGE_LENGTH = 32000  # Increased to support much longer prompts
 MAX_SESSION_ID_LENGTH = 64  # Maximum session_id length

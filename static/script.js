@@ -693,10 +693,16 @@
       let currentText = '';
       for (let i = 0; i < words.length; i++) {
         currentText += words[i] + ' ';
-        bubble.innerHTML = renderMarkdown(currentText);
+        // Optimization: only call expensive renderMarkdown every 3 words or at the end
+        if (i % 3 === 0 || i === words.length - 1) {
+          bubble.innerHTML = renderMarkdown(currentText);
+        } else {
+          // Fast path: just append raw text for intermediate steps
+          bubble.textContent = currentText;
+        }
         scrollToBottom();
         // Speed control: faster for longer messages
-        await new Promise(resolve => setTimeout(resolve, Math.max(10, 50 - (words.length / 5))));
+        await new Promise(resolve => setTimeout(resolve, Math.max(5, 30 - (words.length / 10))));
       }
       
       // Final render to ensure all cards/markdown are correct

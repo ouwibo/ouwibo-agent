@@ -471,7 +471,30 @@ async def chat_with_agent(
 
 
 # ---------------------------------------------------------------------------
+# Metadata (8004 Scan, etc.)
+# ---------------------------------------------------------------------------
+@app.get("/8004.json", tags=["Metadata"])
+async def get_8004_json():
+    from fastapi.responses import FileResponse
+    # For Vercel, the file is usually at the root relative to api/
+    return FileResponse(os.path.join(os.path.dirname(__file__), "..", "8004.json"))
+
+
+@app.get("/.well-known/agent-card.json", tags=["Metadata"])
+async def get_agent_card_json():
+    from fastapi.responses import FileResponse
+    return FileResponse(os.path.join(os.path.dirname(__file__), "..", ".well-known", "agent-card.json"))
+
+
+# ---------------------------------------------------------------------------
 # Static Files & Fallback
 # ---------------------------------------------------------------------------
-# Mount static files at the end to avoid intercepting API routes
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
+
+
+if __name__ == "__main__":
+    import uvicorn
+    # Load port from .env
+    port = int(os.getenv("PORT", 8001))
+    # logger.info(f"Ouwibo Agent starting on port {port}...")
+    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
