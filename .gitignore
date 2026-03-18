@@ -78,3 +78,4 @@ worker-configuration.d.ts
 
 # LI.FI build artifacts
 static/lifi-build/
+static/lifi-bundle.js
