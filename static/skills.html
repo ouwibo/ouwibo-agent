@@ -5,10 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <meta name="virtual-protocol-site-verification" content="20edd410400b0f9d84c3e232dff9372f" />
   <title>Ouwibo Agent — Skills</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="icon.png">
-  <link rel="stylesheet" href="style.css?v=20260316">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -17,9 +16,7 @@
   <!-- Mobile backdrop -->
   <button type="button" class="shell-nav-backdrop" id="nav-backdrop" aria-label="Close sidebar"></button>
 
-  <!-- ================================================================
-       SIDEBAR
-  ================================================================ -->
+  <!-- Sidebar -->
   <div class="shell-nav">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-shell">
@@ -28,10 +25,10 @@
         <div class="sidebar-shell__header">
           <a href="/" class="sidebar-brand">
             <div class="sidebar-brand__logo-icon">
-              <img src="icon.png" alt="Ouwibo Logo" style="width: 100%; height: 100%; object-fit: contain;">
+              <img src="icon.png" alt="Ouwibo Logo" style="width:100%;height:100%;object-fit:contain;">
             </div>
             <span class="sidebar-brand__copy">
-              <span class="sidebar-brand__eyebrow">AI ASSISTANT</span>
+              <span class="sidebar-brand__eyebrow">AI Assistant</span>
               <span class="sidebar-brand__title">Ouwibo Agent</span>
             </span>
           </a>
@@ -46,7 +43,6 @@
         <div class="sidebar-shell__body">
           <nav class="sidebar-nav">
 
-            <!-- CHAT section -->
             <section class="nav-section">
               <button class="nav-section__label" type="button" aria-expanded="true">
                 <span class="nav-section__label-text">Chat</span>
@@ -64,20 +60,19 @@
               </div>
             </section>
 
-
-
-            <!-- AGENT section -->
             <section class="nav-section">
               <button class="nav-section__label" type="button" aria-expanded="true">
                 <span class="nav-section__label-text">Agent</span>
                 <span class="nav-section__chevron"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
               </button>
               <div class="nav-section__items">
-                <a href="/skills.html" class="nav-item nav-item--active" title="Skills"><span class="nav-item__icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span class="nav-item__text">Skills</span></a>
+                <a href="/skills.html" class="nav-item nav-item--active" title="Skills">
+                  <span class="nav-item__icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+                  <span class="nav-item__text">Skills</span>
+                </a>
               </div>
             </section>
 
-            <!-- TOOLS section -->
             <section class="nav-section">
               <button class="nav-section__label" type="button" aria-expanded="true">
                 <span class="nav-section__label-text">Tools</span>
@@ -99,18 +94,14 @@
               </div>
             </section>
 
-
-
           </nav>
         </div>
 
         <!-- Footer -->
         <div class="sidebar-shell__footer">
           <div class="sidebar-footer-content">
-
-            <!-- Social icons -->
             <div class="social-icons">
-              <a href="https://x.com/ouwibo" target="_blank" rel="noopener noreferrer" class="social-btn" title="@ouwibo on X (Twitter)">
+              <a href="https://x.com/ouwibo" target="_blank" rel="noopener noreferrer" class="social-btn" title="@ouwibo on X">
                 <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                 </svg>
@@ -126,21 +117,16 @@
                 </svg>
               </a>
             </div>
-
-            <!-- Docs link -->
             <a class="nav-item nav-item--external sidebar-utility-link" href="https://github.com/ouwibo/ouwibo-agent" target="_blank" rel="noopener noreferrer" title="Docs">
               <span class="nav-item__icon"><svg viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg></span>
               <span class="nav-item__text">Docs</span>
               <span class="nav-item__external-icon"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
             </a>
-
-            <!-- Version + status -->
             <div class="sidebar-version">
               <span class="sidebar-version__label">Version</span>
               <span class="sidebar-version__text">v2026.1.0</span>
               <span id="status-dot" class="sidebar-version__status sidebar-connection-status--online" role="img" aria-label="Online" title="System online"></span>
             </div>
-
           </div>
         </div>
 
@@ -148,16 +134,14 @@
     </aside>
   </div>
 
-  <!-- ================================================================
-       MAIN CONTENT — SKILLS
-  ================================================================ -->
+  <!-- Main -->
   <div class="main-layout">
 
     <header class="topbar">
       <div class="topnav-shell">
         <button type="button" class="topbar-nav-toggle" id="nav-toggle-mobile" aria-label="Open sidebar">
           <span class="nav-collapse-toggle__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><line x1="4" x2="20" y1="6"  y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            <svg viewBox="0 0 24 24"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
           </span>
         </button>
         <div class="topnav-shell__content"></div>
@@ -168,14 +152,8 @@
             <kbd class="topbar-search__kbd">⌘K</kbd>
           </button>
           <button type="button" class="topbar-auth-badge" id="topbar-auth-badge" title="Authentication status" aria-label="Authentication status" style="display:none">
-            <svg id="topbar-auth-icon-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-            <svg id="topbar-auth-icon-unlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
-              <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
-            </svg>
+            <svg id="topbar-auth-icon-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <svg id="topbar-auth-icon-unlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
             <span id="topbar-auth-label">Locked</span>
           </button>
           <div class="topbar-status">
@@ -195,16 +173,11 @@
       </div>
     </header>
 
-  <main class="content skills-page">
-    <!--
-      Use a flex "content area" that fills the shell's remaining height.
-      Avoid calc(100vh - topbar-h) because topbar can grow on mobile (wrap).
-    -->
-    <div class="skills-content-area">
-      <div class="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-10 w-full">
-        <div class="mb-8 md:mb-10">
-          <h1 class="text-xl md:text-2xl font-bold text-zinc-100">Skills</h1>
-          <p class="text-[13px] text-zinc-500 mt-1">Define your agent behavior using <code>skills/&lt;id&gt;/SKILL.md</code>.</p>
+    <main class="content skills-page">
+      <div class="skills-content-area">
+        <div class="skills-page-header">
+          <h1>Skills</h1>
+          <p>Define agent behavior using <code>skills/&lt;id&gt;/SKILL.md</code>.</p>
         </div>
 
         <div class="skills-layout">
@@ -225,16 +198,37 @@
           </section>
         </div>
       </div>
-    </div>
-  </main>
+    </main>
 
+  </div>
+
+</div>
+
+<!-- Auth modal -->
+<div class="auth-overlay auth-overlay--hidden" id="auth-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+  <div class="auth-modal">
+    <div>
+      <div class="auth-modal__title" id="auth-modal-title">Authentication Required</div>
+      <div class="auth-modal__sub">Enter your access token to continue.</div>
+    </div>
+    <div class="auth-field">
+      <label for="auth-token-input">Access Token</label>
+      <div class="auth-input-row">
+        <input type="password" id="auth-token-input" placeholder="Enter token…" autocomplete="current-password">
+        <button type="button" class="auth-eye-btn" id="auth-token-toggle" aria-label="Toggle token visibility">
+          <svg id="auth-eye-show" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          <svg id="auth-eye-hide" viewBox="0 0 24 24" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="auth-error auth-error--hidden" id="auth-error" role="alert">
+      <span id="auth-error-text"></span>
+    </div>
+    <button type="button" class="auth-submit-btn" id="auth-submit-btn">Verify Token</button>
   </div>
 </div>
 
-
-
-
-<script src="script.js?v=20260316"></script>
-<script src="skills.js?v=20260316"></script>
+<script src="script.js"></script>
+<script src="skills.js"></script>
 </body>
 </html>
