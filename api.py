@@ -93,24 +93,36 @@ rotator = KeyRotator()
 
 # Free AI Wrapper for DuckDuckGo
 class FreeAIClient:
-    """A client that mimics the Groq/OpenAI interface using DuckDuckGo AI (Free)."""
+    """A client that mimics the OpenAI interface using DuckDuckGo search as a fallback."""
     class Chat:
         class Completions:
             def create(self, messages, model="gpt-4o-mini", **kwargs):
                 from ddgs import DDGS  # type: ignore[import-untyped]
-                prompt = messages[-1]["content"]
-                with DDGS() as ddgs:
-                    ddgs_model = "gpt-4o-mini"
-                    if "llama" in str(model).lower(): ddgs_model = "llama-3.1-70b"
-                    response = ddgs.chat(prompt, model=ddgs_model)
-                    
-                    class MockResponse:
-                        class Choice:
-                            class Message:
-                                def __init__(self, content): self.content = content
-                            def __init__(self, content): self.message = self.Message(content)
-                        def __init__(self, content): self.choices = [self.Choice(content)]
-                    return MockResponse(response)
+                prompt = messages[-1]["content"] if messages else "Hello"
+                
+                try:
+                    with DDGS() as ddgs:
+                        # Use text search as a fallback since .chat() is often missing in newer ddgs versions
+                        results = list(ddgs.text(prompt, max_results=5))
+                        if results:
+                            resp_text = f"Based on latest search results:\n\n" + "\n".join([f"- {r.get('body', '')}" for r in results])
+                        else:
+                            resp_text = "I'm having trouble accessing my free AI fallback. Please check your API keys."
+                except Exception as e:
+                    logger.error(f"FreeAI fallback error: {e}")
+                    resp_text = f"Service currently limited. Error: {e}"
+
+                class MockResponse:
+                    class Choice:
+                        class Message:
+                            def __init__(self, content):
+                                self.content = content
+                        def __init__(self, content):
+                            self.message = self.Message(content)
+                    def __init__(self, content):
+                        self.choices = [self.Choice(content)]
+                
+                return MockResponse(resp_text)
         completions = Completions()
     chat = Chat()
 

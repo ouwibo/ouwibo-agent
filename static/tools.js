@@ -133,32 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dexContainer) dexContainer.classList.remove('hidden');
 
     initDexWidget();
-    initWalletConnect();
-  }
-
-  function initWalletConnect() {
-    const connectBtn = document.getElementById('dex-connect-wallet');
-    if (!connectBtn) return;
-
-    connectBtn.addEventListener('click', async () => {
-      if (typeof window.ethereum !== 'undefined') {
-        try {
-          connectBtn.textContent = 'Connecting...';
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          if (accounts && accounts.length > 0) {
-            const addr = accounts[0];
-            connectBtn.textContent = addr.substring(0, 6) + '...' + addr.substring(addr.length - 4);
-            connectBtn.className = 'px-5 py-2.5 bg-[var(--bg-3)] text-[var(--text-1)] border border-[var(--border)] rounded-full text-sm font-medium shadow-sm cursor-default';
-          }
-        } catch (err) {
-          console.error("Wallet connection failed", err);
-          connectBtn.textContent = 'Connect Wallet';
-        }
-      } else {
-        alert("Please install MetaMask or a Web3 wallet browser extension to connect.");
-        connectBtn.textContent = 'Connect Wallet';
-      }
-    });
   }
 
   function initDexWidget() {
@@ -182,25 +156,27 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const config = {
         integrator: 'OuwiboAgent',
-        fee: 0.01,
+        integrator: 'Ouwibo Agent',
+        fee: 0.005,
         appearance: isDark ? 'dark' : 'light',
-        containerStyle: {
-          border: '1px solid var(--border-subtle, rgba(255,255,255,0.05))',
-          borderRadius: '16px',
-          display: 'flex',
-          height: '600px',
-          width: '100%',
-          maxWidth: '480px',
-          margin: '0 auto',
-        },
         theme: {
           palette: {
             primary: { main: '#f43f5e' },
+            secondary: { main: '#10b981' },
           },
           shape: {
-            borderRadius: 12,
-            borderRadiusSecondary: 8,
+            borderRadius: 16,
+            borderRadiusSecondary: 12,
           },
+          typography: {
+            fontFamily: "'Inter', sans-serif",
+          },
+          container: {
+            border: '1px solid var(--border)',
+            borderRadius: '16px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+            background: 'transparent', // Ensure transparency
+          }
         }
       };
       

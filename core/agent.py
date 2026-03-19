@@ -68,10 +68,10 @@ class Agent:
 
     _UNCERTAIN_RE = re.compile(
         r"\b("
-        r"tidak\s+tahu|gak\s+tahu|nggak\s+tahu|kurang\s+tahu|"
-        r"tidak\s+yakin|ga\s+yakin|nggak\s+yakin|"
-        r"i\s+don'?t\s+know|not\s+sure|uncertain|"
-        r"cannot\s+find|can't\s+find|no\s+information"
+        r"tidak\s+tahu|gak\s+tahu|nggak\s+tahu|kurang\s+tahu|mungkin|"
+        r"tidak\s+yakin|ga\s+yakin|nggak\s+yakin|belum\s+yakin|"
+        r"i\s+don'?t\s+know|not\s+sure|uncertain|looking\s+up|"
+        r"cannot\s+find|can't\s+find|no\s+information|maaf"
         r")\b",
         re.IGNORECASE,
     )

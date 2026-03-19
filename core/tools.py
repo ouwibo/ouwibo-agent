@@ -35,15 +35,20 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 try:
-    from duckduckgo_search import DDGS  # type: ignore
-except Exception:  # pragma: no cover
-    DDGS = None
+    # Try importing the new 'ddgs' package (Dux Distributed Global Search) first
+    from ddgs import DDGS
+except ImportError:
+    try:
+        # Fallback to the classic 'duckduckgo_search' package
+        from duckduckgo_search import DDGS
+    except ImportError:
+        DDGS = None
+
 
 try:
-    from googlesearch import search as gsearch  # type: ignore
-except Exception:  # pragma: no cover
+    from googlesearch import search as gsearch
+except Exception:
     gsearch = None
-
 
 def _urls_to_results(urls: list[str], kind: str, provider: str) -> list[dict]:
     results = []

@@ -580,12 +580,24 @@
   if (hasChat) {
   // ── Error bar ──────────────────────────────────────────────────────────────
   function showError(msg) {
-    if (!errorBar || !errorText) return;
-    errorText.textContent = msg || 'Something went wrong.';
-    errorBar.classList.add('chat-error--visible');
-    clearTimeout(showError._t);
-    showError._t = setTimeout(hideError, 9000);
+    console.error('[Ouwibo ERROR]', msg);
+    const toast = document.createElement('div');
+    toast.className = 'error-toast';
+    toast.innerHTML = `
+      <div class="error-toast__icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <div class="error-toast__content">
+        <div class="error-toast__title">System Error</div>
+        <div class="error-toast__msg">${msg}</div>
+      </div>
+      <button class="error-toast__close" onclick="this.parentElement.remove()">✕</button>
+    `;
+    document.body.appendChild(toast);
+    // Keep it longer for visibility
+    setTimeout(() => { if (toast.parentElement) toast.remove(); }, 8000);
   }
+
 
   function hideError() {
     if (errorBar) errorBar.classList.remove('chat-error--visible');
@@ -849,20 +861,6 @@
     } finally {
       setLoading(false);
       userInput.focus();
-    }
-  });
-
-  // ── Keyboard shortcuts ─────────────────────────────────────────────────────
-  document.addEventListener('keydown', e => {
-    // Cmd/Ctrl+K → focus input
-    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-      e.preventDefault();
-      if (userInput) { userInput.focus(); userInput.select(); }
-    }
-    // Escape → close sidebar on mobile
-    if (e.key === 'Escape') {
-      if (isMobile()) closeSidebar();
-      else if (document.activeElement === userInput) userInput.blur();
     }
   });
 

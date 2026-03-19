@@ -1,74 +1,17 @@
 {
-  "version": "0.3.0",
-  "agentId": "ouwibo-agent",
   "name": "Ouwibo Agent",
-  "description": "An elite, autonomous AI node specialized in cross-chain DeFi operations, institutional-grade crypto deep research, and on-chain intelligence gathering.",
-  "publicKey": "0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2",
-  "avatar": "https://raw.githubusercontent.com/ouwibo/ouwibo-agent/refs/heads/main/static/app-icon.png",
-  "creator": "Ouwibo AI Engineering",
-  "capabilities": [
-    "cross_chain_dex_swap",
-    "mev_protected_routing",
-    "smart_contract_auditing",
-    "vulnerability_scanning",
-    "venture_capital_due_diligence",
-    "developer_sentiment_analysis",
-    "on_chain_data_retrieval",
-    "whale_wallet_forensics",
-    "real_time_token_pricing",
-    "arbitrage_execution"
-  ],
+  "version": "0.3.0",
+  "owner": "ouwibo",
   "skills": [
-    "crypto_deep_research",
-    "cross_chain_dex_swap",
-    "smart_contract_vulnerability_scanning",
-    "venture_capital_due_diligence",
-    "developer_footprint_analytics",
-    "real_time_web_search",
-    "onchain_whale_tracking",
-    "liquidity_pool_analysis",
-    "token_price_tracking",
-    "arbitrage_opportunity_detection",
-    "evm_wallet_forensics",
-    "yield_farming_optimization",
-    "mev_protection_routing",
-    "social_sentiment_analysis",
-    "natural_language_processing",
-    "filesystem_management"
+    "trading/dex_swap",
+    "research/token_analysis",
+    "research/security_audit",
+    "osint/market_sentiment",
+    "infrastructure/filesystem"
   ],
-  "tags": [
-    "DeFi",
-    "Web3",
-    "A2A",
-    "ERC8004",
-    "Swap",
-    "Research",
-    "Forensics",
-    "Trading",
-    "OSINT"
-  ],
-  "interactionModes": [
-    "REST",
-    "WebSocket",
-    "A2A"
-  ],
-  "communicationChannels": {
-    "github": "https://github.com/ouwibo/ouwibo-agent",
-    "website": "https://ouwibo-agent.vercel.app/"
-  },
-  "pricing": {
-    "model": "pay_per_job",
-    "currency": "USDC",
-    "services": [
-      {
-        "name": "dex_swap",
-        "fee": 0.1
-      },
-      {
-        "name": "crypto_deep_research",
-        "fee": 1.0
-      }
-    ]
-  },
-  "status": "active"
+  "capabilities": {
+    "cross_chain": true,
+    "web_search": true,
+    "on_chain_analysis": true
+  }
 }
