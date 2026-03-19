@@ -6,10 +6,11 @@ from typing import Any, Callable, Generator
 
 import slowapi  # type: ignore[import-untyped]
 from dotenv import load_dotenv  # type: ignore[import-untyped]
-from fastapi import Depends, FastAPI, HTTPException, Request, Response  # type: ignore[import-untyped]
-from fastapi import Query as QueryParam  # type: ignore[import-untyped]
+from fastapi import Depends, FastAPI, HTTPException, Request, Response, Query as QueryParam  # type: ignore[import-untyped]
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore[import-untyped]
 from fastapi.staticfiles import StaticFiles  # type: ignore[import-untyped]
+from fastapi.responses import FileResponse  # type: ignore[import-untyped]
+import uvicorn  # type: ignore[import-untyped]
 from openai import OpenAI, APIError, AuthenticationError  # type: ignore[import-untyped]
 from pydantic import BaseModel, Field  # type: ignore[import-untyped]
 from slowapi import Limiter  # type: ignore[import-untyped]
@@ -229,6 +230,7 @@ async def verify_token(_: None = Depends(require_auth)):
 
 
 @app.get("/api/health", tags=["System"])
+@app.get("/health", tags=["System"])
 async def health_check(db: Session = Depends(get_db)) -> dict[str, Any]:
     """Check the health of the API, database, and AI service."""
     db_status: str = "ok"
@@ -259,6 +261,7 @@ async def health_check(db: Session = Depends(get_db)) -> dict[str, Any]:
 
 
 @app.get("/api/tools", tags=["Tools"])
+@app.get("/tools", tags=["Tools"])
 async def list_tools(_: Any = Depends(require_auth)) -> dict[str, Any]:
     """List all available tools for the agent."""
     from core.tools import ALL_TOOLS  # type: ignore[import-untyped]
@@ -390,6 +393,7 @@ async def get_history(
 # Endpoint — Chat
 # ---------------------------------------------------------------------------
 @app.post("/api/chat", tags=["Chat"])
+@app.post("/chat", tags=["Chat"])
 @limiter.limit("15/minute")
 async def chat_with_agent(
     request: Request,
@@ -487,13 +491,11 @@ async def chat_with_agent(
 # ---------------------------------------------------------------------------
 @app.get("/8004.json", tags=["Metadata"])
 async def get_8004_json():
-    from fastapi.responses import FileResponse
     return FileResponse("8004.json")
 
 
 @app.get("/.well-known/agent-card.json", tags=["Metadata"])
 async def get_agent_card_json():
-    from fastapi.responses import FileResponse
     return FileResponse(".well-known/agent-card.json")
 
 
@@ -504,7 +506,6 @@ app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
 
 if __name__ == "__main__":
-    import uvicorn
     # Load port from .env
     port = int(os.getenv("PORT", 8001))
     # logger.info(f"Ouwibo Agent starting on port {port}...")
