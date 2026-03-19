@@ -1465,8 +1465,20 @@ class Tempo(Tool):
         if not cmd_parts:
             return "Error: Tempo command is required. Example: tempo[wallet whoami]"
 
-        # Full path to the tempo binary installed by tempoup
-        tempo_bin = "/Users/rhmnhsim/.tempo/bin/tempo"
+        # Path to the tempo binary - configurable via environment variable
+        tempo_bin = os.environ.get("TEMPO_CLI_PATH", "/usr/local/bin/tempo")
+        # Fallback to common locations if default doesn't exist
+        if not os.path.exists(tempo_bin):
+            common_paths = [
+                "/usr/local/bin/tempo",
+                "/usr/bin/tempo",
+                os.path.expanduser("~/.local/bin/tempo"),
+                os.path.expanduser("~/.tempo/bin/tempo"),
+            ]
+            for path in common_paths:
+                if os.path.exists(path):
+                    tempo_bin = path
+                    break
         
         full_cmd = [tempo_bin] + cmd_parts
         
