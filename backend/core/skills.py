@@ -3,7 +3,10 @@ import json
 from pathlib import Path
 from typing import List, Optional, Tuple, Dict, Any, cast
 import pydantic
-from core import schemas
+try:
+    from backend.core import schemas
+except ImportError:
+    from core import schemas
 
 class Skill(pydantic.BaseModel):
     slug: str

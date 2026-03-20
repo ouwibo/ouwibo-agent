@@ -3,7 +3,10 @@ from datetime import datetime, timezone
 
 from sqlalchemy import Column, DateTime, Integer, String
 
-from database import Base
+try:
+    from backend.database import Base
+except ImportError:
+    from database import Base
 
 
 class ChatMessage(Base):

@@ -9,6 +9,7 @@
       "extraPaths": ["."]
     }
   ],
-  "include": ["."],
-  "exclude": ["**/__pycache__", "**/node_modules", "**/venv", "static"]
+  "include": ["backend"],
+  "exclude": ["**/__pycache__", "**/node_modules", "**/venv", "static", "scripts"],
+  "stubPath": "typings"
 }

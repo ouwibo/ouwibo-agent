@@ -19,21 +19,37 @@ from slowapi.util import get_remote_address  # type: ignore[import-untyped]
 from sqlalchemy import text  # type: ignore[import-untyped]
 from sqlalchemy.orm import Session  # type: ignore[import-untyped]
 
-import models
-import database
-from database import SessionLocal, engine
-from core.agent import Agent
-from core.auth import auth_enabled, require_auth
-from core.config import (
-    MAX_MESSAGE_LENGTH,
-    MAX_SESSION_ID_LENGTH,
-    DASHSCOPE_BASE_URL,
-    get_env,
-    EnvValidationError,
-)
-from core import schemas
-from core.tools import WebSearch
-from core.logger import get_logger
+try:
+    from backend import models, database
+    from backend.database import SessionLocal, engine
+    from backend.core.agent import Agent
+    from backend.core.auth import auth_enabled, require_auth
+    from backend.core.config import (
+        MAX_MESSAGE_LENGTH,
+        MAX_SESSION_ID_LENGTH,
+        DASHSCOPE_BASE_URL,
+        get_env,
+        EnvValidationError,
+    )
+    from backend.core import schemas
+    from backend.core.tools import WebSearch
+    from backend.core.logger import get_logger
+except (ImportError, ValueError):
+    import models
+    import database
+    from database import SessionLocal, engine
+    from core.agent import Agent
+    from core.auth import auth_enabled, require_auth
+    from core.config import (
+        MAX_MESSAGE_LENGTH,
+        MAX_SESSION_ID_LENGTH,
+        DASHSCOPE_BASE_URL,
+        get_env,
+        EnvValidationError,
+    )
+    from core import schemas
+    from core.tools import WebSearch
+    from core.logger import get_logger
 
 # ---------------------------------------------------------------------------
 # Setup & Database

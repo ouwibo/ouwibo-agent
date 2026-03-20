@@ -6,7 +6,10 @@ from itertools import islice
 import urllib.parse
 from typing import Any
 
-from core.config import LLM_MAX_TOKENS, LLM_TEMPERATURE, MODELS
+try:
+    from backend.core.config import LLM_MAX_TOKENS, LLM_TEMPERATURE, MODELS
+except ImportError:
+    from core.config import LLM_MAX_TOKENS, LLM_TEMPERATURE, MODELS
 
 logger = logging.getLogger(__name__)
 
