@@ -1,46 +1,23 @@
 {
+  "version": 2,
   "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "static/**",
-      "use": "@vercel/static"
-    },
     {
       "src": "api.py",
       "use": "@vercel/python"
-    },
-    {
-      "src": "((?!api.py).*)",
-      "use": "@vercel/static"
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index.py"
+      "src": "/api/(.*)",
+      "dest": "api.py"
     },
     {
-      "source": "/auth/(.*)",
-      "destination": "/api/index.py"
+      "src": "/.well-known/(.*)",
+      "dest": "/static/.well-known/$1"
     },
     {
-      "source": "/8004.json",
-      "destination": "/8004.json"
-    },
-    {
-      "source": "/.well-known/agent.json",
-      "destination": "/static/.well-known/agent.json"
-    },
-    {
-      "source": "/.well-known/agent-card.json",
-      "destination": "/static/.well-known/agent-card.json"
-    },
-    {
-      "source": "/((?!api|auth|8004|.well-known).*)",
-      "destination": "/static/$1"
+        "src": "/(.*)",
+        "dest": "api.py"
     }
   ]
 }

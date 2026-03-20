@@ -1540,6 +1540,31 @@ class Tempo(Tool):
             return f"Tempo execution error: {e}"
 
 
+# ---------------------------------------------------------------------------
+# WalletGenerator — Generate new Ethereum wallets
+# ---------------------------------------------------------------------------
+class WalletGenerator(Tool):
+    name = "create_wallet"
+    description = "Generate a new Ethereum-compatible wallet (Public Address & Private Key)."
+    example = "create_wallet[new]"
+
+    def execute(self, arg: str) -> str:
+        try:
+            from eth_account import Account
+            # Enable HD wallet support if mnemonic is needed, but for now simple generation
+            acct = Account.create()
+            return (
+                f"🛡️ **Ouwibo Elite: New Wallet Generated**\n\n"
+                f"📍 **Address**: `{acct.address}`\n"
+                f"🔑 **Private Key**: `{acct.key.hex()}`\n\n"
+                f"⚠️ **PERINGATAN KERAS**: Simpan Private Key ini di tempat yang sangat aman. "
+                f"Ouwibo tidak menyimpan kunci ini. Jika hilang, aset Anda akan hilang selamanya."
+            )
+        except Exception as e:
+            logger.error(f"WalletGenerator error: {e}", exc_info=True)
+            return f"Error generating wallet: {e}"
+
+
 # This list is for the 'Tools' page on the website (Manual Use)
 ALL_TOOLS: List[Type[Tool]] = [
     Calculator,
@@ -1552,10 +1577,10 @@ ALL_TOOLS: List[Type[Tool]] = [
     CurrencyConverter,
     Translator,
     Dictionary,
-    StockMarket,
-    CryptoMarket,
-    ENSResolve,
-    Wallet,
+    # StockMarket, # (removed if not found)
+    # CryptoMarket, # (removed if not found)
+    # ENSResolve, # (removed if not found)
+    # Wallet, # (removed if not found)
     SocialSearch,
     CodeSearch,
     PhindSearch,
@@ -1563,6 +1588,7 @@ ALL_TOOLS: List[Type[Tool]] = [
     ACP,
     DEX,
     Tempo,
+    WalletGenerator,
 ]
 
 # This list is for the Conversational AI Agent (Professional Persona)
@@ -1570,10 +1596,11 @@ ALL_TOOLS: List[Type[Tool]] = [
 AGENT_TOOLS: List[Type[Tool]] = [
     WebSearch,       # For real-time alpha/whitepaper research
     NewsSearch,      # Market headlines and macros
-    CryptoMarket,    # Prices/FDV/Volumes
-    ENSResolve,      # Identity management
-    Wallet,          # On-chain balances/status
+    # CryptoMarket,    # Prices/FDV/Volumes
+    # ENSResolve,      # Identity management
+    # Wallet,          # On-chain balances/status
     URLReader,       # Deep analysis of articles/docs
     DEX,             # Swap/Bridge preparation
     Tempo,           # Specialized wallet integration
+    WalletGenerator, # For generating new identities
 ]

@@ -38,6 +38,7 @@ from core.config import (
 )
 from core import schemas
 from core.tools import WebSearch
+from api.telegram_webhook import router as telegram_router
 from core.logger import get_logger
 
 # ---------------------------------------------------------------------------
@@ -46,6 +47,9 @@ from core.logger import get_logger
 load_dotenv()
 
 logger = get_logger(__name__)
+
+# Register Telegram Webhook if configured
+app.include_router(telegram_router, prefix="/api", tags=["telegram"])
 
 # Simple metrics (Task 8)
 STATS = {"requests": 0, "errors": 0}
@@ -106,11 +110,22 @@ class FreeAIClient:
         class Completions:
             def create(self, messages, model="gpt-4o-mini", **kwargs):
                 from ddgs import DDGS  # type: ignore[import-untyped]
-                prompt = messages[-1]["content"]
+                
+                # Concatenate all messages into a single prompt for DDGS
+                full_prompt = ""
+                for msg in messages:
+                    role = msg.get("role", "user").upper()
+                    content = msg.get("content", "")
+                    full_prompt += f"### {role}\n{content}\n\n"
+                
+                full_prompt += "### RESPONSE (Strictly follow the persona and language above):\n"
+
                 with DDGS() as ddgs:
                     ddgs_model = "gpt-4o-mini"
-                    if "llama" in str(model).lower(): ddgs_model = "llama-3.1-70b"
-                    response = ddgs.chat(prompt, model=ddgs_model)
+                    if "llama" in str(model).lower(): 
+                        ddgs_model = "llama-3.1-70b"
+                    
+                    response = ddgs.chat(full_prompt, model=ddgs_model)
                     
                     class MockResponse:
                         class Choice:
