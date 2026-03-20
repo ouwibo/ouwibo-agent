@@ -1,0 +1,14 @@
+{
+  "venvPath": ".",
+  "venv": "backend/venv",
+  "pythonVersion": "3.11",
+  "typeCheckingMode": "basic",
+  "executionEnvironments": [
+    {
+      "root": "backend",
+      "extraPaths": ["."]
+    }
+  ],
+  "include": ["."],
+  "exclude": ["**/__pycache__", "**/node_modules", "**/venv", "static"]
+}

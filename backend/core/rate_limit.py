@@ -44,7 +44,7 @@ class RateLimiter:
             for key in list(buckets.keys()):
                 buckets[key] = [ts for ts in buckets[key] if ts > cutoff]
                 if not buckets[key]:
-                    del buckets[key]
+                    buckets.pop(key, None)
 
     def _is_rate_limited(self, key: str) -> tuple[bool, str]:
         now = time.time()
