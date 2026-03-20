@@ -50,32 +50,8 @@ def _humanize_slug(slug: str) -> str:
 
 def _simplify_title(title: str, slug: str) -> str:
     t = (title or "").strip()
-    if not isinstance(t, str):
-        t = str(t)
     if not t:
         return _humanize_slug(slug)
-
-    # Remove branding prefix in UI
-    for prefix in ("Ouwibo Agent ", "Ouwibo "):
-        low_prefix: str = prefix.lower()
-        t_current: str = str(t)
-        if t_current.lower().startswith(low_prefix):
-            t = t_current[len(prefix) :].strip()  # type: ignore
-
-    t_final: str = str(t)
-    low: str = t_final.lower()
-    if "web3" in low and "crypto" in low:
-        return "Web3"
-    if "web3" in low:
-        return "Web3"
-    if "wallet" in low:
-        return "Wallet"
-    if "social" in low:
-        return "Social"
-    if "research" in low:
-        return "Research"
-    if "general" in low:
-        return "Base"
     return t
 
 
