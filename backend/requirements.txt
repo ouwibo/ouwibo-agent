@@ -10,3 +10,4 @@ googlesearch-python
 beautifulsoup4
 pytest
 pytz
+openai
