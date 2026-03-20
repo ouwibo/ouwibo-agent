@@ -1,4 +1,12 @@
 # models.py
+import sys
+import os
+# Force backend and root into path
+curr = os.path.dirname(os.path.abspath(__file__)) # /backend/
+root = os.path.dirname(curr) # /ouwibo-agent/
+for p in [root, curr]:
+    if p not in sys.path: sys.path.insert(0, p)
+
 from datetime import datetime, timezone
 
 from sqlalchemy import Column, DateTime, Integer, String

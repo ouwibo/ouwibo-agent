@@ -1,4 +1,13 @@
 # core/agent.py
+import sys
+import os
+# Force backend and root into path
+curr = os.path.dirname(os.path.abspath(__file__))
+parent = os.path.dirname(curr) # backend/
+root = os.path.dirname(parent) # ouwibo-agent/
+for p in [root, parent, curr]:
+    if p not in sys.path: sys.path.insert(0, p)
+
 import logging
 import re
 from itertools import islice
@@ -34,8 +43,8 @@ class Agent:
         for tool_cls in AGENT_TOOLS:
             name = getattr(tool_cls, "name", None)
             if name:
-                # instantiate the tool class
-                self.tools[name] = tool_cls()
+                # instantiate the tool class with Any cast to satisfy linter
+                self.tools[name] = cast(Any, tool_cls)()
 
     _UNCERTAIN_RE = re.compile(
         r"\b("

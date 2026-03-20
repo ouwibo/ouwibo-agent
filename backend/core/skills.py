@@ -1,3 +1,12 @@
+import sys
+import os
+# Force backend and root into path
+curr = os.path.dirname(os.path.abspath(__file__)) # /backend/core/
+parent = os.path.dirname(curr) # /backend/
+root = os.path.dirname(parent) # /ouwibo-agent/
+for p in [root, parent, curr]:
+    if p not in sys.path: sys.path.insert(0, p)
+
 import re
 import json
 from pathlib import Path

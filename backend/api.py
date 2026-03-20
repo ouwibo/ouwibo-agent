@@ -1,4 +1,9 @@
 # api.py
+import sys
+import os
+# Force current directory into path for IDE and local execution
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import logging
 import os
 import time
@@ -47,10 +52,13 @@ except (ImportError, ValueError):
         # Fallback for direct execution
         import os
         def get_env(): return os.environ
-        class EnvValidationError(Exception): pass
         MAX_MESSAGE_LENGTH = 32000
         MAX_SESSION_ID_LENGTH = 64
         DASHSCOPE_BASE_URL = ""
+    
+    # Always ensure EnvValidationError is defined for the catch block
+    if 'EnvValidationError' not in locals():
+        class EnvValidationError(Exception): pass
     
     import models
     import database

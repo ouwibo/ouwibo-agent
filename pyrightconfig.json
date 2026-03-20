@@ -1,15 +1,9 @@
 {
+  "include": ["."],
+  "exclude": ["**/node_modules", "**/__pycache__", "backend/venv", "static", "scripts"],
   "venvPath": ".",
   "venv": "backend/venv",
-  "pythonVersion": "3.11",
+  "pythonVersion": "3.14",
   "typeCheckingMode": "basic",
-  "executionEnvironments": [
-    {
-      "root": "backend",
-      "extraPaths": ["."]
-    }
-  ],
-  "include": ["backend"],
-  "exclude": ["**/__pycache__", "**/node_modules", "**/venv", "static", "scripts"],
-  "stubPath": "typings"
+  "extraPaths": ["./backend", "./backend/core"]
 }

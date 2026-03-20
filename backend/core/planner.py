@@ -1,4 +1,13 @@
 # core/planner.py
+import sys
+import os
+# Force backend and root into path
+curr = os.path.dirname(os.path.abspath(__file__))
+parent = os.path.dirname(curr) # backend/
+root = os.path.dirname(parent) # ouwibo-agent/
+for p in [root, parent, curr]:
+    if p not in sys.path: sys.path.insert(0, p)
+
 import logging
 import re
 import urllib.error
