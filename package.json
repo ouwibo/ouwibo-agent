@@ -9,11 +9,11 @@
     "test:acp": "cd virtuals-protocol-acp && npm test",
     "lint": "npm run lint:acp && mypy backend",
     "lint:acp": "cd virtuals-protocol-acp && npm run lint",
-    "build": "node build-widget.js"
+    "build": "node scripts/build-widget.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ouwibo/ouwibo-agent.git"
+    "url": "https://github.com/ouwibo/ouwibo-agent.git"
   },
   "keywords": [
     "ai",
