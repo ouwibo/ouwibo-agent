@@ -570,7 +570,14 @@ async def get_agent_card_json():
 # ---------------------------------------------------------------------------
 # Static Files & Fallback
 # ---------------------------------------------------------------------------
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_STATIC_DIR = os.path.join(_HERE, "static")
+
+if not os.path.exists(_STATIC_DIR):
+    # Fallback for some deployment environments
+    _STATIC_DIR = os.path.join(os.getcwd(), "backend", "static")
+
+app.mount("/", StaticFiles(directory=_STATIC_DIR, html=True), name="static")
 
 
 if __name__ == "__main__":

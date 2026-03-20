@@ -1,9 +1,9 @@
 const esbuild = require('esbuild');
 
 esbuild.build({
-  entryPoints: ['static/src/lifi-init.jsx'],
+  entryPoints: ['backend/static/src/lifi-init.jsx'],
   bundle: true,
-  outfile: 'static/lifi-bundle.js',
+  outfile: 'backend/static/lifi-bundle.js',
   format: 'iife',
   globalName: 'LiFiWidgetLib',
   minify: true,

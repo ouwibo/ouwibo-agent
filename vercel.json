@@ -10,7 +10,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/static/$1"
+      "destination": "/backend/static/$1"
     }
   ],
   "buildCommand": "npm run build",
