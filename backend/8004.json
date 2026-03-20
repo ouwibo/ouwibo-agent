@@ -10,7 +10,7 @@
     },
     {
       "name": "A2A",
-      "endpoint": "https://raw.githubusercontent.com/ouwibo/ouwibo-agent/refs/heads/main/.well-known/agent-card.json",
+      "endpoint": "https://ouwibo-agent.vercel.app/.well-known/agent.json",
       "version": "0.3.0",
       "a2aSkills": [
         "defi_operations/trading/cross_chain_swap",

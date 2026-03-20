@@ -558,8 +558,14 @@ async def chat_with_agent_stream(
 # ---------------------------------------------------------------------------
 @app.get("/8004.json", tags=["Metadata"])
 async def get_8004_json():
-    # For Vercel, the file is usually at the root relative to api/
-    return FileResponse(os.path.join(os.path.dirname(__file__), "..", "8004.json"))
+    # 8004.json is in the same directory as api.py (backend/)
+    return FileResponse(os.path.join(os.path.dirname(__file__), "8004.json"))
+
+
+@app.get("/.well-known/agent.json", tags=["Metadata"])
+@app.get("/agent.json", tags=["Metadata"])
+async def get_agent_json():
+    return FileResponse(os.path.join(os.path.dirname(__file__), "..", ".well-known", "agent.json"))
 
 
 @app.get("/.well-known/agent-card.json", tags=["Metadata"])
