@@ -207,12 +207,53 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function showLandingPage() {
+    if (titleEl) titleEl.textContent = 'Tools';
+    if (descEl) descEl.textContent = 'Select a tool to run individual tasks or explore blockchain data.';
+    
+    // Hide tool runner UI
+    const toolPanel = document.querySelector('.tool-panel');
+    const toolOutputWrap = document.querySelector('.tool-output-wrap');
+    if (toolPanel) toolPanel.classList.add('hidden');
+    if (toolOutputWrap) toolOutputWrap.classList.add('hidden');
+
+    // Create a grid
+    let grid = document.getElementById('tools-grid');
+    if (!grid) {
+      grid = document.createElement('div');
+      grid.id = 'tools-grid';
+      grid.className = 'tools-grid';
+      const area = document.querySelector('.tools-content-area');
+      if (area) area.appendChild(grid);
+    }
+    
+    grid.innerHTML = '';
+    Object.keys(TOOL_META).forEach(key => {
+      const m = TOOL_META[key];
+      const card = document.createElement('a');
+      card.href = `/tools.html?tool=${key}`;
+      card.className = 'tool-card';
+      card.innerHTML = `
+        <div class="tool-card__icon">
+          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.7-3.7a1 1 0 0 0 0-1.4l-1.6-1.6a1 1 0 0 0-1.4 0l-3.7 3.7Z"/><path d="m3.3 15.7 3.7-3.7a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4l-3.7 3.7a1 1 0 0 1-1.4 0l-1.6-1.6a1 1 0 0 1 0-1.4Z"/></svg>
+        </div>
+        <div class="tool-card__body">
+          <div class="tool-card__title">${m.title}</div>
+          <div class="tool-card__desc">${m.desc}</div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
   async function run() {
     setError('');
     if (!tool) {
-      setError('Missing tool. Open this page as /tools.html?tool=wallet (or other tool name).');
+      showLandingPage();
       return;
     }
+    
+    // ... existing run logic ...
 
     const raw = argEl ? String(argEl.value || '') : '';
     const arg = meta.normalize ? meta.normalize(raw) : raw.trim();
@@ -267,6 +308,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!text) return;
       try { await navigator.clipboard.writeText(text); } catch (_) {}
     });
+  }
+
+  // Initial Check
+  if (!tool) {
+    showLandingPage();
   }
 });
 
