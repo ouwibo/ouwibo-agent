@@ -2,14 +2,20 @@
 import logging
 import re
 from itertools import islice
-from typing import Any
+from typing import Any, cast, Tuple, Dict, List
 
-from .config import MAX_MESSAGE_LENGTH, MAX_SESSION_ID_LENGTH
-from .memory import Memory
-from .planner import Planner
-from .config import MODELS
-from .rate_limit import RateLimiter, get_limiter, RateLimitConfig
-from .tools import AGENT_TOOLS, Tool
+try:
+    from backend.core.config import MAX_MESSAGE_LENGTH, MAX_SESSION_ID_LENGTH, MODELS
+    from backend.core.memory import Memory
+    from backend.core.planner import Planner
+    from backend.core.rate_limit import RateLimiter, get_limiter, RateLimitConfig
+    from backend.core.tools import AGENT_TOOLS, Tool
+except ImportError:
+    from .config import MAX_MESSAGE_LENGTH, MAX_SESSION_ID_LENGTH, MODELS
+    from .memory import Memory
+    from .planner import Planner
+    from .rate_limit import RateLimiter, get_limiter, RateLimitConfig
+    from .tools import AGENT_TOOLS, Tool
 
 logger = logging.getLogger(__name__)
 
@@ -24,11 +30,11 @@ class Agent:
             requests_per_hour=1000,
             burst_limit=10
         ))
-        # Specialist Tools only
-        self.tools = {}
+        self.tools: dict[str, Any] = {}
         for tool_cls in AGENT_TOOLS:
             name = getattr(tool_cls, "name", None)
             if name:
+                # instantiate the tool class
                 self.tools[name] = tool_cls()
 
     _UNCERTAIN_RE = re.compile(
@@ -113,7 +119,7 @@ class Agent:
 
         ws = self.tools.get("search")
         rr = self.tools.get("read_url")
-        results = []
+        results: List[Dict[str, Any]] = []
         try:
             if hasattr(ws, "search_raw"):
                 results = ws.search_raw(task, max_results=8, kind="text", provider="auto")  # type: ignore[attr-defined]
@@ -127,7 +133,7 @@ class Agent:
                 urls.append(url)
         urls = list(islice(urls, 2))
 
-        reads = []
+        reads: List[str] = []
         if rr and urls:
             for url in urls:
                 try:
@@ -166,8 +172,9 @@ class Agent:
         if len(task) > MAX_MESSAGE_LENGTH:
             return f"Pesan terlalu panjang (maksimal {MAX_MESSAGE_LENGTH} karakter)."
 
-        if len(session_id) > MAX_SESSION_ID_LENGTH:
-            session_id = session_id[:MAX_SESSION_ID_LENGTH]
+        if len(session_id) > (MAX_SESSION_ID_LENGTH or 64):
+            limit = int(MAX_SESSION_ID_LENGTH or 64)
+            session_id = str(session_id)[:limit]
 
         logger.info(f"[Agent] Task diterima: {task!r}")
         self.memory.add("user", task)
@@ -237,9 +244,10 @@ class Agent:
                         self.memory.add("assistant", f"[auto_search error] {e}")
                     continue
 
-                if command in self.tools:
+                if command in self.tools and self.tools[command] is not None:
                     try:
-                        result = self.tools[command].execute(arg)
+                        tool_inst = self.tools[command]
+                        result = cast(Any, tool_inst).execute(arg)
                         preview = "".join(islice(result, 200)) + "..." if len(result) > 200 else result
                         logger.info(f"[Agent] Tool '{command}' selesai. Hasil: {preview}")
                         # Simpan hasil tool ke memori agar Planner melihatnya di iterasi berikutnya

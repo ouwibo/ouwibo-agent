@@ -2,13 +2,13 @@ import re
 import json
 from pathlib import Path
 from typing import List, Optional, Tuple, Dict, Any, cast
-import pydantic
+from pydantic import BaseModel, Field
 try:
     from backend.core import schemas
 except ImportError:
     from core import schemas
 
-class Skill(pydantic.BaseModel):
+class Skill(BaseModel):
     slug: str
     manifest: schemas.SkillManifest
     content: str

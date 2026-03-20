@@ -35,18 +35,28 @@ try:
     from backend.core.tools import WebSearch
     from backend.core.logger import get_logger
 except (ImportError, ValueError):
+    try:
+        from core.config import (
+            MAX_MESSAGE_LENGTH,
+            MAX_SESSION_ID_LENGTH,
+            DASHSCOPE_BASE_URL,
+            get_env,
+            EnvValidationError,
+        )
+    except ImportError:
+        # Fallback for direct execution
+        import os
+        def get_env(): return os.environ
+        class EnvValidationError(Exception): pass
+        MAX_MESSAGE_LENGTH = 32000
+        MAX_SESSION_ID_LENGTH = 64
+        DASHSCOPE_BASE_URL = ""
+    
     import models
     import database
     from database import SessionLocal, engine
     from core.agent import Agent
     from core.auth import auth_enabled, require_auth
-    from core.config import (
-        MAX_MESSAGE_LENGTH,
-        MAX_SESSION_ID_LENGTH,
-        DASHSCOPE_BASE_URL,
-        get_env,
-        EnvValidationError,
-    )
     from core import schemas
     from core.tools import WebSearch
     from core.logger import get_logger
