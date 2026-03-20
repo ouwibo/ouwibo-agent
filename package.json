@@ -4,11 +4,8 @@
   "description": "Production-ready AI agent specialized in the Base ecosystem with deep-dive research and real-time analytics.",
   "scripts": {
     "dev": "bash run.sh",
-    "test": "npm run test:backend && npm run test:acp",
-    "test:backend": "cd backend && venv/bin/pytest tests/",
-    "test:acp": "cd virtuals-protocol-acp && npm test",
-    "lint": "npm run lint:acp && mypy backend",
-    "lint:acp": "cd virtuals-protocol-acp && npm run lint",
+    "test": "pytest tests/",
+    "lint": "mypy .",
     "build": "node scripts/build-widget.js"
   },
   "repository": {

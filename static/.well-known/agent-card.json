@@ -1,0 +1,17 @@
+{
+  "name": "Ouwibo Agent",
+  "version": "0.3.0",
+  "owner": "ouwibo",
+  "skills": [
+    "trading/dex_swap",
+    "research/token_analysis",
+    "research/security_audit",
+    "osint/market_sentiment",
+    "infrastructure/filesystem"
+  ],
+  "capabilities": {
+    "cross_chain": true,
+    "web_search": true,
+    "on_chain_analysis": true
+  }
+}

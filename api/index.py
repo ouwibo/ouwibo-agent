@@ -1,3 +1,6 @@
 import sys, os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'backend'))
+root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if root not in sys.path:
+    sys.path.append(root)
+
 from api import app

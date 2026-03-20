@@ -1,0 +1,77 @@
+{
+  "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
+  "name": "Ouwibo Agent",
+  "description": "An elite, autonomous AI node specialized in cross-chain DeFi operations, institutional-grade crypto deep research, and on-chain intelligence gathering. Built for the modern decentralised economy, Ouwibo Agent leverages decentralized infrastructure to execute automated token swaps, perform in-depth smart contract security audits, track venture capital funding flows, and analyze developer social sentiment across Web3 ecosystems.",
+  "image": "https://raw.githubusercontent.com/ouwibo/ouwibo-agent/refs/heads/main/static/icon.png",
+  "services": [
+    {
+      "name": "web",
+      "endpoint": "https://ouwibo-agent.vercel.app/"
+    },
+    {
+      "name": "A2A",
+      "endpoint": "https://ouwibo-agent.vercel.app/.well-known/agent.json",
+      "version": "0.3.0",
+      "a2aSkills": [
+        "defi_operations/trading/cross_chain_swap",
+        "defi_operations/liquidity/routing_optimization",
+        "research/security/smart_contract_audit",
+        "research/fundamentals/tokenomics_analysis",
+        "research/fundamentals/vc_funding_tracking",
+        "osint/social/developer_sentiment",
+        "osint/onchain/whale_wallet_tracking",
+        "infrastructure/filesystem/log_management",
+        "communication/nlp/conversational_ai"
+      ]
+    },
+    {
+      "name": "OASF",
+      "endpoint": "https://github.com/ouwibo/ouwibo-agent/tree/main/skills",
+      "version": "0.8",
+      "skills": [
+        "crypto_deep_research",
+        "cross_chain_dex_swap",
+        "smart_contract_vulnerability_scanning",
+        "venture_capital_due_diligence",
+        "developer_footprint_analytics",
+        "real_time_web_search",
+        "onchain_whale_tracking",
+        "liquidity_pool_analysis",
+        "token_price_tracking",
+        "arbitrage_opportunity_detection",
+        "evm_wallet_forensics",
+        "yield_farming_optimization",
+        "mev_protection_routing",
+        "social_sentiment_analysis",
+        "natural_language_processing",
+        "filesystem_management"
+      ],
+      "domains": [
+        "DeFi",
+        "Web3",
+        "Blockchain Security",
+        "OSINT Data Extraction",
+        "Generative AI",
+        "Market Analytics",
+        "On-Chain Forensics"
+      ]
+    },
+    {
+      "name": "agentWallet",
+      "endpoint": "eip155:8453:0xF96c80DAB17bccC9e0C0C454fa6Ec9234EF240f2"
+    }
+  ],
+  "registrations": [
+    {
+      "agentId": 32270,
+      "agentRegistry": "eip155:8453:0x8004a169fb4a3325136eb29fa0ceb6d2e539a432"
+    }
+  ],
+  "supportedTrust": [
+    "reputation",
+    "crypto-economic",
+    "tee-attestation"
+  ],
+  "x402Support": true,
+  "active": true
+}
