@@ -92,8 +92,7 @@ def _split_frontmatter(md: str) -> tuple[dict[str, str], str]:
                 meta[key] = val
         i += 1
 
-    all_lines: list[str] = list(lines)
-    body: str = "\n".join(all_lines[i:]).strip()  # type: ignore
+    body: str = "\n".join(lines[i:]).strip()
     return meta, body
 
 
@@ -136,9 +135,30 @@ def _parse_title_and_description(md_body: str, fallback_title: str, meta: dict[s
     title = _simplify_title(title, fallback_title)
     desc = (desc or "").strip()
     if len(desc) > 160:
-        desc_str: str = cast(str, desc)
-        desc = desc_str[:157].rstrip() + "..."  # type: ignore
+        desc = desc[:157].rstrip() + "..."
     return title, desc
+
+
+def _parse_manifest_from_meta(slug: str, meta: dict[str, str], body: str) -> schemas.SkillManifest:
+    title, desc = _parse_title_and_description(body, fallback_title=slug, meta=meta)
+    
+    # Parse tools_required (handle [a, b, c] or a, b, c or just a)
+    tools_raw = meta.get("tools") or meta.get("tools_required") or ""
+    tools: list[str] = []
+    if tools_raw:
+        # Remove brackets if present
+        clean_tools = tools_raw.strip().lstrip("[").rstrip("]")
+        if clean_tools:
+            tools = [t.strip() for t in clean_tools.split(",") if t.strip()]
+    
+    return schemas.SkillManifest(
+        name=title,
+        description=desc,
+        version=meta.get("version", "1.0.0"),
+        author=meta.get("author") or meta.get("creator"),
+        category=meta.get("category", "general"),
+        tools_required=tools
+    )
 
 
 def list_skills() -> List[Skill]:
@@ -171,14 +191,13 @@ def list_skills() -> List[Skill]:
             try:
                 manifest_data = json.loads(json_path.read_text(encoding="utf-8"))
                 manifest = schemas.SkillManifest(**manifest_data)
-            except Exception as e:
+            except Exception:
                 # Log error and fallback
                 pass
         
         if not manifest:
             meta, body = _split_frontmatter(skill_content)
-            title, desc = _parse_title_and_description(body, fallback_title=slug, meta=meta)
-            manifest = schemas.SkillManifest(name=title, description=desc)
+            manifest = _parse_manifest_from_meta(slug, meta, body)
             skill_body = body
         else:
             _, skill_body = _split_frontmatter(skill_content)
@@ -209,8 +228,7 @@ def get_skill(slug: str) -> Skill:
 
     if not manifest:
         meta, body = _split_frontmatter(skill_content)
-        title, desc = _parse_title_and_description(body, fallback_title=sid, meta=meta)
-        manifest = schemas.SkillManifest(name=title, description=desc)
+        manifest = _parse_manifest_from_meta(sid, meta, body)
         skill_body = body
     else:
         _, skill_body = _split_frontmatter(skill_content)
