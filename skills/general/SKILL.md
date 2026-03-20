@@ -1,6 +1,6 @@
 # ---
-# name: Base
-# description: Default assistant mode for Ouwibo Agent (best-effort).
+# name: General Assistant
+# description: Versatile assistant mode for Ouwibo Agent (best-effort).
 # category: general
 # icon: chat
 # priority: 100
