@@ -1,22 +1,30 @@
 {
   "name": "ouwibo-agent",
   "version": "1.0.0",
-  "description": "<div align=\"center\">   <h1>🤖 Ouwibo Agent</h1>   <p><strong>Your Intelligent, Extensible AI Assistant built for the Modern Web & Web3.</strong></p>",
-  "main": "screenshot.js",
-  "directories": {
-    "test": "tests"
-  },
+  "description": "Production-ready AI agent specialized in the Base ecosystem with deep-dive research and real-time analytics.",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "bash run.sh",
+    "test": "npm run test:backend && npm run test:acp",
+    "test:backend": "cd backend && venv/bin/pytest tests/",
+    "test:acp": "cd virtuals-protocol-acp && npm test",
+    "lint": "npm run lint:acp && mypy backend",
+    "lint:acp": "cd virtuals-protocol-acp && npm run lint",
     "build": "node build-widget.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ouwibo/ouwibo-agent.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "ai",
+    "agent",
+    "crypto",
+    "base",
+    "defi",
+    "acp"
+  ],
+  "author": "Ouwibo Team",
+  "license": "MIT",
   "type": "commonjs",
   "bugs": {
     "url": "https://github.com/ouwibo/ouwibo-agent/issues"

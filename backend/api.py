@@ -19,37 +19,39 @@ from slowapi.util import get_remote_address  # type: ignore[import-untyped]
 from sqlalchemy import text  # type: ignore[import-untyped]
 from sqlalchemy.orm import Session  # type: ignore[import-untyped]
 
-import models  # type: ignore[import-untyped]
-from core.agent import Agent  # type: ignore[import-untyped]
-from core.auth import auth_enabled, require_auth  # type: ignore[import-untyped]
+import models
+import database
+from database import SessionLocal, engine
+from core.agent import Agent
+from core.auth import auth_enabled, require_auth
 from core.config import (
     MAX_MESSAGE_LENGTH,
     MAX_SESSION_ID_LENGTH,
     DASHSCOPE_BASE_URL,
     get_env,
     EnvValidationError,
-)  # type: ignore[import-untyped]
-from core.tools import WebSearch  # type: ignore[import-untyped]
-from database import SessionLocal, engine  # type: ignore[import-untyped]
+)
+from core import schemas
+from core.tools import WebSearch
+from core.logger import get_logger
 
 # ---------------------------------------------------------------------------
 # Setup & Database
 # ---------------------------------------------------------------------------
 load_dotenv()
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
+
+# Simple metrics (Task 8)
+STATS = {"requests": 0, "errors": 0}
 
 # Validate required environment variables at startup
 try:
     env_config = get_env()
     logger.info("Environment variables validated successfully")
-except EnvValidationError as e:
-    logger.error(f"Environment validation failed: {e}")
-    raise RuntimeError(f"Missing required environment variables: {e}")
+except EnvValidationError as env_err:
+    logger.error(f"Environment validation failed: {env_err}")
+    raise RuntimeError(f"Missing required environment variables: {env_err}")
 
 # Ensure tables are created
 models.Base.metadata.create_all(bind=engine)
@@ -195,21 +197,6 @@ def get_db() -> Generator[Session, None, None]:
 
 
 # ---------------------------------------------------------------------------
-# Schemas
-# ---------------------------------------------------------------------------
-class ChatRequest(BaseModel):
-    message: str = Field(..., min_length=1, max_length=MAX_MESSAGE_LENGTH)
-    session_id: str = Field(..., min_length=1, max_length=MAX_SESSION_ID_LENGTH)
-    # Optional: skill id loaded from skills/<id>/SKILL.md (default: "general" if exists)
-    skill: str | None = Field(default=None, min_length=1, max_length=64)
-
-
-class ToolExecuteRequest(BaseModel):
-    tool: str = Field(..., min_length=1, max_length=64)
-    arg: str = Field(default="", max_length=4000)
-
-
-# ---------------------------------------------------------------------------
 # Endpoints — System & Search
 # ---------------------------------------------------------------------------
 @app.get("/auth/verify", tags=["Auth"])
@@ -217,9 +204,9 @@ async def verify_token(_: None = Depends(require_auth)):
     return {"valid": True}
 
 
-@app.get("/api/health", tags=["System"])
-@app.get("/health", tags=["System"])
-async def health_check(db: Session = Depends(get_db)) -> dict[str, Any]:
+@app.get("/api/health", tags=["System"], response_model=schemas.HealthResponse)
+@app.get("/health", tags=["System"], response_model=schemas.HealthResponse)
+async def health_check(db: Session = Depends(get_db)) -> schemas.HealthResponse:
     """Check the health of the API, database, and AI service."""
     db_status: str = "ok"
     try:
@@ -232,20 +219,20 @@ async def health_check(db: Session = Depends(get_db)) -> dict[str, Any]:
     access_token_configured = bool((os.getenv("ACCESS_TOKEN") or "").strip())
     search_provider = (os.getenv("SEARCH_PROVIDER") or "auto").strip().lower()
 
-    return {
-        "status": "ok" if db_status == "ok" else "degraded",
-        "version": "1.0.1",
-        "database": db_status,
-        "auth": auth_enabled(),
-        "ai_client": "ready" if rotator.clients else "free",
-        "config": {
-            "ai_key_configured": ai_key_configured,
-            "active_key_index": rotator.idx if rotator.clients else -1,
-            "total_keys": len(rotator.keys),
-            "access_token_configured": access_token_configured,
-            "search_provider": search_provider,
-        },
-    }
+    return schemas.HealthResponse(
+        status="ok" if db_status == "ok" else "degraded",
+        version="1.0.1",
+        database=db_status,
+        auth=auth_enabled(),
+        ai_client="ready" if rotator.clients else "free",
+        config=schemas.HealthConfig(
+            ai_key_configured=ai_key_configured,
+            active_key_index=rotator.idx if rotator.clients else -1,
+            total_keys=len(rotator.keys),
+            access_token_configured=access_token_configured,
+            search_provider=search_provider,
+        ),
+    )
 
 
 @app.get("/api/tools", tags=["Tools"])
@@ -264,7 +251,7 @@ async def list_tools(_: Any = Depends(require_auth)) -> dict[str, Any]:
 @limiter.limit("30/minute")
 async def execute_tool(
     request: Request,
-    body: ToolExecuteRequest,
+    body: schemas.ToolExecuteRequest,
     _: Any = Depends(require_auth),
 ) -> dict[str, Any]:
     """Execute a tool directly (used by the Tools UI 'Run' button)."""
@@ -385,7 +372,7 @@ async def get_history(
 @limiter.limit("15/minute")
 async def chat_with_agent(
     request: Request,
-    body: ChatRequest,
+    body: schemas.ChatRequest,
     db: Session = Depends(get_db),
     _: None = Depends(require_auth),
 ):
@@ -477,7 +464,7 @@ async def chat_with_agent(
 @app.post("/api/chat/stream", tags=["Chat"])
 async def chat_with_agent_stream(
     request: Request,
-    body: ChatRequest,
+    body: schemas.ChatRequest,
     db: Session = Depends(get_db),
     _: None = Depends(require_auth),
 ):
@@ -500,13 +487,13 @@ async def chat_with_agent_stream(
     skill_context = ""
     if skill_id:
         try:
-            from core.skills import get_skill as _get_skill
+            from core.skills import get_skill as _get_skill  # type: ignore[import-untyped]
             skill_context = _get_skill(skill_id).content
         except Exception:
             pass
 
     async def event_generator():
-        full_response = ""
+        full_response_parts: list[str] = []
         try:
             for chunk in agent.run_stream(body.message, skill_context=skill_context, session_id=body.session_id):
                 yield chunk
@@ -514,11 +501,14 @@ async def chat_with_agent_stream(
                 if "chunk" in chunk:
                     try:
                         data = json.loads(chunk.replace("data: ", "").strip())
-                        full_response += data.get("chunk", "")
+                        next_chunk = data.get("chunk")
+                        if isinstance(next_chunk, str):
+                            full_response_parts.append(next_chunk)
                     except Exception:
                         pass
             
-            if full_response:
+            if full_response_parts:
+                full_response = "".join(full_response_parts)
                 db.add(models.ChatMessage(session_id=body.session_id, role="user", content=body.message))
                 db.add(models.ChatMessage(session_id=body.session_id, role="assistant", content=full_response))
                 db.commit()

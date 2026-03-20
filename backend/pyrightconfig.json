@@ -1,15 +1,9 @@
 {
-  "venvPath": ".",
-  "venv": "venv",
-  "pythonVersion": "3.14",
+  "venvPath": "..",
+  "venv": "backend/venv",
+  "pythonVersion": "3.11",
   "pythonPlatform": "Darwin",
-  "pythonPath": "./venv/bin/python",
-  "typeCheckingMode": "basic",
-  "reportMissingImports": "none",
-  "reportMissingModuleSource": "none",
-  "reportUnknownMemberType": "none",
-  "reportUnknownVariableType": "none",
-  "reportUnknownArgumentType": "none",
+  "typeCheckingMode": "strict",
   "include": ["."],
-  "exclude": ["venv", ".venv", "node_modules", "static", "scripts"]
+  "exclude": ["venv", ".venv", "node_modules", "static", "scripts", "__pycache__"]
 }

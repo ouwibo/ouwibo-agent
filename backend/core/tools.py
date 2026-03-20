@@ -36,17 +36,17 @@ logger = logging.getLogger(__name__)
 
 try:
     # Try importing the new 'ddgs' package (Dux Distributed Global Search) first
-    from ddgs import DDGS
+    from ddgs import DDGS  # type: ignore
 except ImportError:
     try:
         # Fallback to the classic 'duckduckgo_search' package
-        from duckduckgo_search import DDGS
+        from duckduckgo_search import DDGS  # type: ignore
     except ImportError:
         DDGS = None
 
 
 try:
-    from googlesearch import search as gsearch
+    from googlesearch import search as gsearch  # type: ignore
 except Exception:
     gsearch = None
 
@@ -1443,7 +1443,7 @@ class DEX(Tool):
         py_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "py_env", "bin", "python3")
         if not os.path.exists(py_path): py_path = "python3"
 
-        full_cmd = [py_path, script_path] + args_list[:5]
+        full_cmd = [py_path, script_path] + list(islice(args_list, 5))
         if use_routes:
             full_cmd.append("--routes")
 
@@ -1473,7 +1473,7 @@ class DEX(Tool):
                         f"✅ **Ouwibo Professional Swap: Best Route Prepared**\n"
                         f"Target Output: **{out_amt}**\n\n"
                         f"Status: {note}\n\n"
-                        f"Raw Data: `{json.dumps(data['transactionRequest'])[:100]}...`\n\n"
+                        f"Raw Data: `{''.join(islice(json.dumps(data['transactionRequest']), 100))}...`\n\n"
                         "💡 *Please verify the details in your wallet before signing.*"
                     )
                 return raw_out

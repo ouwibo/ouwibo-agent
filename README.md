@@ -32,6 +32,48 @@ Ouwibo can act as a **Seller Node** on the Virtuals Protocol ACP network. It has
 
 ---
 
+## 🚀 Quick Start (Production)
+
+### 1. Requirements
+- Docker & Docker Compose
+- Node.js 18+
+- Python 3.10+
+
+### 2. Deployment with Docker
+```bash
+docker-compose up --build
+```
+
+---
+
+## 🛠️ Developer Guide
+
+### Environment Setup
+1. Create a `.env` file from `.env.example`.
+2. Install dependencies:
+   ```bash
+   npm install
+   pip install -r backend/requirements.txt
+   ```
+
+### Scaffolding a New Skill
+Use the Ouwibo CLI to quickly create a new skill:
+```bash
+python backend/core/cli.py create-skill "My New Skill"
+```
+This will create a new directory in `backend/skills/my_new_skill` with `skill.json` and `SKILL.md`.
+
+### Testing
+Run all tests using pytest:
+```bash
+pytest backend/tests
+```
+
+### Type Safety
+The project uses `pyright` and `pydantic` for strict type safety. Ensure your environment is configured to respect `backend/pyrightconfig.json`.
+
+---
+
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).

@@ -51,6 +51,42 @@ function setupCleanupHandlers(): void {
 const ACP_URL = process.env.ACP_SOCKET_URL || "https://acpx.virtuals.io";
 let agentDirName: string = "";
 
+// -- Job Queue Implementation --
+
+class JobQueue {
+  private queue: AcpJobEventData[] = [];
+  private isProcessing = false;
+
+  public push(data: AcpJobEventData): void {
+    // Only queue if not already in queue (simple de-dupe by ID and Phase)
+    const exists = this.queue.some((j) => j.id === data.id && j.phase === data.phase);
+    if (!exists) {
+      this.queue.push(data);
+      console.log(`[queue] Job ${data.id} (Phase ${data.phase}) added to queue. Size: ${this.queue.length}`);
+      this.processNext();
+    }
+  }
+
+  private async processNext(): Promise<void> {
+    if (this.isProcessing || this.queue.length === 0) return;
+
+    this.isProcessing = true;
+    const currentJob = this.queue.shift()!;
+
+    try {
+      await handleNewTask(currentJob);
+    } catch (err) {
+      console.error(`[queue] Error processing job ${currentJob.id}:`, err);
+    } finally {
+      this.isProcessing = false;
+      // Process next job asynchronously to avoid stack overflow
+      setImmediate(() => this.processNext());
+    }
+  }
+}
+
+const jobQueue = new JobQueue();
+
 // -- Job handling --
 
 function resolveOfferingName(data: AcpJobEventData): string | undefined {
@@ -80,9 +116,7 @@ async function handleNewTask(data: AcpJobEventData): Promise<void> {
   const jobId = data.id;
 
   console.log(`\n${"=".repeat(60)}`);
-  console.log(`[seller] New task  jobId=${jobId}  phase=${AcpJobPhase[data.phase] ?? data.phase}`);
-  console.log(`         client=${data.clientAddress}  price=${data.price}`);
-  console.log(`         context=${JSON.stringify(data.context)}`);
+  console.log(`[seller] Processing jobId=${jobId}  phase=${AcpJobPhase[data.phase] ?? data.phase}`);
   console.log(`${"=".repeat(60)}`);
 
   // Step 1: Accept / reject
@@ -229,9 +263,7 @@ async function main() {
     walletAddress,
     callbacks: {
       onNewTask: (data) => {
-        handleNewTask(data).catch((err) =>
-          console.error("[seller] Unhandled error in handleNewTask:", err)
-        );
+        jobQueue.push(data);
       },
       onEvaluate: (data) => {
         console.log(
@@ -241,7 +273,7 @@ async function main() {
     },
   });
 
-  console.log("[seller] Seller runtime is running. Waiting for jobs...\n");
+  console.log("[seller] Seller runtime is running with Job Queue. Waiting for jobs...\n");
 }
 
 main().catch((err) => {

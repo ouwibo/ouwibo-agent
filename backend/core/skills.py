@@ -1,17 +1,13 @@
-# core/skills.py
-from __future__ import annotations
-
 import re
-from dataclasses import dataclass
+import json
 from pathlib import Path
-from typing import cast, Any
+from typing import List, Optional, Tuple, Dict, Any, cast
+import pydantic
+from core import schemas
 
-
-@dataclass(frozen=True)
-class Skill:
+class Skill(pydantic.BaseModel):
     slug: str
-    title: str
-    description: str
+    manifest: schemas.SkillManifest
     content: str
 
 
@@ -157,16 +153,19 @@ def _parse_title_and_description(md_body: str, fallback_title: str, meta: dict[s
     return title, desc
 
 
-def list_skills() -> list[Skill]:
+def list_skills() -> List[Skill]:
     base = skills_dir()
     if not base.exists():
         return []
 
-    out: list[Skill] = []
+    out: List[Skill] = []
     for p in sorted(base.iterdir()):
         if not p.is_dir():
             continue
+        
         md_path = p / "SKILL.md"
+        json_path = p / "skill.json"
+        
         if not md_path.exists():
             continue
 
@@ -174,28 +173,58 @@ def list_skills() -> list[Skill]:
         try:
             slug = _validate_slug(slug)
         except ValueError:
-            # Skip folders that aren't valid skill ids.
             continue
 
-        content = md_path.read_text(encoding="utf-8", errors="replace").strip()
-        if not content:
-            continue
+        skill_content = md_path.read_text(encoding="utf-8", errors="replace").strip()
+        
+        # Load manifest from skill.json or fallback to frontmatter/parsing
+        manifest: Optional[schemas.SkillManifest] = None
+        if json_path.exists():
+            try:
+                manifest_data = json.loads(json_path.read_text(encoding="utf-8"))
+                manifest = schemas.SkillManifest(**manifest_data)
+            except Exception as e:
+                # Log error and fallback
+                pass
+        
+        if not manifest:
+            meta, body = _split_frontmatter(skill_content)
+            title, desc = _parse_title_and_description(body, fallback_title=slug, meta=meta)
+            manifest = schemas.SkillManifest(name=title, description=desc)
+            skill_body = body
+        else:
+            _, skill_body = _split_frontmatter(skill_content)
 
-        meta, body = _split_frontmatter(content)
-        title, desc = _parse_title_and_description(body, fallback_title=slug, meta=meta)
-        out.append(Skill(slug=slug, title=title, description=desc, content=body))
+        out.append(Skill(slug=slug, manifest=manifest, content=skill_body))
 
     return out
 
 
 def get_skill(slug: str) -> Skill:
     sid = _validate_slug(slug)
-    md_path = skills_dir() / sid / "SKILL.md"
+    base = skills_dir() / sid
+    md_path = base / "SKILL.md"
+    json_path = base / "skill.json"
+
     if not md_path.exists():
         raise FileNotFoundError(f"Skill not found: {sid}")
-    content = md_path.read_text(encoding="utf-8", errors="replace").strip()
-    if not content:
-        raise FileNotFoundError(f"Skill has no content: {sid}")
-    meta, body = _split_frontmatter(content)
-    title, desc = _parse_title_and_description(body, fallback_title=sid, meta=meta)
-    return Skill(slug=sid, title=title, description=desc, content=body)
+    
+    skill_content = md_path.read_text(encoding="utf-8", errors="replace").strip()
+    
+    manifest: Optional[schemas.SkillManifest] = None
+    if json_path.exists():
+        try:
+            manifest_data = json.loads(json_path.read_text(encoding="utf-8"))
+            manifest = schemas.SkillManifest(**manifest_data)
+        except Exception:
+            pass
+
+    if not manifest:
+        meta, body = _split_frontmatter(skill_content)
+        title, desc = _parse_title_and_description(body, fallback_title=sid, meta=meta)
+        manifest = schemas.SkillManifest(name=title, description=desc)
+        skill_body = body
+    else:
+        _, skill_body = _split_frontmatter(skill_content)
+
+    return Skill(slug=sid, manifest=manifest, content=skill_body)
