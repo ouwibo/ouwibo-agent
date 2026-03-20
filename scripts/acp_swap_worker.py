@@ -38,24 +38,52 @@ if PRIVATE_KEY and Web3:
     except Exception as e:
         logging.warning(f"Could not derive wallet address from private key: {e}")
 
+def get_chain_id(name: str) -> str:
+    mapping = {
+        "eth": "1",
+        "ethereum": "1",
+        "base": "8453",
+        "arb": "42161",
+        "arbitrum": "42161",
+        "op": "10",
+        "optimism": "10",
+        "bsc": "56",
+        "binance": "56",
+        "polygon": "137",
+        "avax": "43114",
+        "avalanche": "43114",
+        "gnosis": "100",
+        "sol": "115111108"
+    }
+    return mapping.get(name.lower(), name)
+
 def main():
-    if len(sys.argv) < 6:
+    use_routes = "--routes" in sys.argv
+    
+    # Clean up sys.argv for positionals
+    clean_args = [a for a in sys.argv if not a.startswith("--")]
+    if len(clean_args) < 6:
         print(json.dumps({"error": "Missing required arguments: fromToken, toToken, amount, fromChain, toChain"}))
         sys.exit(1)
 
-    from_token = sys.argv[1]
-    to_token = sys.argv[2]
-    amount_str = sys.argv[3]
-    from_chain = sys.argv[4]
-    to_chain = sys.argv[5]
+    from_token = clean_args[1]
+    to_token = clean_args[2]
+    amount_str = clean_args[3]
+    from_chain = get_chain_id(clean_args[4])
+    to_chain = get_chain_id(clean_args[5])
 
-    if not LIFI_API_KEY:
+    # Try loading from backend/.env if root .env doesn't exist or doesn't have LIFI_API_KEY
+    if not os.getenv("LIFI_API_KEY"):
+        load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), "backend", ".env"))
+    
+    _lifi_key = os.getenv("LIFI_API_KEY")
+    _wallet = os.getenv("WALLET_ADDRESS") or WALLET_ADDRESS
+
+    if not _lifi_key:
         print(json.dumps({"error": "LIFI_API_KEY not found in environment."}))
         sys.exit(1)
 
     # Determine token decimals
-    # Native ETH/BNB/MATIC (zero address or symbol 'ETH') = 18 decimals
-    # USDC/USDT = 6 decimals, WETH = 18 decimals
     _token_lower = from_token.lower()
     if _token_lower in ("eth", "bnb", "matic", "avax", "sol", "0x0000000000000000000000000000000000000000"):
         _decimals = 18
@@ -66,26 +94,66 @@ def main():
                           "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"):
         _decimals = 6
     else:
-        _decimals = 18  # default to 18 for WETH and unknown tokens
+        _decimals = 18
 
+    headers = {
+        "accept": "application/json",
+        "x-lifi-api-key": _lifi_key
+    }
+    
+    amount_base = str(int(float(amount_str) * (10 ** _decimals)))
+    from_address = _wallet or "0xf55Cee7BB7bd8712197679d48a618A54840B2335"
+
+    if use_routes:
+        url = "https://li.quest/v1/advanced/routes"
+        payload = {
+            "fromChainId": int(from_chain),
+            "toChainId": int(to_chain),
+            "fromTokenAddress": from_token,
+            "toTokenAddress": to_token,
+            "fromAmount": amount_base,
+            "fromAddress": from_address,
+            "options": {"slippage": 0.005}
+        }
+        try:
+            response = requests.post(url, headers=headers, json=payload)
+            if response.status_code != 200:
+                print(json.dumps({"error": f"LI.FI Routes API failed: {response.text}"}))
+                sys.exit(1)
+            
+            data = response.json()
+            routes = data.get("routes", [])
+            formatted_routes = []
+            for r in routes[:5]:
+                formatted_routes.append({
+                    "id": r.get("id"),
+                    "tool": r.get("steps", [{}])[0].get("tool"),
+                    "toAmount": r.get("toAmount"),
+                    "gasCostUSD": r.get("gasCostUSD"),
+                    "steps": len(r.get("steps", []))
+                })
+            print(json.dumps({
+                "routes": formatted_routes,
+                "note": "Aggregator mode: multiple routes found."
+            }))
+            sys.exit(0)
+        except Exception as e:
+            print(json.dumps({"error": f"Routes fetch error: {str(e)}"}))
+            sys.exit(1)
+
+    # DEFAULT: Quote mode
     url = "https://li.quest/v1/quote"
     params = {
         "fromChain": from_chain,
         "toChain": to_chain,
         "fromToken": from_token,
         "toToken": to_token,
-        "fromAmount": str(int(float(amount_str) * (10 ** _decimals))),
-        "fromAddress": WALLET_ADDRESS or "0x0000000000000000000000000000000000000000"
+        "fromAmount": amount_base,
+        "fromAddress": from_address
     }
-
-    headers = {
-        "accept": "application/json",
-        "x-lifi-api-key": LIFI_API_KEY
-    }
-
+    
     try:
         response = requests.get(url, headers=headers, params=params)
-        
         if response.status_code != 200:
             print(json.dumps({"error": f"LI.FI API failed: {response.text}"}))
             sys.exit(1)
@@ -94,58 +162,15 @@ def main():
         quote = data.get("estimate", {})
         tx_data = data.get("transactionRequest", {})
 
-        output_amount_base = parse_int(quote.get("toAmountMin", 0))
-        output_display = quote.get("toAmountMin", "0") # You would divide this by the target token's decimals
-
-        # DRY RUN - we are not executing on chain yet
-        if not Web3 or not PRIVATE_KEY:
-            # Simulated Success Response
-            result = {
-                "txHash": "0xSIMULATED_TXH_DRY_RUN",
-                "outputAmountBase": output_amount_base,
-                "outputAmountDisplay": f"~{output_amount_base}",
-                "simulated": True,
-                "note": "Private Key or Web3 not found. This was a dry run simulation."
-            }
-            print(json.dumps(result))
-            sys.exit(0)
-
-        # Actual Execution Logic
-        rpc_url = os.getenv("RPC_URL", "https://mainnet.base.org") # Default to Base network RPC
-        w3 = Web3(Web3.HTTPProvider(rpc_url))
-        
-        if not w3.is_connected():
-            print(json.dumps({"error": "Failed to connect to RPC node."}))
-            sys.exit(1)
-
-        account = w3.eth.account.from_key(PRIVATE_KEY)
-        
-        # Prepare transaction
-        transaction = {
-            'to': w3.to_checksum_address(tx_data.get('to')),
-            'data': tx_data.get('data'),
-            'value': parse_int(tx_data.get('value', 0)),
-            'gas': parse_int(tx_data.get('gasLimit', 500000)),
-            'gasPrice': parse_int(tx_data.get('gasPrice', w3.eth.gas_price)),
-            'nonce': w3.eth.get_transaction_count(account.address),
-            'chainId': parse_int(tx_data.get('chainId', 8453)) # Default Base
-        }
-
-        # Sign and send transaction
-        signed_txn = account.sign_transaction(transaction)
-        tx_hash = w3.eth.send_raw_transaction(signed_txn.raw_transaction)
-        hex_hash = Web3.to_hex(tx_hash)
-
         result = {
-            "txHash": hex_hash,
-            "outputAmountBase": output_amount_base,
-            "outputAmountDisplay": f"~{output_amount_base}",
-            "simulated": False,
-            "note": "Transaction executed successfully."
+            "txHash": None,
+            "outputAmount": quote.get("toAmountMin", "0"),
+            "transactionRequest": tx_data,
+            "simulated": True if not (Web3 and PRIVATE_KEY) else False,
+            "note": "Transaction prepared successfully. [ACTION: CONNECT_WALLET] to sign."
         }
         print(json.dumps(result))
         sys.exit(0)
-
     except Exception as e:
         print(json.dumps({"error": str(e)}))
         sys.exit(1)

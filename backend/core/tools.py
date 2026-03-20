@@ -1428,19 +1428,57 @@ class DEX(Tool):
 
     def execute(self, arg: str) -> str:
         import subprocess
-        # Parse arguments, expecting 5 space-separated values
-        args = arg.strip().split()
-        if len(args) < 5:
-            return "Error: DEX requires exactly 5 arguments: fromToken toToken amount fromChain toChain"
+        arg_str = (arg or "").strip()
+        use_routes = "routes" in arg_str.lower()
+        
+        # Parse arguments, clean out the 'routes' keyword if present
+        clean_arg = arg_str.replace("routes", "").replace("  ", " ").strip()
+        args_list = clean_arg.split()
+        
+        if len(args_list) < 5:
+            return "Error: DEX requires: fromToken toToken amount fromChain toChain [Optional: routes]"
         
         script_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "scripts", "acp_swap_worker.py")
-        full_cmd = ["python", script_path] + args[:5]
+        # Use python from the virtual env if possible
+        py_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "py_env", "bin", "python3")
+        if not os.path.exists(py_path): py_path = "python3"
+
+        full_cmd = [py_path, script_path] + args_list[:5]
+        if use_routes:
+            full_cmd.append("--routes")
 
         try:
-            result = subprocess.run(full_cmd, capture_output=True, text=True, timeout=45)
-            if result.returncode != 0:
-                return f"Swap Execution Error: {result.stderr.strip() or result.stdout.strip()}"
-            return result.stdout.strip()
+            res = subprocess.run(full_cmd, capture_output=True, text=True, timeout=45)
+            if res.returncode != 0:
+                return f"Swap Error: {res.stderr.strip() or res.stdout.strip()}"
+            
+            raw_out = res.stdout.strip()
+            try:
+                data = json.loads(raw_out)
+                
+                # Handling Multi-Route Mode (Aggregator)
+                if "routes" in data:
+                    routes = data["routes"]
+                    header = "🔍 **Professional DEX Aggregator: Top Routes Found**\n\n"
+                    table = "| Provider | Min. Output | Est. Gas (USD) | Steps |\n| :--- | :--- | :--- | :--- |\n"
+                    for r in routes:
+                        table += f"| {r['tool']} | {r['toAmount']} | ${r['gasCostUSD']} | {r['steps']} |\n"
+                    return f"{header}{table}\n*Select a route in the UI to proceed with the transaction.*"
+
+                # Handling Best Quote Mode (Agent)
+                if "transactionRequest" in data:
+                    out_amt = data.get("outputAmount", "0")
+                    note = data.get("note", "")
+                    return (
+                        f"✅ **Ouwibo Professional Swap: Best Route Prepared**\n"
+                        f"Target Output: **{out_amt}**\n\n"
+                        f"Status: {note}\n\n"
+                        f"Raw Data: `{json.dumps(data['transactionRequest'])[:100]}...`\n\n"
+                        "💡 *Please verify the details in your wallet before signing.*"
+                    )
+                return raw_out
+            except Exception:
+                return raw_out
         except subprocess.TimeoutExpired:
             return "Error: Swap command timed out."
         except Exception as e:
@@ -1502,9 +1540,7 @@ class Tempo(Tool):
             return f"Tempo execution error: {e}"
 
 
-# ---------------------------------------------------------------------------
-# Registry — all available tools with metadata (for the /tools API & UI)
-# ---------------------------------------------------------------------------
+# This list is for the 'Tools' page on the website (Manual Use)
 ALL_TOOLS: List[Type[Tool]] = [
     Calculator,
     WebSearch,
@@ -1527,4 +1563,17 @@ ALL_TOOLS: List[Type[Tool]] = [
     ACP,
     DEX,
     Tempo,
+]
+
+# This list is for the Conversational AI Agent (Professional Persona)
+# FOCUS: Crypto Research, Market Analysis, DeFi Operations.
+AGENT_TOOLS: List[Type[Tool]] = [
+    WebSearch,       # For real-time alpha/whitepaper research
+    NewsSearch,      # Market headlines and macros
+    CryptoMarket,    # Prices/FDV/Volumes
+    ENSResolve,      # Identity management
+    Wallet,          # On-chain balances/status
+    URLReader,       # Deep analysis of articles/docs
+    DEX,             # Swap/Bridge preparation
+    Tempo,           # Specialized wallet integration
 ]

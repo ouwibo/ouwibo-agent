@@ -10,6 +10,7 @@
 //   --version    Show version
 // =============================================================================
 
+import "dotenv/config";
 import { createRequire } from "module";
 import { setJsonMode } from "../src/lib/output.js";
 import { requireApiKey } from "../src/lib/config.js";

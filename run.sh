@@ -10,12 +10,12 @@ echo -e "${BLUE}🚀 Starting Ouwibo Agent Unified Services...${NC}"
 
 # 1. Start the Ouwibo API (Backend + Web UI)
 echo -e "${GREEN}Starting AI API on port 8001...${NC}"
-./venv/bin/python3 api.py &
+(cd backend && ./py_env/bin/python3 api.py) &
 API_PID=$!
 
 # 2. Start the ACP Service
 echo -e "${GREEN}Starting ACP Service...${NC}"
-cd virtuals-protocol-acp && npx tsx bin/acp.ts serve start &
+(cd virtuals-protocol-acp && npx tsx bin/acp.ts serve start) &
 ACP_PID=$!
 
 echo -e "${BLUE}Both services are running.${NC}"

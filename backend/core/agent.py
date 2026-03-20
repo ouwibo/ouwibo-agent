@@ -9,27 +9,7 @@ from .memory import Memory
 from .planner import Planner
 from .config import MODELS
 from .rate_limit import RateLimiter, get_limiter, RateLimitConfig
-from .tools import (
-    ACP,
-    Calculator,
-    CodeSearch,
-    CurrencyConverter,
-    DateTime,
-    Dictionary,
-    ENSResolve,
-    GoogleSearch,
-    NewsSearch,
-    PhindSearch,
-    CryptoMarket,
-    SocialSearch,
-    StockMarket,
-    URLReader,
-    Wallet,
-    Weather,
-    WebSearch,
-    Wikipedia,
-    DEX,
-)
+from .tools import AGENT_TOOLS, Tool
 
 logger = logging.getLogger(__name__)
 
@@ -44,34 +24,19 @@ class Agent:
             requests_per_hour=1000,
             burst_limit=10
         ))
-        self.tools = {
-            "calculate": Calculator(),
-            "search": WebSearch(),
-            "datetime": DateTime(),
-            "weather": Weather(),
-            "wikipedia": Wikipedia(),
-            "news": NewsSearch(),
-            "currency": CurrencyConverter(),
-            "read_url": URLReader(),
-            "crypto": CryptoMarket(),
-            "ens": ENSResolve(),
-            "wallet": Wallet(),
-            "social_search": SocialSearch(),
-            "google_search": GoogleSearch(),
-            "stocks": StockMarket(),
-            "dictionary": Dictionary(),
-            "find_script": CodeSearch(),
-            "phind": PhindSearch(),
-            "acp": ACP(),
-            "dex": DEX(),
-        }
+        # Specialist Tools only
+        self.tools = {}
+        for tool_cls in AGENT_TOOLS:
+            name = getattr(tool_cls, "name", None)
+            if name:
+                self.tools[name] = tool_cls()
 
     _UNCERTAIN_RE = re.compile(
         r"\b("
-        r"tidak\s+tahu|gak\s+tahu|nggak\s+tahu|kurang\s+tahu|"
-        r"tidak\s+yakin|ga\s+yakin|nggak\s+yakin|"
-        r"i\s+don'?t\s+know|not\s+sure|uncertain|"
-        r"cannot\s+find|can't\s+find|no\s+information"
+        r"tidak\s+tahu|gak\s+tahu|nggak\s+tahu|kurang\s+tahu|mungkin|"
+        r"tidak\s+yakin|ga\s+yakin|nggak\s+yakin|belum\s+yakin|"
+        r"i\s+don'?t\s+know|not\s+sure|uncertain|looking\s+up|"
+        r"cannot\s+find|can't\s+find|no\s+information|maaf"
         r")\b",
         re.IGNORECASE,
     )
@@ -91,12 +56,17 @@ class Agent:
         Falls back to a short apology if the client call fails.
         """
         sys = (
-            "You are Ouwibo Agent. Answer the user's question as best as you can. "
-            "Be practical and specific. If you use web snippets provided, cite URLs inline. "
-            "If you are uncertain, propose a reasonable next step rather than stopping.\n\n"
-            "You have general intelligence and should answer global, general questions directly "
-            "without immediately referring to external tools or the ACP marketplace unless explicitly requested, "
-            "or if the task requires deep specialization (like on-chain trading/analysis)."
+            "You are the **Ouwibo Crypto Professional Agent**, an elite assistant specializing in "
+            "blockchain intelligence, DeFi, and market research.\n\n"
+            "### YOUR PERSONA\n"
+            "- **Professional & Analytical**: Your goal is to provide deep insights, not just surface-level info.\n"
+            "- **Specialist**: You focus strictly on Crypto. If asked about general topics (weather, etc.), "
+            "provide a brief answer but steer the conversation back to crypto value.\n"
+            "- **Security-First**: You prepare transactions but NEVER sign them. You always warn users to verify "
+            "everything before signing.\n\n"
+            "### RULES\n"
+            "- Speak both **Indonesian** and **English** (Bilingual Support).\n"
+            "- If you recommend a swap or bridge, you MUST include the trigger: `[ACTION: CONNECT_WALLET]`."
         )
         sc = (skill_context or "").strip()
         if sc:
@@ -293,3 +263,95 @@ class Agent:
         result = self._search_read_and_summarize(task, skill_context=skill_context)
         self.limiter.record(session_id)
         return result
+    def run_stream(self, task: str, skill_context: str = "", session_id: str = "default"):
+        """Generator version of run() for streaming responses (SSE)."""
+        import json
+
+        # Rate limiting check
+        limited, reason = self.limiter.check(session_id)
+        if limited:
+            yield f"data: {json.dumps({'error': f'Rate limited: {reason}'})}\n\n"
+            return
+
+        if len(task) > MAX_MESSAGE_LENGTH:
+            yield f"data: {json.dumps({'error': 'Message too long'})}\n\n"
+            return
+
+        self.memory.add("user", task)
+        
+        # Iterative Loop
+        max_iterations = 8
+        for i in range(max_iterations):
+            yield f"data: {json.dumps({'status': f'Iterasi {i+1}/{max_iterations}'})}\n\n"
+            
+            try:
+                plan = self.planner.plan(task, self.memory.get_history(), skill_context=skill_context)
+            except Exception as e:
+                yield f"data: {json.dumps({'status': 'Planner failed, trying direct answer...'})}\n\n"
+                direct = self._search_read_and_summarize(task, skill_context=skill_context)
+                yield f"data: {json.dumps({'chunk': direct})}\n\n"
+                self.memory.add("assistant", direct)
+                self.limiter.record(session_id)
+                return
+
+            if not plan:
+                direct = self._search_read_and_summarize(task, skill_context=skill_context)
+                yield f"data: {json.dumps({'chunk': direct})}\n\n"
+                self.memory.add("assistant", direct)
+                self.limiter.record(session_id)
+                return
+
+            progressed = False
+            for step in plan:
+                step = step.strip()
+                if not step: continue
+                
+                match = re.match(r"^(\w+)\[(.+)\]$", step, re.DOTALL)
+                if not match: continue
+
+                command = match.group(1).lower()
+                arg = match.group(2).strip()
+
+                if command == "think":
+                    yield f"data: {json.dumps({'thought': arg})}\n\n"
+                    continue
+
+                if command == "finish":
+                    final = arg
+                    if self._looks_uncertain(final):
+                        final = self._search_read_and_summarize(task, skill_context=skill_context)
+                    
+                    # Yield final answer in chunks if it's long? 
+                    # For now just yield as one chunk for simplicity, 
+                    # but the architecture is ready for token streaming.
+                    yield f"data: {json.dumps({'chunk': final})}\n\n"
+                    self.memory.add("assistant", final)
+                    self.limiter.record(session_id)
+                    yield "data: [DONE]\n\n"
+                    return
+
+                # Tool calls
+                yield f"data: {json.dumps({'status': f'Memanggil tool {command}...'})}\n\n"
+                try:
+                    if command == "auto_search":
+                        result = self._search_read_and_summarize(arg, skill_context=skill_context)
+                    elif command in self.tools:
+                        result = self.tools[command].execute(arg)
+                    else:
+                        result = f"Error: Tool {command} not found."
+                    
+                    self.memory.add("assistant", f"[{command} result] {result}")
+                    progressed = True
+                except Exception as e:
+                    self.memory.add("assistant", f"[{command} error] {e}")
+            
+            if not progressed:
+                direct = self._search_read_and_summarize(task, skill_context=skill_context)
+                yield f"data: {json.dumps({'chunk': direct})}\n\n"
+                self.memory.add("assistant", direct)
+                self.limiter.record(session_id)
+                yield "data: [DONE]\n\n"
+                return
+
+        yield f"data: {json.dumps({'chunk': 'Mencapai batas iterasi tanpa jawaban final.'})}\n\n"
+        yield "data: [DONE]\n\n"

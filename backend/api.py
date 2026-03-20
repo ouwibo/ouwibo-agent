@@ -9,7 +9,7 @@ from dotenv import load_dotenv  # type: ignore[import-untyped]
 from fastapi import Depends, FastAPI, HTTPException, Request, Response, Query as QueryParam  # type: ignore[import-untyped]
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore[import-untyped]
 from fastapi.staticfiles import StaticFiles  # type: ignore[import-untyped]
-from fastapi.responses import FileResponse  # type: ignore[import-untyped]
+from fastapi.responses import FileResponse, StreamingResponse  # type: ignore[import-untyped]
 import uvicorn  # type: ignore[import-untyped]
 from openai import OpenAI, APIError, AuthenticationError  # type: ignore[import-untyped]
 from pydantic import BaseModel, Field  # type: ignore[import-untyped]
@@ -94,36 +94,24 @@ rotator = KeyRotator()
 
 # Free AI Wrapper for DuckDuckGo
 class FreeAIClient:
-    """A client that mimics the OpenAI interface using DuckDuckGo search as a fallback."""
+    """A client that mimics the Alibaba/OpenAI interface using DuckDuckGo AI (Free)."""
     class Chat:
         class Completions:
             def create(self, messages, model="gpt-4o-mini", **kwargs):
                 from ddgs import DDGS  # type: ignore[import-untyped]
-                prompt = messages[-1]["content"] if messages else "Hello"
-                
-                try:
-                    with DDGS() as ddgs:
-                        # Use text search as a fallback since .chat() is often missing in newer ddgs versions
-                        results = list(ddgs.text(prompt, max_results=5))
-                        if results:
-                            resp_text = f"Based on latest search results:\n\n" + "\n".join([f"- {r.get('body', '')}" for r in results])
-                        else:
-                            resp_text = "I'm having trouble accessing my free AI fallback. Please check your API keys."
-                except Exception as e:
-                    logger.error(f"FreeAI fallback error: {e}")
-                    resp_text = f"Service currently limited. Error: {e}"
-
-                class MockResponse:
-                    class Choice:
-                        class Message:
-                            def __init__(self, content):
-                                self.content = content
-                        def __init__(self, content):
-                            self.message = self.Message(content)
-                    def __init__(self, content):
-                        self.choices = [self.Choice(content)]
-                
-                return MockResponse(resp_text)
+                prompt = messages[-1]["content"]
+                with DDGS() as ddgs:
+                    ddgs_model = "gpt-4o-mini"
+                    if "llama" in str(model).lower(): ddgs_model = "llama-3.1-70b"
+                    response = ddgs.chat(prompt, model=ddgs_model)
+                    
+                    class MockResponse:
+                        class Choice:
+                            class Message:
+                                def __init__(self, content): self.content = content
+                            def __init__(self, content): self.message = self.Message(content)
+                        def __init__(self, content): self.choices = [self.Choice(content)]
+                    return MockResponse(response)
         completions = Completions()
     chat = Chat()
 
@@ -486,17 +474,73 @@ async def chat_with_agent(
         )
 
 
+@app.post("/api/chat/stream", tags=["Chat"])
+async def chat_with_agent_stream(
+    request: Request,
+    body: ChatRequest,
+    db: Session = Depends(get_db),
+    _: None = Depends(require_auth),
+):
+    """Streaming version of chat_with_agent using Server-Sent Events (SSE)."""
+    import json
+    client = rotator.get_current_client() or free_ai_client
+    
+    # Init agent & restore memory
+    history = (
+        db.query(models.ChatMessage)
+        .filter_by(session_id=body.session_id)
+        .order_by(models.ChatMessage.id)
+        .all()
+    )
+    agent = Agent(client=client)
+    for h in history:
+        agent.memory.add(h.role, h.content)
+
+    skill_id = (body.skill or "").strip().lower()
+    skill_context = ""
+    if skill_id:
+        try:
+            from core.skills import get_skill as _get_skill
+            skill_context = _get_skill(skill_id).content
+        except Exception:
+            pass
+
+    async def event_generator():
+        full_response = ""
+        try:
+            for chunk in agent.run_stream(body.message, skill_context=skill_context, session_id=body.session_id):
+                yield chunk
+                
+                if "chunk" in chunk:
+                    try:
+                        data = json.loads(chunk.replace("data: ", "").strip())
+                        full_response += data.get("chunk", "")
+                    except Exception:
+                        pass
+            
+            if full_response:
+                db.add(models.ChatMessage(session_id=body.session_id, role="user", content=body.message))
+                db.add(models.ChatMessage(session_id=body.session_id, role="assistant", content=full_response))
+                db.commit()
+        except Exception as e:
+            logger.error(f"Stream error: {e}")
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
 # ---------------------------------------------------------------------------
 # Metadata (8004 Scan, etc.)
 # ---------------------------------------------------------------------------
 @app.get("/8004.json", tags=["Metadata"])
 async def get_8004_json():
-    return FileResponse("8004.json")
+    # For Vercel, the file is usually at the root relative to api/
+    return FileResponse(os.path.join(os.path.dirname(__file__), "..", "8004.json"))
 
 
 @app.get("/.well-known/agent-card.json", tags=["Metadata"])
 async def get_agent_card_json():
-    return FileResponse(".well-known/agent-card.json")
+    return FileResponse(os.path.join(os.path.dirname(__file__), "..", ".well-known", "agent-card.json"))
 
 
 # ---------------------------------------------------------------------------
