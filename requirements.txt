@@ -4,7 +4,6 @@ sqlalchemy
 slowapi
 python-dotenv
 web3
-eth-account
 requests
 duckduckgo_search
 googlesearch-python
@@ -13,4 +12,3 @@ pytest
 pytz
 openai
 pydantic
-python-telegram-bot
